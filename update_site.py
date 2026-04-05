@@ -8,6 +8,7 @@ from bs4 import BeautifulSoup
 YT_API_KEY = os.getenv("YT_API_KEY", "AIzaSyAfvxhjH1V3W1jiMGROEpUsRwGhBWfGC1Y")
 YT_CHANNEL_ID = os.getenv("YT_CHANNEL_ID", "UCGe5VOk80siQe0r2OfQQWPw")
 GH_USERNAME = os.getenv("GH_USERNAME", "Dyvorn")
+GH_TOKEN = os.getenv("GH_TOKEN")
 HTML_FILE = "index.html"
 
 def get_latest_youtube_video():
@@ -29,9 +30,14 @@ def get_latest_youtube_video():
 
 def get_github_repos():
     """Fetches top 3 recent repositories from GitHub."""
+    headers = {}
+    if GH_TOKEN:
+        headers["Authorization"] = f"token {GH_TOKEN}"
+        print("Using GitHub Token for authenticated request.")
+
     try:
         url = f"https://api.github.com/users/{GH_USERNAME}/repos?sort=updated&per_page=10"
-        response = requests.get(url)
+        response = requests.get(url, headers=headers)
         response.raise_for_status()
         repos = response.json()
         # Filter out forks and return top 3
