@@ -13,6 +13,19 @@
   <meta property="og:type" content="website" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="REFINED | Portfolio" />
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org/",
+      "@type": "Person",
+      "name": "Lennard Finn Penzler",
+      "url": "https://github.com/Dyvorn",
+      "jobTitle": "Software Developer & Media Producer",
+      "description": "A high-performance, cinematic portfolio designed to be professional yet calm and chill.",
+      "sameAs": [
+        "https://github.com/Dyvorn"
+      ]
+    }
+  </script>
   <meta name="theme-color" content="#050505" />
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="assets/logo.svg" />
@@ -60,18 +73,34 @@
 
         .container { max-width: 1100px; margin: 0 auto; padding: 0 30px; }
 
-        /* Parallax Background Layer */
-        #parallax-bg {
+        /* Multi-Layered Parallax Background */
+        .parallax-layer {
             position: fixed;
             top: 0; left: 0;
             width: 100%; height: 120%;
-            background: 
-                radial-gradient(circle at 50% 50%, rgba(212, 175, 55, 0.02) 0%, transparent 50%),
-                linear-gradient(rgba(212, 175, 55, 0.02) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(212, 175, 55, 0.02) 1px, transparent 1px);
-            background-size: 100% 100%, 60px 60px, 60px 60px;
-            z-index: -2;
+            pointer-events: none;
             will-change: transform;
+        }
+        #parallax-grid {
+            background: 
+                linear-gradient(rgba(212, 175, 55, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(212, 175, 55, 0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
+            z-index: -3;
+        }
+        #parallax-stars {
+            background-image: 
+                radial-gradient(1px 1px at 20px 30px, var(--gold), rgba(0,0,0,0)),
+                radial-gradient(1px 1px at 40px 70px, var(--neon), rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 50px 160px, #fff, rgba(0,0,0,0));
+            background-repeat: repeat;
+            background-size: 200px 200px;
+            opacity: 0.1;
+            z-index: -4;
+        }
+        #parallax-glow {
+            background: radial-gradient(circle at 50% 50%, rgba(212, 175, 55, 0.02) 0%, transparent 50%);
+            z-index: -2;
         }
 
         /* Custom Cursor */
@@ -435,8 +464,9 @@
   </style>
  </head>
  <body>
-  <div id="parallax-bg">
-  </div>
+  <div class="parallax-layer" id="parallax-grid"></div>
+  <div class="parallax-layer" id="parallax-glow"></div>
+  <div class="parallax-layer" id="parallax-stars"></div>
   <div id="cursor">
   </div>
   <div class="cursor-trail" style="--d: 1"></div>
@@ -626,15 +656,8 @@
      <span class="mono">Journal</span>
      <span class="mono" style="color: var(--muted)">Micro-blog</span>
     </div>
-    <div class="notes-grid">
-     <div class="note-item">
-      <span class="note-date mono">Apr 05, 2026</span>
-      <p class="note-content">Reworked the entire portfolio architecture today. Focusing on "cortisol lowering" UI patterns and cinematic depth. Feeling refined. 🥂</p>
-     </div>
-     <div class="note-item">
-      <span class="note-date mono">Apr 04, 2026</span>
-      <p class="note-content">TaskFlow is hitting 0.9.0. The Python backend is finally as stable as I want it. Cinematic code is coming.</p>
-     </div>
+    <div class="notes-grid" id="notes-grid">
+     <!-- Notes injected via notes.json and update_site.py -->
     </div>
    </section>
 
@@ -651,16 +674,36 @@
    </footer>
   </div>
   <script>
-   const cursor = document.getElementById('cursor');
-    const pBg = document.getElementById('parallax-bg');
+    // 1. Immediate Reveal Logic (Unblocks visibility instantly)
+    const observerOptions = { threshold: 0.05 };
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) entry.target.classList.add('active');
+        });
+    }, observerOptions);
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+    // 2. Cached Selectors & Measurements
+    const cursor = document.getElementById('cursor');
+    const pGrid = document.getElementById('parallax-grid');
+    const pGlow = document.getElementById('parallax-glow');
+    const pStars = document.getElementById('parallax-stars');
     const trails = document.querySelectorAll('.cursor-trail');
+    const magneticElements = document.querySelectorAll('.magnetic');
+    
     let mouseX = 0, mouseY = 0;
     let cursorX = 0, cursorY = 0;
     let trailPositions = Array.from({ length: 3 }, () => ({ x: 0, y: 0 }));
     let scale = 1;
     let isMoving = false;
     let hoveredCard = null;
+    let hoveredCardRect = null;
     let curRotX = 0, curRotY = 0;
+
+    let magneticRects = [];
+    const updateRects = () => {
+        magneticRects = Array.from(magneticElements).map(el => ({ el, rect: el.getBoundingClientRect() }));
+    };
 
     // Discord Status (Lanyard API) - Replace DISCORD_ID with your actual ID
     const DISCORD_ID = "736569145618776094"; 
@@ -680,6 +723,9 @@
         else { setTimeout(type, isDeleting ? 50 : 100); }
     }
     type();
+
+    updateRects();
+    window.addEventListener('resize', updateRects);
 
     document.addEventListener('mousemove', e => {
         mouseX = e.clientX;
@@ -707,21 +753,20 @@
         });
 
         // Card tilt logic (Handles both featured and standard cards)
-        if (hoveredCard) {
-            const rect = hoveredCard.getBoundingClientRect();
+        if (hoveredCard && hoveredCardRect) {
             let targetRotX = 0;
             let targetRotY = 0;
             
-            const x = cursorX - rect.left;
-            const y = cursorY - rect.top;
+            const x = cursorX - hoveredCardRect.left;
+            const y = cursorY - hoveredCardRect.top;
             
             if (hoveredCard.classList.contains('featured-card')) {
                 hoveredCard.style.setProperty('--mouse-x', `${x}px`);
                 hoveredCard.style.setProperty('--mouse-y', `${y}px`);
             }
 
-            const centerX = rect.width / 2;
-            const centerY = rect.height / 2;
+            const centerX = hoveredCardRect.width / 2;
+            const centerY = hoveredCardRect.height / 2;
             targetRotX = -(y - centerY) / (hoveredCard.classList.contains('featured-card') ? 25 : 40);
             targetRotY = (x - centerX) / (hoveredCard.classList.contains('featured-card') ? 25 : 40);
 
@@ -736,22 +781,27 @@
             curRotX = 0; curRotY = 0;
         }
 
-        // Parallax scroll logic (moves background at 20% of scroll speed)
-        const scrollY = window.pageYOffset;
-        pBg.style.transform = `translate3d(0, ${scrollY * 0.2}px, 0)`;
+        // Multi-Layer Parallax Logic
+        const scrollY = window.scrollY;
+        if(pGrid) pGrid.style.transform = `translate3d(0, ${scrollY * 0.15}px, 0)`;
+        if(pGlow) pGlow.style.transform = `translate3d(0, ${scrollY * 0.25}px, 0)`;
+        if(pStars) pStars.style.transform = `translate3d(0, ${scrollY * 0.05}px, 0)`;
 
-        // Magnetic elements logic
-        document.querySelectorAll('.magnetic').forEach(el => {
-            const rect = el.getBoundingClientRect();
+        // Magnetic elements logic (Visual update)
+        magneticRects.forEach(({el, rect}) => {
             const centerX = rect.left + rect.width / 2;
             const centerY = rect.top + rect.height / 2;
             const dist = Math.hypot(mouseX - centerX, mouseY - centerY);
             if (dist < 80) {
                 const strength = 1 - (dist / 80);
-                const x = (mouseX - centerX) * 0.5 * strength;
-                const y = (mouseY - centerY) * 0.5 * strength;
-                el.style.transform = `translate3d(${x}px, ${y}px, 0)`;
-            } else { el.style.transform = `translate3d(0, 0, 0)`; }
+                const targetX = (mouseX - centerX) * 0.5 * strength;
+                const targetY = (mouseY - centerY) * 0.5 * strength;
+                el.style.transform = `translate3d(${targetX}px, ${targetY}px, 0)`;
+                el.dataset.isMag = "true";
+            } else if (el.dataset.isMag === "true") {
+                el.style.transform = `translate3d(0, 0, 0)`;
+                el.dataset.isMag = "false";
+            }
         });
 
         cursor.style.transform = `translate3d(${cursorX}px, ${cursorY}px, 0) translate(-50%, -50%) scale(${scale})`;
@@ -767,6 +817,7 @@
             cursor.style.background = 'rgba(212, 175, 55, 0.1)';
             cursor.style.borderColor = 'transparent';
             hoveredCard = target;
+            hoveredCardRect = target.getBoundingClientRect();
         }
     });
 
@@ -777,20 +828,9 @@
             cursor.style.background = 'transparent';
             cursor.style.borderColor = 'var(--gold)';
             hoveredCard = null;
+            hoveredCardRect = null;
         }
     });
-
-    // Scroll Reveal Observer
-    const observerOptions = { threshold: 0.1 };
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('active');
-            }
-        });
-    }, observerOptions);
-
-    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
     // Contact Modal Toggle
     function toggleContact() {
