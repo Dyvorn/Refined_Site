@@ -64,7 +64,7 @@
         }
         @media (hover: hover) { 
             #cursor { display: block; } 
-            body, a, button, .card { cursor: none !important; }
+            body, a, button, .card, .featured-card { cursor: none !important; }
         }
 
         /* Cinematic Grain */
@@ -177,7 +177,12 @@
         .card p { font-size: 0.95rem; color: var(--muted); }
 
         /* Featured Project Styling */
-        #featured-container { position: relative; padding: 4px; border-radius: 4px; overflow: hidden; }
+        #featured-container { 
+            position: relative; 
+            padding: 4px; 
+            border-radius: 4px; 
+            perspective: 1200px; 
+        }
         
         /* Liquid Border Animation */
         #featured-container::before {
@@ -204,6 +209,13 @@
             padding: 60px;
             overflow: hidden;
             z-index: 1;
+            transform-style: preserve-3d;
+            will-change: transform;
+            transition: transform 0.1s ease-out;
+        }
+
+        .featured-card > * {
+            transform: translateZ(50px);
         }
 
         /* Fluid Morphism Background */
@@ -212,17 +224,9 @@
             position: absolute;
             top: 0; left: 0;
             width: 100%; height: 100%;
-            background: 
-                radial-gradient(circle at var(--x, 50%) var(--y, 50%), rgba(212, 175, 55, 0.1) 0%, transparent 50%);
-            opacity: 0.5;
-            transition: all 0.5s ease;
+            background: radial-gradient(800px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(212, 175, 55, 0.15), transparent 40%);
             z-index: -1;
-            animation: fluidMove 10s ease-in-out infinite alternate;
-        }
-
-        @keyframes fluidMove {
-            0% { background-position: 0% 0%; }
-            100% { background-position: 100% 100%; }
+            pointer-events: none;
         }
 
         .featured-card h2 { font-size: 3rem; color: var(--gold); margin-bottom: 20px; }
@@ -450,6 +454,24 @@
         cursorX = lerp(cursorX, mouseX, 0.15);
         cursorY = lerp(cursorY, mouseY, 0.15);
         
+        // Featured card fluid light follow
+        const card = document.querySelector('.featured-card');
+        if (card) {
+            const rect = card.getBoundingClientRect();
+            const x = cursorX - rect.left;
+            const y = cursorY - rect.top;
+            card.style.setProperty('--mouse-x', `${x}px`);
+            card.style.setProperty('--mouse-y', `${y}px`);
+
+            // Physical Depth Tilt Logic
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+            const rotateX = (y - centerY) / 30;
+            const rotateY = (x - centerX) / 30;
+
+            card.style.transform = `rotateX(${-rotateX}deg) rotateY(${rotateY}deg)`;
+        }
+
         // Parallax scroll logic (moves background at 20% of scroll speed)
         const scrollY = window.pageYOffset;
         pBg.style.transform = `translate3d(0, ${scrollY * 0.2}px, 0)`;
