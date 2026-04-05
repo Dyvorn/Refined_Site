@@ -63,7 +63,7 @@ def update_site():
     featured_container = soup.find(id="featured-container")
     if featured_container and featured_repo:
         featured_container.clear()
-        desc = featured_repo.get('description', 'High-performance workflow optimization.')
+        desc = featured_repo.get('description') or 'A cornerstone project focused on high-performance workflow optimization and cinematic execution.'
         stars = featured_repo.get('stargazers_count', 0)
         link = featured_repo.get('html_url', '#')
         

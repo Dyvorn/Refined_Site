@@ -22,6 +22,18 @@
             --neon-glow: 0 0 20px rgba(255, 215, 0, 0.15);
         }
 
+        /* Cortisol Lowering UI: Selection & Scrollbar */
+        ::selection { background: var(--gold); color: var(--black); }
+        
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--black); }
+        ::-webkit-scrollbar-thumb { 
+            background: rgba(212, 175, 55, 0.2); 
+            border-radius: 10px; 
+            transition: background 0.3s ease;
+        }
+        ::-webkit-scrollbar-thumb:hover { background: var(--gold); }
+
         * { box-sizing: border-box; margin: 0; padding: 0; }
         
         html { scroll-behavior: smooth; }
@@ -139,12 +151,14 @@
         /* Scroll Reveal Initial State */
         .reveal {
             opacity: 0;
-            transform: translateY(30px);
-            transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+            transform: translateY(40px);
+            filter: blur(20px);
+            transition: all 1.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .reveal.active {
             opacity: 1;
             transform: translateY(0);
+            filter: blur(0);
         }
 
         /* Typography Helpers */
@@ -164,7 +178,8 @@
             z-index: 1000;
             backdrop-filter: blur(10px);
             transition: transform 0.3s ease;
-            margin-bottom: 20px;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.05);
+            margin-bottom: 40px;
         }
         .logo { font-weight: 700; font-size: 1.2rem; letter-spacing: 0.2em; color: var(--gold); }
         .nav-links a {
@@ -181,7 +196,7 @@
         .hero p { font-size: 1.25rem; color: var(--muted); max-width: 550px; font-weight: 300; }
 
         /* Sections */
-        section { padding: 80px 0; }
+        section { padding: 120px 0; }
         .section-label { margin-bottom: 40px; border-bottom: 1px solid var(--border); padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
         
         /* Cards & Grids */
@@ -225,6 +240,7 @@
             transform-style: preserve-3d;
             will-change: transform;
             border-radius: 8px;
+            box-shadow: inset 0 0 50px rgba(212, 175, 55, 0.02);
         }
 
         .featured-card > * {
