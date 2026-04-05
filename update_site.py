@@ -14,6 +14,7 @@ HTML_FILE = "index.html"
 NOTES_FILE = "notes.json"
 SNIPPETS_FILE = "snippets.json"
 TESTIMONIALS_FILE = "testimonials.json"
+MEDIA_FILE = "media.json"
 
 def get_latest_youtube_video():
     """Fetches the latest video ID using the uploads playlist (100x more quota efficient)."""
@@ -50,6 +51,23 @@ def get_github_repos():
         print(f"Error fetching GitHub data: {e}")
     return []
 
+def get_github_stats():
+    """Fetches user stats from GitHub."""
+    headers = {"Authorization": f"token {GH_TOKEN}"} if GH_TOKEN else {}
+    try:
+        url = f"https://api.github.com/users/{GH_USERNAME}"
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        data = response.json()
+        return {
+            "repos": data.get("public_repos", 0),
+            "followers": data.get("followers", 0),
+            "gists": data.get("public_gists", 0)
+        }
+    except Exception as e:
+        print(f"Error fetching GitHub stats: {e}")
+        return None
+
 def get_github_gists():
     """Fetches the latest public Gists from GitHub."""
     headers = {}
@@ -69,6 +87,7 @@ def update_site():
     video_url = get_latest_youtube_video()
     repos = get_github_repos()
     gists = get_github_gists()
+    gh_stats = get_github_stats()
 
     if not video_url and not repos:
         print("No updates found. Skipping sync to preserve content.")
@@ -84,6 +103,13 @@ def update_site():
             iframe['src'] = video_url
             print("Updated YouTube video.")
 
+    # Update Hero Stats
+    if gh_stats:
+        for key in ["repos", "followers", "gists"]:
+            el = soup.find(id=f"stat-{key}")
+            if el:
+                el.string = str(gh_stats[key])
+        
     # Separate TaskFlow from other projects
     featured_repo = next((r for r in repos if r['name'].lower() == 'taskflow'), None)
     other_repos = [r for r in repos if r['name'].lower() != 'taskflow'][:3]
@@ -215,6 +241,24 @@ def update_site():
             print("Updated Journal from notes.json")
         except Exception as e:
             print(f"Error updating notes: {e}")
+
+    # Update Media Gallery
+    gallery_grid = soup.find(id="media-gallery")
+    if gallery_grid and os.path.exists(MEDIA_FILE):
+        try:
+            with open(MEDIA_FILE, 'r', encoding='utf-8') as mf:
+                media = json.load(mf)
+            gallery_grid.clear()
+            for item in media:
+                m_html = f'''
+                <div class="gallery-item reveal card">
+                    <img src="{item['src']}" alt="{item['alt']}">
+                </div>
+                '''
+                gallery_grid.append(BeautifulSoup(m_html, 'html.parser'))
+            print("Updated Media Gallery from media.json")
+        except Exception as e:
+            print(f"Error updating gallery: {e}")
 
     # Write changes back
     with open(HTML_FILE, 'w', encoding='utf-8') as f:

@@ -88,16 +88,6 @@
             background-size: 60px 60px;
             z-index: -3;
         }
-        #parallax-stars {
-            background-image: 
-                radial-gradient(1px 1px at 20px 30px, var(--gold), rgba(0,0,0,0)),
-                radial-gradient(1px 1px at 40px 70px, var(--neon), rgba(0,0,0,0)),
-                radial-gradient(2px 2px at 50px 160px, #fff, rgba(0,0,0,0));
-            background-repeat: repeat;
-            background-size: 200px 200px;
-            opacity: 0.1;
-            z-index: -4;
-        }
         #parallax-glow {
             background: radial-gradient(circle at 50% 50%, rgba(212, 175, 55, 0.02) 0%, transparent 50%);
             z-index: -2;
@@ -295,6 +285,27 @@
         .hero h1 { font-size: clamp(2.5rem, 8vw, 4.5rem); line-height: 1; margin: 20px 0; font-weight: 700; color: var(--gold); }
         .hero p { font-size: 1.25rem; color: var(--muted); max-width: 550px; font-weight: 300; }
 
+        /* Hero Stats */
+        .hero-stats { display: flex; gap: 30px; margin-top: 40px; }
+        .stat-item { display: flex; flex-direction: column; }
+        .stat-item span { font-size: 1.5rem; font-weight: 700; color: var(--gold); }
+        .stat-item label { font-size: 0.6rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.2em; }
+
+        /* Typewriter Cursor */
+        #typewriter::after {
+            content: '_';
+            animation: blink 1s infinite;
+            color: var(--neon);
+            margin-left: 4px;
+        }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+        /* Gallery */
+        .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+        .gallery-item { aspect-ratio: 16/9; overflow: hidden; border: 1px solid var(--border); background: var(--surface); position: relative; }
+        .gallery-item img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1); filter: grayscale(1); }
+        .gallery-item:hover img { transform: scale(1.1); filter: grayscale(0); }
+
         /* Sections */
         section { padding: 120px 0; }
         .section-label { margin-bottom: 40px; border-bottom: 1px solid var(--border); padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
@@ -476,7 +487,6 @@
  <body>
   <div class="parallax-layer" id="parallax-grid"></div>
   <div class="parallax-layer" id="parallax-glow"></div>
-  <div class="parallax-layer" id="parallax-stars"></div>
   <div id="cursor">
   </div>
   <div class="cursor-trail" style="--d: 1"></div>
@@ -530,6 +540,11 @@
     <p>
      A minimalist space documenting my journey through software development and cinematic production.
     </p>
+    <div class="hero-stats mono reveal delay-2">
+        <div class="stat-item"><span id="stat-repos">--</span><label>repos</label></div>
+        <div class="stat-item"><span id="stat-followers">--</span><label>followers</label></div>
+        <div class="stat-item"><span id="stat-gists">--</span><label>snippets</label></div>
+    </div>
    </header>
    <section class="fade-in delay-2 reveal" id="videos">
     <div class="section-label">
@@ -648,6 +663,17 @@
     </div>
    </section>
 
+   <!-- Media Gallery Section -->
+   <section class="reveal" id="gallery">
+    <div class="section-label">
+     <span class="mono">Gallery</span>
+     <span class="mono" style="color: var(--muted)">Media Production</span>
+    </div>
+    <div class="gallery-grid" id="media-gallery">
+     <!-- Injected via media.json -->
+    </div>
+   </section>
+
    <!-- Testimonial Section -->
    <section class="reveal" id="testimonials">
     <div class="section-label">
@@ -723,7 +749,6 @@
     const cursor = document.getElementById('cursor');
     const pGrid = document.getElementById('parallax-grid');
     const pGlow = document.getElementById('parallax-glow');
-    const pStars = document.getElementById('parallax-stars');
     const trails = document.querySelectorAll('.cursor-trail');
     const magneticElements = document.querySelectorAll('.magnetic');
     
@@ -814,9 +839,8 @@
             const centerX = hoveredCardRect.width / 2;
             const centerY = hoveredCardRect.height / 2;
             
-            const divisor = hoveredCard.classList.contains('featured-card') ? 25 : 40;
-            targetRotX = -(y - centerY) / divisor;
-            targetRotY = (x - centerX) / divisor;
+            targetRotX = -(y - centerY) / 40;
+            targetRotY = (x - centerX) / 40;
 
             curRotX = lerp(curRotX, targetRotX, 0.1);
             curRotY = lerp(curRotY, targetRotY, 0.1);
@@ -833,7 +857,6 @@
         const scrollY = window.scrollY;
         if(pGrid) pGrid.style.transform = `translate3d(0, ${scrollY * 0.15}px, 0)`;
         if(pGlow) pGlow.style.transform = `translate3d(0, ${scrollY * 0.25}px, 0)`;
-        if(pStars) pStars.style.transform = `translate3d(0, ${scrollY * 0.05}px, 0)`;
 
         // Magnetic elements logic (Visual update)
         magneticRects.forEach(({el, rect}) => {

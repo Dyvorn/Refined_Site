@@ -6,12 +6,12 @@
 
 ## 2. Deep Content (The "Story")
 - [ ] **Case Study Deep Dives**: Create dedicated sub-pages for flagship projects like **TaskFlow**, allowing for long-form technical explanations and galleries.
-- [ ] **Cinematic Media Gallery**: A lightbox-style gallery for high-resolution stills or short clips from your media productions.
+- [x] **Cinematic Media Gallery**: Implemented automated gallery grid via media.json.
 - [x] **Snippets Feed**: Automated injection of Gists via Python.
 - [x] **Testimonial Slider**: Implemented automated testimonial section via JSON.
 
 ## 3. Advanced Automation (The "Intelligence")
-- [ ] **Real-Time GitHub Stats**: Add a "Live Stats" dashboard showing total commits this year, languages used, and a contribution heatmap.
+- [x] **Real-Time GitHub Stats**: Integrated user stats and total star count into Hero.
 - [ ] **Auto-Generated Social Cards**: Use a Python library (like `Pillow`) to automatically generate OG:Images for the site whenever `update_site.py` runs.
 - [x] **Dynamic Journal**: Decoupled Journal from index.html using notes.json.
 - [b. Technical Polish (The "Final 1%")
