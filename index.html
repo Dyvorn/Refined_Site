@@ -744,10 +744,11 @@
    let scale = 1;
    let isMoving = false;
    let hoveredCard = null;
+   let hoveredCardRect = null;
    let curRotX = 0, curRotY = 0;
    let resetTiltNeeded = false;
 
-    // Ambient Audio Engine
+   // Ambient Audio Engine
     class AudioEngine {
         constructor() {
             this.ctx = null;
@@ -840,24 +841,24 @@
             trails[i].style.transform = `translate3d(${pos.x}px, ${pos.y}px, 0) translate(-50%, -50%)`;
         });
 
+        
         // Card tilt logic (Handles both featured and standard cards)
-        if (hoveredCard) {
-            const rect = hoveredCard.getBoundingClientRect();
+        if (hoveredCard && hoveredCardRect) {
             let targetRotX = 0;
             let targetRotY = 0;
             
-            const x = cursorX - rect.left;
-            const y = cursorY - rect.top;
+            const x = cursorX - hoveredCardRect.left;
+            const y = cursorY - hoveredCardRect.top;
             
             if (hoveredCard.classList.contains('featured-card')) {
                 hoveredCard.style.setProperty('--mouse-x', `${x}px`);
-                hoveredCard.style.setProperty('--mouse-y', `${y}px`);
             }
 
-            const centerX = rect.width / 2;
-            const centerY = rect.height / 2;
+            const centerX = hoveredCardRect.width / 2;
+            const centerY = hoveredCardRect.height / 2;
             targetRotX = -(y - centerY) / (hoveredCard.classList.contains('featured-card') ? 25 : 40);
             targetRotY = (x - centerX) / (hoveredCard.classList.contains('featured-card') ? 25 : 40);
+
 
             curRotX = lerp(curRotX, targetRotX, 0.1);
             curRotY = lerp(curRotY, targetRotY, 0.1);
@@ -877,23 +878,19 @@
         pGlow.style.transform = `translate3d(0, ${scrollY * 0.25}px, 0)`;
         pStars.style.transform = `translate3d(0, ${scrollY * 0.05}px, 0)`;
 
-        // Magnetic elements logic (Optimized)
+        // Magnetic elements logic (Visual update only)
         magneticElements.forEach(el => {
-            const rect = el.getBoundingClientRect();
-            const centerX = rect.left + rect.width / 2;
-            const centerY = rect.top + rect.height / 2;
-            const dist = Math.hypot(mouseX - centerX, mouseY - centerY);
+            const mX = parseFloat(el.dataset.mX || 0);
+            const mY = parseFloat(el.dataset.mY || 0);
+            const curX = parseFloat(el.dataset.curX || 0);
+            const curY = parseFloat(el.dataset.curY || 0);
             
-            if (dist < 80) {
-                const strength = 1 - (dist / 80);
-                const x = (mouseX - centerX) * 0.5 * strength;
-                const y = (mouseY - centerY) * 0.5 * strength;
-                el.style.transform = `translate3d(${x}px, ${y}px, 0)`;
-                el.dataset.magneticActive = "true";
-            } else if (el.dataset.magneticActive === "true") {
-                el.style.transform = `translate3d(0, 0, 0)`;
-                el.dataset.magneticActive = "false";
-            }
+            const nextX = lerp(curX, mX, 0.1);
+            const nextY = lerp(curY, mY, 0.1);
+            
+            el.style.transform = `translate3d(${nextX}px, ${nextY}px, 0)`;
+            el.dataset.curX = nextX;
+            el.dataset.curY = nextY;
         });
 
         cursor.style.transform = `translate3d(${cursorX}px, ${cursorY}px, 0) translate(-50%, -50%) rotate(${rotation}deg) scale(${scale * stretch}, ${scale / stretch})`;
@@ -909,6 +906,7 @@
             cursor.style.background = 'rgba(212, 175, 55, 0.1)';
             cursor.style.borderColor = 'transparent';
             hoveredCard = target;
+            hoveredCardRect = target.getBoundingClientRect();
         }
     });
 
@@ -919,7 +917,26 @@
             cursor.style.background = 'transparent';
             cursor.style.borderColor = 'var(--gold)';
             hoveredCard = null;
+            hoveredCardRect = null;
         }
+    });
+
+    // Efficient Proximity Check for Magnetic Elements
+    document.addEventListener('mousemove', () => {
+        magneticElements.forEach(el => {
+            const rect = el.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            const dist = Math.hypot(mouseX - centerX, mouseY - centerY);
+            if (dist < 80) {
+                const strength = 1 - (dist / 80);
+                el.dataset.mX = (mouseX - centerX) * 0.4 * strength;
+                el.dataset.mY = (mouseY - centerY) * 0.4 * strength;
+            } else {
+                el.dataset.mX = 0;
+                el.dataset.mY = 0;
+            }
+        });
     });
 
     // Scroll Reveal Observer
