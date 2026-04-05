@@ -462,8 +462,9 @@
   </style>
  </head>
  <body>
-  <div id="parallax-bg">
-  </div>
+  <div class="parallax-layer" id="parallax-grid"></div>
+  <div class="parallax-layer" id="parallax-glow"></div>
+  <div class="parallax-layer" id="parallax-stars"></div>
   <div id="cursor">
   </div>
   <div class="cursor-trail" style="--d: 1">
@@ -729,6 +730,18 @@
    </footer>
   </div>
   <script>
+   // 1. Immediate Reveal Logic (Unblock visibility first)
+   const observerOptions = { threshold: 0.05 };
+   const observer = new IntersectionObserver((entries) => {
+       entries.forEach(entry => {
+           if (entry.isIntersecting) {
+               entry.target.classList.add('active');
+           }
+       });
+   }, observerOptions);
+   document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+   // 2. Performance-Focused Core Logic
    const cursor = document.getElementById('cursor');
    const pGrid = document.getElementById('parallax-grid');
    const pGlow = document.getElementById('parallax-glow');
@@ -747,6 +760,15 @@
    let hoveredCardRect = null;
    let curRotX = 0, curRotY = 0;
    let resetTiltNeeded = false;
+
+   // Cache Magnetic Rects to prevent Layout Thrashing
+   let magneticRects = [];
+   function updateMagneticRects() {
+       magneticRects = Array.from(magneticElements).map(el => ({
+           el,
+           rect: el.getBoundingClientRect()
+       }));
+   }
 
    // Ambient Audio Engine
     class AudioEngine {
@@ -806,6 +828,10 @@
         else { setTimeout(type, isDeleting ? 50 : 100); }
     }
     type();
+
+    // Initialize cached positions
+    updateMagneticRects();
+    window.addEventListener('resize', updateMagneticRects);
 
     document.addEventListener('mousemove', e => {
         mouseX = e.clientX;
@@ -874,9 +900,9 @@
 
         // Multi-Layer Parallax Logic
         const scrollY = window.scrollY;
-        pGrid.style.transform = `translate3d(0, ${scrollY * 0.15}px, 0)`;
-        pGlow.style.transform = `translate3d(0, ${scrollY * 0.25}px, 0)`;
-        pStars.style.transform = `translate3d(0, ${scrollY * 0.05}px, 0)`;
+        if(pGrid) pGrid.style.transform = `translate3d(0, ${scrollY * 0.15}px, 0)`;
+        if(pGlow) pGlow.style.transform = `translate3d(0, ${scrollY * 0.25}px, 0)`;
+        if(pStars) pStars.style.transform = `translate3d(0, ${scrollY * 0.05}px, 0)`;
 
         // Magnetic elements logic (Visual update only)
         magneticElements.forEach(el => {
@@ -923,8 +949,7 @@
 
     // Efficient Proximity Check for Magnetic Elements
     document.addEventListener('mousemove', () => {
-        magneticElements.forEach(el => {
-            const rect = el.getBoundingClientRect();
+        magneticRects.forEach(({el, rect}) => {
             const centerX = rect.left + rect.width / 2;
             const centerY = rect.top + rect.height / 2;
             const dist = Math.hypot(mouseX - centerX, mouseY - centerY);
@@ -938,18 +963,6 @@
             }
         });
     });
-
-    // Scroll Reveal Observer
-    const observerOptions = { threshold: 0.1 };
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('active');
-            }
-        });
-    }, observerOptions);
-
-    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
     // Contact Modal Toggle
     function toggleContact() {
