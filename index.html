@@ -2,10 +2,164 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Refined | Starting Fresh</title>
-    <style>body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #000; color: #fff; }</style>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>REFINED | Portfolio</title>
+    <!-- Typography: Space Grotesk for headings, JetBrains Mono for accents -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@300;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --black: #050505;
+            --surface: #0f0f0f;
+            --gold: #D4AF37;
+            --neon: #FFD700;
+            --text: #e0e0e0;
+            --muted: #777777;
+            --border: rgba(212, 175, 55, 0.1);
+            --neon-glow: 0 0 20px rgba(255, 215, 0, 0.15);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        html { scroll-behavior: smooth; }
+
+        body {
+            background-color: var(--black);
+            color: var(--text);
+            font-family: 'Space Grotesk', sans-serif;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container { max-width: 1100px; margin: 0 auto; padding: 0 30px; }
+
+        /* Typography Helpers */
+        .mono { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.15em; }
+        .accent { color: var(--neon); text-shadow: var(--neon-glow); }
+
+        /* Header */
+        nav {
+            padding: 50px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo { font-weight: 700; font-size: 1.2rem; letter-spacing: 0.2em; color: var(--gold); }
+        .nav-links a {
+            color: var(--muted);
+            text-decoration: none;
+            margin-left: 40px;
+            transition: color 0.3s ease;
+        }
+        .nav-links a:hover { color: var(--neon); }
+
+        /* Hero */
+        .hero { padding: 100px 0; }
+        .hero h1 { font-size: clamp(2.5rem, 8vw, 4.5rem); line-height: 1; margin: 20px 0; font-weight: 700; color: var(--gold); }
+        .hero p { font-size: 1.25rem; color: var(--muted); max-width: 550px; font-weight: 300; }
+
+        /* Sections */
+        section { padding: 80px 0; }
+        .section-label { margin-bottom: 40px; border-bottom: 1px solid var(--border); padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        
+        /* Cards & Grids */
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 40px; }
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 40px;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+        .card:hover {
+            border-color: var(--gold);
+            box-shadow: var(--neon-glow);
+            transform: translateY(-8px);
+        }
+        .card h3 { margin-bottom: 15px; font-size: 1.4rem; color: var(--gold); }
+        .card p { font-size: 0.95rem; color: var(--muted); }
+
+        /* Video Embed */
+        .video-container {
+            width: 100%;
+            aspect-ratio: 16/9;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            box-shadow: var(--neon-glow);
+            overflow: hidden;
+        }
+        .video-container iframe { width: 100%; height: 100%; border: 0; }
+
+        /* Footer */
+        footer {
+            padding: 80px 0 40px;
+            text-align: center;
+            color: var(--muted);
+            opacity: 0.6;
+        }
+
+        @media (max-width: 768px) {
+            nav { flex-direction: column; gap: 30px; }
+            .nav-links a { margin: 0 15px; }
+            .hero { text-align: center; }
+            .hero p { margin: 0 auto; }
+        }
+    </style>
 </head>
 <body>
-    <h1>New Project Structure Loading...</h1>
+    <div class="container">
+        <nav>
+            <div class="logo">REFINED</div>
+            <div class="nav-links mono">
+                <a href="#projects">Work</a>
+                <a href="#videos">Content</a>
+                <a href="https://github.com/Dyvorn" target="_blank">Source</a>
+            </div>
+        </nav>
+
+        <header class="hero">
+            <span class="mono accent">System: Online</span>
+            <h1>Calm focus. <br>Refined <span class="accent">Code.</span></h1>
+            <p>A minimalist space documenting my journey through software development and cinematic production.</p>
+        </header>
+
+        <section id="videos">
+            <div class="section-label">
+                <span class="mono">Latest Production</span>
+                <span class="mono" style="color: var(--muted)">YouTube</span>
+            </div>
+            <div class="video-container">
+                <!-- This URL will be updated automatically by the Python script -->
+                <iframe src="https://www.youtube.com/embed/placeholder" title="YouTube video player" allowfullscreen></iframe>
+            </div>
+        </section>
+
+        <section id="projects">
+            <div class="section-label">
+                <span class="mono">Selected Projects</span>
+                <span class="mono" style="color: var(--muted)">GitHub</span>
+            </div>
+            <div class="grid" id="project-grid">
+                <!-- Project cards will be injected here -->
+                <div class="card">
+                    <span class="mono accent" style="font-size: 0.6rem; margin-bottom: 10px; display: block;">Python / Automation</span>
+                    <h3>TaskFlow</h3>
+                    <p>Advanced workflow optimization and task tracking system designed for high-performance teams.</p>
+                </div>
+                <div class="card">
+                    <span class="mono accent" style="font-size: 0.6rem; margin-bottom: 10px; display: block;">CSS / Design</span>
+                    <h3>Neon Minimalist</h3>
+                    <p>The core design language behind this portfolio. Focus on readability and atmospheric depth.</p>
+                </div>
+            </div>
+        </section>
+
+        <footer>
+            <p class="mono">Built with focus &copy; 2024</p>
+        </footer>
+    </div>
 </body>
 </html>
