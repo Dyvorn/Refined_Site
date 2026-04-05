@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 # --- CONFIGURATION ---
 GITHUB_USERNAME = "Dyvorn"
 YT_CHANNEL_ID = "UCp0D2v_nLpD_S-wX4Iu7M_A" # Replace with your actual Channel ID
-HTML_FILE = "site.html"
+HTML_FILE = "index.html"
 
 def get_github_data():
     url = f"https://api.github.com/users/{GITHUB_USERNAME}/repos?sort=updated&per_page=10"

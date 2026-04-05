@@ -42,19 +42,19 @@
         </div>
         <div class="hero-bottom">
           <div class="stat"><div class="stat-value">Videos</div><div class="stat-label">Latest uploads</div></div>
-          <div class="stat"><div class="stat-value">Projects</div><div class="stat-label">Public repos</div></div>
+          <div class="stat"><div class="stat-value" id="stat-repos">Projects</div><div class="stat-label">Public repos</div></div>
           <div class="stat"><div class="stat-value">Support</div><div class="stat-label">Buy Me a Coffee</div></div>
         </div>
       </div>
 
       <aside class="panel hero-side" id="videos">
         <div class="video-frame">
-          <iframe src="https://www.youtube.com/embed/OCc98_qBNpo?rel=0" title="Latest video" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe>
+          <iframe id="latest-video-frame" src="https://www.youtube.com/embed/OCc98_qBNpo?rel=0" title="Latest video" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe>
         </div>
         <div class="side-box">
           <div class="small-label">Latest upload</div>
-          <div class="video-title">To much Yapping | Taskflow Devlog</div>
-          <div class="video-desc">Quick description encouraging users to watch the newest video.</div>
+          <div class="video-title" id="latest-video-title">To much Yapping | Taskflow Devlog</div>
+          <div class="video-desc" id="latest-video-desc">Quick description encouraging users to watch the newest video.</div>
         </div>
       </aside>
     </section>
@@ -63,7 +63,7 @@
       <div class="stack">
         <section class="panel section" id="projects">
           <div class="section-head"><h2 class="section-title">Featured projects</h2><div class="section-note">public GitHub repos</div></div>
-          <div class="projects">
+          <div class="projects" id="projects-container">
             <article class="project">
               <div class="cover"><img src="assets/image1.svg" alt="Project cover"></div>
               <div class="project-body"><div class="project-row"><div><h3 class="project-name">TaskFlow</h3><p class="project-copy">Active Python project. <a href="https://github.com/Dyvorn/TaskFlow" target="_blank" rel="noopener">Open on GitHub</a></p></div><div class="badges"><span class="badge b1">Python</span></div></div></div>
