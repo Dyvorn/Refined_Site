@@ -1,13 +1,1 @@
-(() => {
-  const root = document.documentElement;
-  const btn = document.getElementById('themeToggle');
-  const saved = localStorage.getItem('theme');
-  if (saved) root.setAttribute('data-theme', saved);
-  else root.setAttribute('data-theme', 'dark');
-
-  btn?.addEventListener('click', () => {
-    const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-    root.setAttribute('data-theme', next);
-    localStorage.setItem('theme', next);
-  });
-})();
+// Script reset. New minimalist logic will be added here if needed.
