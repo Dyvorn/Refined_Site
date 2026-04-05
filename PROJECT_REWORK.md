@@ -19,6 +19,6 @@ To make the site functional and automated, please provide the following:
 
 1. [x] **YouTube Data API v3 Key**: Provided.
 2. [x] **YouTube Channel ID**: Provided (`UCGe5VOk80siQe0r2OfQQWPw`).
-3.  **GitHub Personal Access Token (PAT)**: A "fine-grained" or "classic" token with `repo` read access. This prevents rate-limiting when the site updates.
+3. [x] **Automation**: GitHub Actions workflow implemented.
 4.  **Social Handles**: A list of any other links (Twitch, Twitter, Instagram) you want featured in the footer.
 5.  **Branding Assets**: Your preferred logo (SVG recommended) and a primary accent color.

@@ -1,23 +1,26 @@
+import os
 import requests
 from bs4 import BeautifulSoup
 
 # --- CONFIGURATION ---
-YT_API_KEY = "AIzaSyAfvxhjH1V3W1jiMGROEpUsRwGhBWfGC1Y"
-YT_CHANNEL_ID = "UCGe5VOk80siQe0r2OfQQWPw"
-GH_USERNAME = "Dyvorn"
+# Use Environment Variables for security. Fallback provided for local runs.
+YT_API_KEY = os.getenv("YT_API_KEY", "AIzaSyAfvxhjH1V3W1jiMGROEpUsRwGhBWfGC1Y")
+YT_CHANNEL_ID = os.getenv("YT_CHANNEL_ID", "UCGe5VOk80siQe0r2OfQQWPw")
+GH_USERNAME = os.getenv("GH_USERNAME", "Dyvorn")
 HTML_FILE = "index.html"
 
 def get_latest_youtube_video():
-    """Fetches the latest video ID from the YouTube channel."""
+    """Fetches the latest video ID using the uploads playlist (100x more quota efficient)."""
     try:
-        # Use search endpoint to find the latest video
-        url = f"https://www.googleapis.com/youtube/v3/search?key={YT_API_KEY}&channelId={YT_CHANNEL_ID}&part=snippet,id&order=date&maxResults=1&type=video"
+        # The "Uploads" playlist ID is usually the Channel ID with 'UU' instead of 'UC'
+        playlist_id = "UU" + YT_CHANNEL_ID[2:]
+        url = f"https://www.googleapis.com/youtube/v3/playlistItems?key={YT_API_KEY}&playlistId={playlist_id}&part=snippet&maxResults=1"
         response = requests.get(url)
         response.raise_for_status()
         data = response.json()
         
         if "items" in data and len(data["items"]) > 0:
-            video_id = data["items"][0]["id"]["videoId"]
+            video_id = data["items"][0]["snippet"]["resourceId"]["videoId"]
             return f"https://www.youtube.com/embed/{video_id}"
     except Exception as e:
         print(f"Error fetching YouTube data: {e}")
@@ -57,7 +60,9 @@ def update_site():
         grid.clear()
         for repo in repos:
             lang = repo.get('language', 'Project')
-            desc = repo.get('description', 'No description provided.')
+            # Clean up empty or "None" descriptions
+            desc = repo.get('description')
+            desc_tag = f'<p>{desc}</p>' if desc else ''
             name = repo.get('name', 'Untitled')
             link = repo.get('html_url', '#')
 
@@ -65,7 +70,7 @@ def update_site():
             <a href="{link}" target="_blank" class="card">
                 <span class="mono accent" style="font-size: 0.6rem; margin-bottom: 10px; display: block;">{lang}</span>
                 <h3>{name}</h3>
-                <p>{desc}</p>
+                {desc_tag}
             </a>
             '''
             grid.append(BeautifulSoup(card_html, 'html.parser'))
