@@ -44,8 +44,8 @@
             position: fixed;
             pointer-events: none;
             z-index: 10000;
-            transition: transform 0.1s ease, width 0.3s ease, height 0.3s ease, background 0.3s ease;
-            transform: translate(-50%, -50%);
+            transition: width 0.3s ease, height 0.3s ease, background 0.3s ease, border-color 0.3s ease;
+            transform: translate3d(0, 0, 0) translate(-50%, -50%);
             display: none;
         }
         @media (hover: hover) { #cursor { display: block; } }
@@ -309,22 +309,50 @@
   </div>
   <script>
     const cursor = document.getElementById('cursor');
+    let mouseX = 0, mouseY = 0;
+    let cursorX = 0, cursorY = 0;
+    let scale = 1;
+    let isMoving = false;
+
     document.addEventListener('mousemove', e => {
-        cursor.style.left = e.clientX + 'px';
-        cursor.style.top = e.clientY + 'px';
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+        if (!isMoving) {
+            cursor.style.display = 'block';
+            cursorX = mouseX;
+            cursorY = mouseY;
+            isMoving = true;
+        }
     });
 
-    document.querySelectorAll('a, button, .card').forEach(el => {
-        el.addEventListener('mouseenter', () => {
-            cursor.style.transform = 'translate(-50%, -50%) scale(2.5)';
+    // Linear Interpolation (smoothing)
+    const lerp = (a, b, n) => (1 - n) * a + n * b;
+
+    function render() {
+        // The 0.15 value determines the "chill" follow speed (lower = smoother/slower)
+        cursorX = lerp(cursorX, mouseX, 0.15);
+        cursorY = lerp(cursorY, mouseY, 0.15);
+        
+        cursor.style.transform = `translate3d(${cursorX}px, ${cursorY}px, 0) translate(-50%, -50%) scale(${scale})`;
+        requestAnimationFrame(render);
+    }
+    render();
+
+    // Use event delegation for better performance and support for dynamic elements
+    document.addEventListener('mouseover', e => {
+        if (e.target.closest('a, button, .card')) {
+            scale = 2.5;
             cursor.style.background = 'rgba(212, 175, 55, 0.1)';
             cursor.style.borderColor = 'transparent';
-        });
-        el.addEventListener('mouseleave', () => {
-            cursor.style.transform = 'translate(-50%, -50%) scale(1)';
+        }
+    });
+
+    document.addEventListener('mouseout', e => {
+        if (e.target.closest('a, button, .card')) {
+            scale = 1;
             cursor.style.background = 'transparent';
             cursor.style.borderColor = 'var(--gold)';
-        });
+        }
     });
   </script>
  </body>
