@@ -36,9 +36,29 @@
 
         .container { max-width: 1100px; margin: 0 auto; padding: 0 30px; }
 
+        /* Animations */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { text-shadow: 0 0 15px rgba(255, 215, 0, 0.1); }
+            50% { text-shadow: 0 0 25px rgba(255, 215, 0, 0.3); }
+        }
+
+        .fade-in {
+            animation: fadeUp 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            opacity: 0;
+        }
+
+        .delay-1 { animation-delay: 0.1s; }
+        .delay-2 { animation-delay: 0.3s; }
+        .delay-3 { animation-delay: 0.5s; }
+
         /* Typography Helpers */
         .mono { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.15em; }
-        .accent { color: var(--neon); text-shadow: var(--neon-glow); }
+        .accent { color: var(--neon); animation: pulseGlow 4s ease-in-out infinite; }
 
         /* Header */
         nav {
@@ -90,8 +110,13 @@
             aspect-ratio: 16/9;
             background: var(--surface);
             border: 1px solid var(--border);
-            box-shadow: var(--neon-glow);
             overflow: hidden;
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.4s ease, box-shadow 0.4s ease;
+        }
+        .video-container:hover {
+            transform: scale(1.01);
+            border-color: var(--gold);
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.2);
         }
         .video-container iframe { width: 100%; height: 100%; border: 0; }
 
@@ -113,7 +138,7 @@
  </head>
  <body>
   <div class="container">
-   <nav>
+   <nav class="fade-in">
     <div class="logo">
      REFINED
     </div>
@@ -129,7 +154,7 @@
      </a>
     </div>
    </nav>
-   <header class="hero">
+   <header class="hero fade-in delay-1">
     <span class="mono accent">
      System: Online (Fake btw)
     </span>
@@ -145,7 +170,7 @@
      A minimalist space documenting my journey through software development and cinematic production.
     </p>
    </header>
-   <section id="videos">
+   <section id="videos" class="fade-in delay-2">
     <div class="section-label">
      <span class="mono">
       Latest Production
@@ -160,7 +185,7 @@
      </iframe>
     </div>
    </section>
-   <section id="projects">
+   <section id="projects" class="fade-in delay-3">
     <div class="section-label">
      <span class="mono">
       Selected Projects
