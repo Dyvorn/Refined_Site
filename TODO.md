@@ -9,7 +9,7 @@
 
 ## 2. Functional Features (The "Content")
 - [ ] **Spotify Integration**: Use the Spotify API to show what you are "Currently Vibing To" in the footer or a sidebar.
-- [ ] **Minimalist "Notes" Section**: Add a section for short, micro-blog posts (max 280 chars) to share quick thoughts or dev updates without a full blog.
+- [x] **Minimalist "Notes" Section**: Added a Journal section for micro-updates.
 - [ ] **Project Search/Filter**: If the project list grows, add a mono-styled filter for (Python / HTML / Media).
 - [ ] **Contact Form**: Integrate a service like Formspree into a minimalist overlay so people can reach out without leaving the page.
 - [x] **Discord Status**: Integrated Lanyard API to sync status dot with Discord.
@@ -23,7 +23,7 @@
 
 ## 4. Accessibility & Polish (The "Professionalism")
 - [x] **ARIA Labels**: Added ARIA roles and labels to nav links and sections.
-- [ ] **Print Styles**: Add a minimalist print CSS so if someone prints the page (for a CV/Resume), it looks like a clean document.
+- [x] **Print Styles**: Added minimalist print CSS for professional distribution.
 - [x] **Reduced Motion Support**: Added media queries to disable heavy animations and parallax.
-- [ ] **Typography Refinement**: Fine-tune the line-height and letter-spacing of the `Space Grotesk` font for even better readability on small screens.
+- [x] **Typography Refinement**: Fine-tuned line-height and letter-spacing for premium feel.
 ```

@@ -50,7 +50,8 @@
             background-color: var(--black);
             color: var(--text);
             font-family: 'Space Grotesk', sans-serif;
-            line-height: 1.6;
+            line-height: 1.7;
+            letter-spacing: -0.01em;
             -webkit-font-smoothing: antialiased;
         }
 
@@ -82,8 +83,36 @@
             transform: translate3d(0, 0, 0) translate(-50%, -50%);
             display: none;
         }
+
+        .cursor-trail {
+            width: 12px; height: 12px;
+            background: var(--gold);
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            opacity: calc(0.2 / var(--d));
+            transform: translate3d(0, 0, 0) translate(-50%, -50%);
+            display: none;
+        }
+
+        /* Reduced Motion Support */
+        @media (prefers-reduced-motion: reduce) {
+            #parallax-bg, .grain, .reveal, .fade-in, .accent {
+                animation: none !important;
+                transition: none !important;
+                transform: none !important;
+                filter: none !important;
+                opacity: 1 !important;
+            }
+            .cursor-trail, #cursor { display: none !important; }
+            body { cursor: auto !important; }
+            a, button, .card, .featured-card { cursor: pointer !important; }
+        }
+
         @media (hover: hover) { 
             #cursor { display: block; } 
+            .cursor-trail { display: block; }
             body, a, button, .card, .featured-card { cursor: none !important; }
         }
 
@@ -112,6 +141,16 @@
             80% { transform: translate(-2%, -2%); }
             90% { transform: translate(2%, -1%); }
         }
+
+        /* Print Styles */
+        @media print {
+            .grain, .vignette, .cursor-trail, #cursor, #parallax-bg, .bg-glow, nav, .video-container, #grain-toggle { display: none !important; }
+            body { background: white !important; color: black !important; }
+            .card, .featured-card { border: 1px solid #ddd !important; background: white !important; page-break-inside: avoid; }
+            .accent, .logo, h2, h3 { color: black !important; text-shadow: none !important; }
+        }
+
+        body.no-grain .grain { display: none; }
 
         .vignette {
             position: fixed;
@@ -152,6 +191,11 @@
             opacity: 0;
         }
 
+        h1, h2, h3 {
+            letter-spacing: -0.03em;
+            line-height: 1.1;
+        }
+
         .delay-1 { animation-delay: 0.1s; }
         .delay-2 { animation-delay: 0.3s; }
         .delay-3 { animation-delay: 0.5s; }
@@ -173,7 +217,10 @@
         .mono { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.15em; }
         .accent { color: var(--neon); animation: pulseGlow 4s ease-in-out infinite; }
         
-        .status-dot { display: inline-block; width: 8px; height: 8px; background: #50fa7b; border-radius: 50%; margin-right: 8px; box-shadow: 0 0 10px #50fa7b; animation: statusBlink 2s infinite; }
+        .status-dot { display: inline-block; width: 8px; height: 8px; background: #747f8d; border-radius: 50%; margin-right: 8px; box-shadow: 0 0 10px rgba(116, 127, 141, 0.4); transition: all 0.5s ease; }
+        .status-dot.online { background: #50fa7b; box-shadow: 0 0 10px #50fa7b; animation: statusBlink 2s infinite; }
+        .status-dot.idle { background: #faa61a; box-shadow: 0 0 10px #faa61a; }
+        .status-dot.dnd { background: #f04747; box-shadow: 0 0 10px #f04747; }
 
         /* Header */
         nav {
@@ -228,6 +275,18 @@
         }
         .card h3 { margin-bottom: 15px; font-size: 1.4rem; color: var(--gold); }
         .card p { font-size: 0.95rem; color: var(--muted); }
+
+        /* Notes Section */
+        .notes-grid { display: grid; gap: 20px; }
+        .note-item { 
+            padding: 25px; 
+            border-left: 1px solid var(--border); 
+            background: rgba(255, 255, 255, 0.02);
+            transition: border-color 0.3s ease;
+        }
+        .note-item:hover { border-left-color: var(--gold); }
+        .note-date { font-size: 0.7rem; color: var(--gold); margin-bottom: 8px; display: block; }
+        .note-content { font-size: 0.9rem; color: var(--text); }
 
         /* Featured Project Styling */
         #featured-container { 
@@ -315,6 +374,9 @@
   </div>
   <div id="cursor">
   </div>
+  <div class="cursor-trail" style="--d: 1"></div>
+  <div class="cursor-trail" style="--d: 2"></div>
+  <div class="cursor-trail" style="--d: 3"></div>
   <div class="bg-glow">
   </div>
   <div class="grain">
@@ -471,11 +533,31 @@
      </a>
     </div>
    </section>
+
+   <!-- Notes Section -->
+   <section class="reveal" id="notes">
+    <div class="section-label">
+     <span class="mono">Journal</span>
+     <span class="mono" style="color: var(--muted)">Micro-blog</span>
+    </div>
+    <div class="notes-grid">
+     <div class="note-item">
+      <span class="note-date mono">Apr 05, 2026</span>
+      <p class="note-content">Reworked the entire portfolio architecture today. Focusing on "cortisol lowering" UI patterns and cinematic depth. Feeling refined. 🥂</p>
+     </div>
+     <div class="note-item">
+      <span class="note-date mono">Apr 04, 2026</span>
+      <p class="note-content">TaskFlow is hitting 0.9.0. The Python backend is finally as stable as I want it. Cinematic code is coming.</p>
+     </div>
+    </div>
+   </section>
+
    <footer>
     <div class="social-links mono">
      <a href="https://www.instagram.com/refined.mov/" target="_blank">
       Instagram
      </a>
+     <button id="grain-toggle" class="mono" style="background: none; border: 1px solid var(--border); color: var(--muted); padding: 4px 8px; cursor: pointer; font-size: 0.6rem; margin-left: 15px;">Grain: On</button>
     </div>
     <p class="mono">
      Refined © 2026 | Built with no sleep and low cortisol *_*
@@ -485,12 +567,19 @@
   <script>
    const cursor = document.getElementById('cursor');
     const pBg = document.getElementById('parallax-bg');
+    const trails = document.querySelectorAll('.cursor-trail');
     let mouseX = 0, mouseY = 0;
     let cursorX = 0, cursorY = 0;
+    let trailPositions = Array.from({ length: 3 }, () => ({ x: 0, y: 0 }));
     let scale = 1;
     let isMoving = false;
     let hoveredCard = null;
     let curRotX = 0, curRotY = 0;
+
+    // Discord Status (Lanyard API) - Replace DISCORD_ID with your actual ID
+    const DISCORD_ID = "736569145618776094"; 
+    const statusDot = document.querySelector('.status-dot');
+    const statusText = document.querySelector('.hero .accent');
 
     // Typewriter Logic
     const typewriter = document.getElementById('typewriter');
@@ -525,6 +614,12 @@
         cursorX = lerp(cursorX, mouseX, 0.15);
         cursorY = lerp(cursorY, mouseY, 0.15);
         
+        trailPositions.forEach((pos, i) => {
+            pos.x = lerp(pos.x, i === 0 ? cursorX : trailPositions[i-1].x, 0.15 - (i * 0.03));
+            pos.y = lerp(pos.y, i === 0 ? cursorY : trailPositions[i-1].y, 0.15 - (i * 0.03));
+            trails[i].style.transform = `translate3d(${pos.x}px, ${pos.y}px, 0) translate(-50%, -50%)`;
+        });
+
         // Card tilt logic (Handles both featured and standard cards)
         if (hoveredCard) {
             const rect = hoveredCard.getBoundingClientRect();
@@ -610,32 +705,6 @@
     }, observerOptions);
 
     document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
-
-    // Noise Toggle
-    const grainToggle = document.getElementById('grain-toggle');
-    grainToggle.addEventListener('click', () => {
-        document.body.classList.toggle('no-grain');
-        grainToggle.textContent = `Grain: ${document.body.classList.contains('no-grain') ? 'Off' : 'On'}`;
-    });
-
-    // Lanyard Fetch
-    async function updateStatus() {
-        try {
-            const response = await fetch(`https://api.lanyard.rest/v1/users/${DISCORD_ID}`);
-            const { data } = await response.json();
-            const status = data.discord_status;
-            
-            statusDot.className = 'status-dot ' + status;
-            // Optionally update the "Online" text if you want it to reflect actual state
-            const stateMap = { online: 'Online', idle: 'Away', dnd: 'Busy', offline: 'Offline' };
-            const accentText = document.querySelector('.hero .mono .accent');
-            if (accentText) accentText.textContent = stateMap[status] || 'Online';
-        } catch (e) {
-            console.error("Lanyard error", e);
-        }
-    }
-    updateStatus();
-    setInterval(updateStatus, 30000); // Update every 30s
   </script>
  </body>
 </html>
