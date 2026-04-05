@@ -1,12 +1,13 @@
 # REFINED Roadmap: Phase 2
 
 ## 1. Immersive Experience (The "Atmosphere")
-- [ ] **Physics-Based Cursor**: Replace the current Lerp cursor with a physics-based "liquid" cursor that deforms slightly based on velocity.
-- [
+- [x] **Physics-Based Cursor**: Implemented velocity-based rotation and stretch.
+- [x] **Custom 404 Page**: Created cinematic error page.
+
 ## 2. Deep Content (The "Story")
 - [ ] **Case Study Deep Dives**: Create dedicated sub-pages for flagship projects like **TaskFlow**, allowing for long-form technical explanations and galleries.
 - [ ] **Cinematic Media Gallery**: A lightbox-style gallery for high-resolution stills or short clips from your media productions.
-- [ ] **Snippets Feed**: Integrate GitHub Gists to showcase a "Live Code Snippet" feed for reusable Python logic.
+- [x] **Snippets Feed**: Automated injection of Gists via Python.
 - [ ] **Testimonial Slider**: A minimalist, high-typography section for quotes from collaborators or clients.
 
 ## 3. Advanced Automation (The "Intelligence")

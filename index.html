@@ -650,6 +650,17 @@
     </div>
    </section>
 
+   <!-- Snippets Feed -->
+   <section class="reveal" id="snippets">
+    <div class="section-label">
+     <span class="mono">Snippets</span>
+     <span class="mono" style="color: var(--muted)">Gists</span>
+    </div>
+    <div class="grid" id="snippets-grid">
+     <!-- Snippets injected via update_site.py -->
+    </div>
+   </section>
+
    <!-- Notes Section -->
    <section class="reveal" id="notes">
     <div class="section-label">
@@ -694,6 +705,7 @@
     let mouseX = 0, mouseY = 0;
     let cursorX = 0, cursorY = 0;
     let trailPositions = Array.from({ length: 3 }, () => ({ x: 0, y: 0 }));
+    let velX = 0, velY = 0;
     let scale = 1;
     let isMoving = false;
     let hoveredCard = null;
@@ -742,10 +754,19 @@
     const lerp = (a, b, n) => (1 - n) * a + n * b;
 
     function render() {
-        // The 0.15 value determines the "chill" follow speed (lower = smoother/slower)
+        const prevX = cursorX;
+        const prevY = cursorY;
+
         cursorX = lerp(cursorX, mouseX, 0.15);
         cursorY = lerp(cursorY, mouseY, 0.15);
         
+        // Physics-based stretch logic
+        velX = cursorX - prevX;
+        velY = cursorY - prevY;
+        const speed = Math.min(Math.hypot(velX, velY), 100);
+        const stretch = 1 + speed / 150;
+        const rotation = Math.atan2(velY, velX) * (180 / Math.PI);
+
         trailPositions.forEach((pos, i) => {
             pos.x = lerp(pos.x, i === 0 ? cursorX : trailPositions[i-1].x, 0.15 - (i * 0.03));
             pos.y = lerp(pos.y, i === 0 ? cursorY : trailPositions[i-1].y, 0.15 - (i * 0.03));
@@ -804,7 +825,7 @@
             }
         });
 
-        cursor.style.transform = `translate3d(${cursorX}px, ${cursorY}px, 0) translate(-50%, -50%) scale(${scale})`;
+        cursor.style.transform = `translate3d(${cursorX}px, ${cursorY}px, 0) translate(-50%, -50%) rotate(${rotation}deg) scale(${scale * stretch}, ${scale / stretch})`;
         requestAnimationFrame(render);
     }
     render();

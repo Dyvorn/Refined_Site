@@ -48,10 +48,25 @@ def get_github_repos():
         print(f"Error fetching GitHub data: {e}")
     return []
 
+def get_github_gists():
+    """Fetches the latest public Gists from GitHub."""
+    headers = {}
+    if GH_TOKEN:
+        headers["Authorization"] = f"token {GH_TOKEN}"
+    try:
+        url = f"https://api.github.com/users/{GH_USERNAME}/gists?per_page=3"
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        return response.json()
+    except Exception as e:
+        print(f"Error fetching Gists: {e}")
+    return []
+
 def update_site():
     print("Syncing with external APIs...")
     video_url = get_latest_youtube_video()
     repos = get_github_repos()
+    gists = get_github_gists()
 
     if not video_url and not repos:
         print("No updates found. Skipping sync to preserve content.")
@@ -125,6 +140,25 @@ def update_site():
             '''
             grid.append(BeautifulSoup(card_html, 'html.parser'))
         print(f"Updated {len(repos)} GitHub projects.")
+
+    # Update Snippets (Gists)
+    snippets_grid = soup.find(id="snippets-grid")
+    if snippets_grid and gists:
+        snippets_grid.clear()
+        for gist in gists:
+            filename = list(gist['files'].keys())[0]
+            desc = gist.get('description') or f"Code snippet: {filename}"
+            link = gist.get('html_url', '#')
+            
+            gist_html = f'''
+            <a href="{link}" target="_blank" class="card">
+                <span class="mono accent" style="font-size: 0.6rem; margin-bottom: 10px; display: block;">Snippet</span>
+                <h3 style="font-family: 'JetBrains Mono', monospace; font-size: 1rem;">{filename}</h3>
+                <p style="font-size: 0.85rem; opacity: 0.8;">{desc}</p>
+            </a>
+            '''
+            snippets_grid.append(BeautifulSoup(gist_html, 'html.parser'))
+        print(f"Updated {len(gists)} Snippets.")
 
     # Update Journal (Notes) from JSON
     notes_grid = soup.find(id="notes-grid")
