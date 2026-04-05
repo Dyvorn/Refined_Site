@@ -48,7 +48,10 @@
             transform: translate3d(0, 0, 0) translate(-50%, -50%);
             display: none;
         }
-        @media (hover: hover) { #cursor { display: block; } }
+        @media (hover: hover) { 
+            #cursor { display: block; } 
+            body, a, button, .card { cursor: none !important; }
+        }
 
         /* Cinematic Grain */
         .grain {
@@ -190,9 +193,12 @@
   </style>
  </head>
  <body>
-  <div id="cursor"></div>
-  <div class="bg-glow"></div>
-  <div class="grain"></div>
+  <div id="cursor">
+  </div>
+  <div class="bg-glow">
+  </div>
+  <div class="grain">
+  </div>
   <div class="container">
    <nav class="fade-in">
     <div class="logo">
@@ -212,7 +218,12 @@
    </nav>
    <header class="hero fade-in delay-1">
     <span class="mono">
-     <span class="status-dot"></span>System: <span class="accent">Online</span>
+     <span class="status-dot">
+     </span>
+     System:
+     <span class="accent">
+      Online
+     </span>
     </span>
     <h1>
      Absolute vibes.
@@ -252,55 +263,102 @@
     </div>
     <div class="grid" id="project-grid">
      <a class="card" href="https://github.com/Dyvorn/Refined_Site" target="_blank">
-      <span class="mono accent" style="font-size: 0.6rem; margin-bottom: 10px; display: block;">
-       HTML
-      </span>
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
+       <span class="mono accent" style="font-size: 0.6rem;">
+        HTML
+       </span>
+       <span class="mono" style="font-size: 0.6rem; color: var(--muted);">
+        ⭐ 0
+       </span>
+      </div>
       <h3>
        Refined_Site
       </h3>
+      <div class="mono" style="font-size: 0.55rem; color: var(--muted); margin-top: 20px; opacity: 0.5;">
+       Last sync: Apr 2026
+      </div>
      </a>
      <a class="card" href="https://github.com/Dyvorn/Makesomethingmonday" target="_blank">
-      <span class="mono accent" style="font-size: 0.6rem; margin-bottom: 10px; display: block;">
-       HTML
-      </span>
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
+       <span class="mono accent" style="font-size: 0.6rem;">
+        HTML
+       </span>
+       <span class="mono" style="font-size: 0.6rem; color: var(--muted);">
+        ⭐ 0
+       </span>
+      </div>
       <h3>
        Makesomethingmonday
       </h3>
+      <div class="mono" style="font-size: 0.55rem; color: var(--muted); margin-top: 20px; opacity: 0.5;">
+       Last sync: Apr 2026
+      </div>
      </a>
      <a class="card" href="https://github.com/Dyvorn/TaskFlow" target="_blank">
-      <span class="mono accent" style="font-size: 0.6rem; margin-bottom: 10px; display: block;">
-       Python
-      </span>
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
+       <span class="mono accent" style="font-size: 0.6rem;">
+        Python
+       </span>
+       <span class="mono" style="font-size: 0.6rem; color: var(--muted);">
+        ⭐ 0
+       </span>
+      </div>
       <h3>
        TaskFlow
       </h3>
+      <div class="mono" style="font-size: 0.55rem; color: var(--muted); margin-top: 20px; opacity: 0.5;">
+       Last sync: Apr 2026
+      </div>
      </a>
     </div>
    </section>
-
-   <section id="toolbox" class="fade-in delay-4">
+   <section class="fade-in delay-4" id="toolbox">
     <div class="section-label">
      <span class="mono">
       Toolbox
      </span>
      <span class="mono" style="color: var(--muted)">
-      Tech & Media
+      Tech &amp; Media
      </span>
     </div>
     <div class="tools-list mono">
-     <div><span>01.</span> Python</div>
-     <div><span>02.</span> HTML/CSS</div>
-     <div><span>03.</span> Davinci Resolve</div>
-     <div><span>04.</span> Automation</div>
-     <div><span>05.</span> Cinematic Design</div>
+     <div>
+      <span>
+       01.
+      </span>
+      Python
+     </div>
+     <div>
+      <span>
+       02.
+      </span>
+      HTML/CSS
+     </div>
+     <div>
+      <span>
+       03.
+      </span>
+      Davinci Resolve
+     </div>
+     <div>
+      <span>
+       04.
+      </span>
+      Automation
+     </div>
+     <div>
+      <span>
+       05.
+      </span>
+      Cinematic Design
+     </div>
     </div>
    </section>
-
    <footer>
     <div class="social-links mono">
-     <a href="https://twitch.tv/your_twitch" target="_blank">Twitch</a>
-     <a href="https://instagram.com/your_insta" target="_blank">Instagram</a>
-     <a href="https://twitter.com/your_twitter" target="_blank">Twitter</a>
+     <a href="https://instagram.com/your_insta" target="_blank">
+      Instagram
+     </a>
     </div>
     <p class="mono">
      Refined © 2024 / Built with Focus
@@ -308,7 +366,7 @@
    </footer>
   </div>
   <script>
-    const cursor = document.getElementById('cursor');
+   const cursor = document.getElementById('cursor');
     let mouseX = 0, mouseY = 0;
     let cursorX = 0, cursorY = 0;
     let scale = 1;
