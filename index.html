@@ -137,6 +137,11 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+            margin-bottom: 20px;
         }
         .logo { font-weight: 700; font-size: 1.2rem; letter-spacing: 0.2em; color: var(--gold); }
         .nav-links a {
@@ -179,25 +184,11 @@
         /* Featured Project Styling */
         #featured-container { 
             position: relative; 
-            padding: 4px; 
-            border-radius: 4px; 
+            border-radius: 8px; 
             perspective: 1200px; 
-        }
-        
-        /* Liquid Border Animation */
-        #featured-container::before {
-            content: '';
-            position: absolute;
-            top: -50%; left: -50%;
-            width: 200%; height: 200%;
-            background: conic-gradient(transparent, transparent, transparent, var(--gold));
-            animation: rotateBorder 4s linear infinite;
-            z-index: -1;
-        }
-
-        @keyframes rotateBorder {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
+            border: 1px solid var(--border);
+            box-shadow: var(--neon-glow);
+            background: rgba(10, 10, 10, 0.4);
         }
 
         .featured-card {
@@ -205,12 +196,12 @@
             background: rgba(5, 5, 5, 0.8);
             backdrop-filter: blur(20px);
             border: none;
-            border-left: 4px solid var(--gold);
             padding: 60px;
             overflow: hidden;
             z-index: 1;
             transform-style: preserve-3d;
             will-change: transform;
+            border-radius: 8px;
         }
 
         .featured-card > * {
@@ -268,6 +259,32 @@
             .hero { text-align: center; }
             .hero p { margin: 0 auto; }
         }
+
+        /* Music Visualizer */
+        .music-vibe {
+            position: fixed;
+            bottom: 40px;
+            left: 30px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 1000;
+        }
+        .visualizer {
+            display: flex;
+            align-items: flex-end;
+            gap: 3px;
+            height: 14px;
+        }
+        .visualizer .bar {
+            width: 2px;
+            height: 100%;
+            background: var(--gold);
+            box-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
+            transform: scaleY(0.3);
+            transform-origin: bottom;
+            transition: transform 0.3s ease;
+        }
   </style>
  </head>
  <body>
@@ -277,6 +294,16 @@
   <div class="bg-glow">
   </div>
   <div class="grain">
+  </div>
+  <div class="music-vibe fade-in delay-3">
+   <div class="visualizer">
+    <div class="bar"></div>
+    <div class="bar"></div>
+    <div class="bar"></div>
+    <div class="bar"></div>
+    <div class="bar"></div>
+   </div>
+   <button class="mono" id="vibe-toggle" style="background: none; border: none; color: var(--muted); font-size: 0.65rem; letter-spacing: 0.1em; outline: none;">VIBE: OFF</button>
   </div>
   <div class="container">
    <nav class="fade-in">
@@ -521,6 +548,28 @@
     }, observerOptions);
 
     document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+    // Music Visualizer Logic
+    const vibeToggle = document.getElementById('vibe-toggle');
+    const bars = document.querySelectorAll('.visualizer .bar');
+    let isVibing = false;
+
+    vibeToggle.addEventListener('click', () => {
+        isVibing = !isVibing;
+        vibeToggle.innerText = `VIBE: ${isVibing ? 'ON' : 'OFF'}`;
+        vibeToggle.style.color = isVibing ? 'var(--neon)' : 'var(--muted)';
+        if (isVibing) animateBars();
+        else bars.forEach(bar => bar.style.transform = 'scaleY(0.3)');
+    });
+
+    function animateBars() {
+        if (!isVibing) return;
+        bars.forEach(bar => {
+            const scale = Math.random() * 0.7 + 0.3;
+            bar.style.transform = `scaleY(${scale})`;
+        });
+        setTimeout(() => requestAnimationFrame(animateBars), 200);
+    }
   </script>
  </body>
 </html>
