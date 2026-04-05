@@ -36,6 +36,20 @@
 
         .container { max-width: 1100px; margin: 0 auto; padding: 0 30px; }
 
+        /* Parallax Background Layer */
+        #parallax-bg {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 120%;
+            background: 
+                radial-gradient(circle at 50% 50%, rgba(212, 175, 55, 0.02) 0%, transparent 50%),
+                linear-gradient(rgba(212, 175, 55, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(212, 175, 55, 0.02) 1px, transparent 1px);
+            background-size: 100% 100%, 60px 60px, 60px 60px;
+            z-index: -2;
+            will-change: transform;
+        }
+
         /* Custom Cursor */
         #cursor {
             width: 20px; height: 20px;
@@ -163,13 +177,61 @@
         .card p { font-size: 0.95rem; color: var(--muted); }
 
         /* Featured Project Styling */
-        .featured-card {
-            background: linear-gradient(to right, rgba(212, 175, 55, 0.05), transparent);
-            border-left: 2px solid var(--gold);
-            padding: 60px;
+        #featured-container { position: relative; padding: 4px; border-radius: 4px; overflow: hidden; }
+        
+        /* Liquid Border Animation */
+        #featured-container::before {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: conic-gradient(transparent, transparent, transparent, var(--gold));
+            animation: rotateBorder 4s linear infinite;
+            z-index: -1;
         }
+
+        @keyframes rotateBorder {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .featured-card {
+            position: relative;
+            background: rgba(5, 5, 5, 0.8);
+            backdrop-filter: blur(20px);
+            border: none;
+            border-left: 4px solid var(--gold);
+            padding: 60px;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        /* Fluid Morphism Background */
+        .featured-card::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: 
+                radial-gradient(circle at var(--x, 50%) var(--y, 50%), rgba(212, 175, 55, 0.1) 0%, transparent 50%);
+            opacity: 0.5;
+            transition: all 0.5s ease;
+            z-index: -1;
+            animation: fluidMove 10s ease-in-out infinite alternate;
+        }
+
+        @keyframes fluidMove {
+            0% { background-position: 0% 0%; }
+            100% { background-position: 100% 100%; }
+        }
+
         .featured-card h2 { font-size: 3rem; color: var(--gold); margin-bottom: 20px; }
         .featured-tag { background: var(--gold); color: var(--black); padding: 4px 12px; font-weight: 700; margin-bottom: 20px; display: inline-block; }
+
+        /* TaskFlow Details */
+        .featured-features { display: flex; gap: 30px; margin-top: 30px; }
+        .f-item { display: flex; align-items: center; gap: 10px; color: var(--text); font-size: 0.85rem; }
+        .f-item i { color: var(--gold); font-style: normal; font-weight: 700; }
 
         /* Video Embed */
         .video-container {
@@ -206,6 +268,7 @@
   </style>
  </head>
  <body>
+  <div id="parallax-bg"></div>
   <div id="cursor">
   </div>
   <div class="bg-glow">
@@ -273,7 +336,19 @@
      <span class="mono accent">Flagship</span>
     </div>
     <div id="featured-container">
-        <!-- TaskFlow will be injected here by update_site.py -->
+        <div class="card featured-card">
+            <span class="mono featured-tag">Flagship Project</span>
+            <h2>TaskFlow</h2>
+            <p style="font-size: 1.2rem; max-width: 700px; color: var(--muted);">The core of my development journey. A high-performance, automated workflow engine built to bridge the gap between complex logic and calm productivity.</p>
+            <div class="featured-features mono">
+                <div class="f-item"><i>//</i> High Performance</div>
+                <div class="f-item"><i>//</i> Python Backend</div>
+                <div class="f-item"><i>//</i> Neon UI</div>
+            </div>
+            <div style="margin-top: 40px; display: flex; gap: 20px;" class="mono">
+                <a href="https://github.com/Dyvorn/TaskFlow" target="_blank" class="accent" style="text-decoration: none;">View Repository →</a>
+            </div>
+        </div>
     </div>
    </section>
 
@@ -350,6 +425,7 @@
   </div>
   <script>
    const cursor = document.getElementById('cursor');
+    const pBg = document.getElementById('parallax-bg');
     let mouseX = 0, mouseY = 0;
     let cursorX = 0, cursorY = 0;
     let scale = 1;
@@ -374,6 +450,10 @@
         cursorX = lerp(cursorX, mouseX, 0.15);
         cursorY = lerp(cursorY, mouseY, 0.15);
         
+        // Parallax scroll logic (moves background at 20% of scroll speed)
+        const scrollY = window.pageYOffset;
+        pBg.style.transform = `translate3d(0, ${scrollY * 0.2}px, 0)`;
+
         cursor.style.transform = `translate3d(${cursorX}px, ${cursorY}px, 0) translate(-50%, -50%) scale(${scale})`;
         requestAnimationFrame(render);
     }

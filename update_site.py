@@ -68,13 +68,18 @@ def update_site():
         link = featured_repo.get('html_url', '#')
         
         featured_html = f'''
-        <a href="{link}" target="_blank" class="card featured-card">
-            <span class="mono featured-tag">Primary Project</span>
+        <a href="{link}" target="_blank" class="featured-card">
+            <span class="mono featured-tag">Flagship Project</span>
             <h2>{featured_repo['name']}</h2>
-            <p style="font-size: 1.2rem; max-width: 700px;">{desc}</p>
-            <div style="margin-top: 30px; display: flex; gap: 20px;" class="mono">
+            <p style="font-size: 1.2rem; max-width: 700px; color: var(--text); position: relative; z-index: 2;">{desc}</p>
+            <div class="featured-features mono">
+                <div class="f-item"><i>//</i> Active Dev</div>
+                <div class="f-item"><i>//</i> Open Source</div>
+                <div class="f-item"><i>//</i> Python Based</div>
+            </div>
+            <div style="margin-top: 40px; display: flex; gap: 20px;" class="mono">
                 <span class="accent">⭐ {stars} Stars</span>
-                <span style="color: var(--muted);">View Documentation →</span>
+                <span style="color: var(--muted);">View Source Code →</span>
             </div>
         </a>
         '''
