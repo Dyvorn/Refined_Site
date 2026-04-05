@@ -13,6 +13,7 @@ GH_TOKEN = os.getenv("GH_TOKEN")
 HTML_FILE = "index.html"
 NOTES_FILE = "notes.json"
 SNIPPETS_FILE = "snippets.json"
+TESTIMONIALS_FILE = "testimonials.json"
 
 def get_latest_youtube_video():
     """Fetches the latest video ID using the uploads playlist (100x more quota efficient)."""
@@ -141,6 +142,25 @@ def update_site():
             '''
             grid.append(BeautifulSoup(card_html, 'html.parser'))
         print(f"Updated {len(repos)} GitHub projects.")
+
+    # Update Testimonials
+    testimonials_container = soup.find(id="testimonial-container")
+    if testimonials_container and os.path.exists(TESTIMONIALS_FILE):
+        try:
+            with open(TESTIMONIALS_FILE, 'r', encoding='utf-8') as tf:
+                testimonials = json.load(tf)
+            testimonials_container.clear()
+            for t in testimonials[:3]:
+                t_html = f'''
+                <div class="card testimonial-item">
+                    <p class="testimonial-text">"{t['quote']}"</p>
+                    <span class="mono testimonial-author">— {t['author']}</span>
+                </div>
+                '''
+                testimonials_container.append(BeautifulSoup(t_html, 'html.parser'))
+            print("Updated Testimonials from testimonials.json")
+        except Exception as e:
+            print(f"Error updating testimonials: {e}")
 
     # Update Snippets (Gists)
     snippets_grid = soup.find(id="snippets-grid")

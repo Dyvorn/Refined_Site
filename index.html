@@ -7,14 +7,14 @@
    REFINED | Portfolio
   </title>
   <!-- SEO & Social Meta Tags -->
-  <meta content="A high-performance, cinematic portfolio showcasing software development and media production." name="description"/>
-  <meta content="REFINED | Portfolio" property="og:title"/>
-  <meta content="A high-performance, cinematic portfolio designed to be professional yet calm and chill." property="og:description"/>
-  <meta content="website" property="og:type"/>
-  <meta content="summary_large_image" name="twitter:card"/>
-  <meta content="REFINED | Portfolio" name="twitter:title"/>
+  <meta name="description" content="A high-performance, cinematic portfolio showcasing software development and media production." />
+  <meta property="og:title" content="REFINED | Portfolio" />
+  <meta property="og:description" content="A high-performance, cinematic portfolio designed to be professional yet calm and chill." />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="REFINED | Portfolio" />
   <script type="application/ld+json">
-   {
+    {
       "@context": "https://schema.org/",
       "@type": "Person",
       "name": "Lennard Finn Penzler",
@@ -26,9 +26,10 @@
       ]
     }
   </script>
-  <meta content="#050505" name="theme-color"/>
-  <link href="manifest.json" rel="manifest"/>
-  <link href="assets/logo.svg" rel="apple-touch-icon"/>
+  <meta name="theme-color" content="#050505" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="assets/logo.svg" />
+
   <!-- Typography: Space Grotesk for headings, JetBrains Mono for accents -->
   <link href="https://fonts.googleapis.com" rel="preconnect"/>
   <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
@@ -314,7 +315,7 @@
             background: var(--surface);
             border: 1px solid rgba(212, 175, 55, 0.05);
             padding: 40px;
-            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: border-color 0.4s ease, box-shadow 0.4s ease, background 0.4s ease;
             text-decoration: none;
             color: inherit;
             display: block;
@@ -329,6 +330,17 @@
         }
         .card h3 { margin-bottom: 15px; font-size: 1.4rem; color: var(--gold); }
         .card p { font-size: 0.95rem; color: var(--muted); }
+
+        /* Testimonials */
+        .testimonial-item {
+            padding: 60px;
+            text-align: center;
+            border: 1px solid var(--border);
+            background: rgba(212, 175, 55, 0.02);
+            position: relative;
+        }
+        .testimonial-text { font-size: 1.5rem; font-style: italic; margin-bottom: 30px; color: var(--text); font-weight: 300; }
+        .testimonial-author { font-size: 0.8rem; color: var(--gold); letter-spacing: 0.2em; }
 
         /* Contact Modal */
         #contact-modal {
@@ -463,20 +475,14 @@
   </style>
  </head>
  <body>
-  <div class="parallax-layer" id="parallax-grid">
-  </div>
-  <div class="parallax-layer" id="parallax-glow">
-  </div>
-  <div class="parallax-layer" id="parallax-stars">
-  </div>
+  <div class="parallax-layer" id="parallax-grid"></div>
+  <div class="parallax-layer" id="parallax-glow"></div>
+  <div class="parallax-layer" id="parallax-stars"></div>
   <div id="cursor">
   </div>
-  <div class="cursor-trail" style="--d: 1">
-  </div>
-  <div class="cursor-trail" style="--d: 2">
-  </div>
-  <div class="cursor-trail" style="--d: 3">
-  </div>
+  <div class="cursor-trail" style="--d: 1"></div>
+  <div class="cursor-trail" style="--d: 2"></div>
+  <div class="cursor-trail" style="--d: 3"></div>
   <div class="bg-glow">
   </div>
   <div class="grain">
@@ -485,44 +491,33 @@
   </div>
   <!-- Contact Modal -->
   <div id="contact-modal">
-   <div class="modal-content">
-    <button class="close-modal magnetic" onclick="toggleContact()">
-     ×
-    </button>
-    <span class="mono accent">
-     Encrypted Channel
-    </span>
-    <h2 style="margin: 10px 0 30px; color: var(--gold);">
-     Send a Message
-    </h2>
-    <form action="https://formspree.io/f/your_id" method="POST">
-     <label class="mono" style="font-size: 0.6rem; color: var(--muted);">
-      Identity
-     </label>
-     <input name="email" placeholder="email@example.com" required="" type="email"/>
-     <label class="mono" style="font-size: 0.6rem; color: var(--muted); margin-top: 20px; display: block;">
-      Transmission
-     </label>
-     <textarea name="message" placeholder="Your message..." required="" rows="4"></textarea>
-     <button class="send-btn magnetic" type="submit">
-      Initiate Transfer
-     </button>
-    </form>
-   </div>
+      <div class="modal-content">
+          <button class="close-modal magnetic" onclick="toggleContact()">×</button>
+          <span class="mono accent">Encrypted Channel</span>
+          <h2 style="margin: 10px 0 30px; color: var(--gold);">Send a Message</h2>
+          <form action="https://formspree.io/f/your_id" method="POST">
+              <label class="mono" style="font-size: 0.6rem; color: var(--muted);">Identity</label>
+              <input type="email" name="email" placeholder="email@example.com" required>
+              <label class="mono" style="font-size: 0.6rem; color: var(--muted); margin-top: 20px; display: block;">Transmission</label>
+              <textarea name="message" rows="4" placeholder="Your message..." required></textarea>
+              <button type="submit" class="send-btn magnetic">Initiate Transfer</button>
+          </form>
+      </div>
   </div>
+
   <div class="container">
    <nav class="fade-in">
     <div class="logo">
      REFINED
     </div>
-    <div aria-label="Main Navigation" class="nav-links mono" role="navigation">
-     <a aria-label="View my projects" class="magnetic" href="#projects">
+    <div class="nav-links mono" role="navigation" aria-label="Main Navigation">
+     <a class="magnetic" href="#projects" aria-label="View my projects">
       Work
      </a>
-     <a aria-label="View my content" class="magnetic" href="#videos">
+     <a class="magnetic" href="#videos" aria-label="View my content">
       Content
      </a>
-     <a aria-label="Contact me" class="magnetic" href="javascript:void(0)" onclick="toggleContact()">
+     <a class="magnetic" href="javascript:void(0)" onclick="toggleContact()" aria-label="Contact me">
       Connect
      </a>
     </div>
@@ -583,7 +578,7 @@
        TaskFlow
       </h2>
       <p style="font-size: 1.2rem; max-width: 700px; color: var(--muted); position: relative; z-index: 2;">
-       A cornerstone project focused on high-performance workflow optimization and cinematic execution.
+       None
       </p>
       <div class="featured-features mono">
        <div class="f-item">
@@ -626,15 +621,9 @@
      </span>
     </div>
     <div class="filter-bar mono">
-     <button class="filter-btn active magnetic" onclick="filterProjects('all', this)">
-      All
-     </button>
-     <button class="filter-btn magnetic" onclick="filterProjects('python', this)">
-      Python
-     </button>
-     <button class="filter-btn magnetic" onclick="filterProjects('html', this)">
-      HTML
-     </button>
+        <button class="filter-btn active magnetic" onclick="filterProjects('all', this)">All</button>
+        <button class="filter-btn magnetic" onclick="filterProjects('python', this)">Python</button>
+        <button class="filter-btn magnetic" onclick="filterProjects('html', this)">HTML</button>
     </div>
     <div class="grid" id="project-grid">
      <a class="card" href="https://github.com/Dyvorn/Refined_Site" target="_blank">
@@ -671,113 +660,46 @@
      </a>
     </div>
    </section>
+
+   <!-- Testimonial Section -->
+   <section class="reveal" id="testimonials">
+    <div class="section-label">
+     <span class="mono">Feedback</span>
+     <span class="mono" style="color: var(--muted)">Testimonials</span>
+    </div>
+    <div class="grid" id="testimonial-container">
+     <!-- Injected via testimonials.json -->
+    </div>
+   </section>
+
    <!-- Snippets Feed -->
    <section class="reveal" id="snippets">
     <div class="section-label">
-     <span class="mono">
-      Snippets
-     </span>
-     <span class="mono" style="color: var(--muted)">
-      Gists
-     </span>
+     <span class="mono">Snippets</span>
+     <span class="mono" style="color: var(--muted)">Gists</span>
     </div>
     <div class="grid" id="snippets-grid">
-     <a class="card" href="https://github.com/Dyvorn/Refined_Site" target="_blank">
-      <span class="mono accent" style="font-size: 0.6rem; margin-bottom: 10px; display: block;">
-       Snippet
-      </span>
-      <h3 style="font-family: 'JetBrains Mono', monospace; font-size: 1rem;">
-       lerp_engine.py
-      </h3>
-      <p style="font-size: 0.85rem; opacity: 0.8;">
-       The core linear interpolation logic used for the physics-based liquid cursor and smooth UI transitions.
-      </p>
-     </a>
-     <a class="card" href="https://github.com/Dyvorn/TaskFlow" target="_blank">
-      <span class="mono accent" style="font-size: 0.6rem; margin-bottom: 10px; display: block;">
-       Snippet
-      </span>
-      <h3 style="font-family: 'JetBrains Mono', monospace; font-size: 1rem;">
-       task_sync_v2.py
-      </h3>
-      <p style="font-size: 0.85rem; opacity: 0.8;">
-       High-speed asynchronous task synchronization script for TaskFlow's background processing engine.
-      </p>
-     </a>
-     <a class="card" href="https://github.com/Dyvorn/Refined_Site" target="_blank">
-      <span class="mono accent" style="font-size: 0.6rem; margin-bottom: 10px; display: block;">
-       Snippet
-      </span>
-      <h3 style="font-family: 'JetBrains Mono', monospace; font-size: 1rem;">
-       cinematic_grain.css
-      </h3>
-      <p style="font-size: 0.85rem; opacity: 0.8;">
-       CSS-only animated noise texture implementation for that professional film celluloid aesthetic.
-      </p>
-     </a>
+     <!-- Snippets injected via update_site.py -->
     </div>
    </section>
+
    <!-- Notes Section -->
    <section class="reveal" id="notes">
     <div class="section-label">
-     <span class="mono">
-      Journal
-     </span>
-     <span class="mono" style="color: var(--muted)">
-      Micro-blog
-     </span>
+     <span class="mono">Journal</span>
+     <span class="mono" style="color: var(--muted)">Micro-blog</span>
     </div>
     <div class="notes-grid" id="notes-grid">
-     <div class="note-item">
-      <span class="note-date mono">
-       Apr 07, 2026
-      </span>
-      <p class="note-content">
-       Just integrated a manual Snippets override. Now the 'Cinematic Code' section stays populated even if the GitHub API is being shy. Optimization is key.
-      </p>
-     </div>
-     <div class="note-item">
-      <span class="note-date mono">
-       Apr 06, 2026
-      </span>
-      <p class="note-content">
-       Refining the Physics-Based cursor. Added velocity calculations to handle squash and stretch. The UI finally feels tactile and responsive.
-      </p>
-     </div>
-     <div class="note-item">
-      <span class="note-date mono">
-       Apr 05, 2026
-      </span>
-      <p class="note-content">
-       Implemented Phase 2 automation. The Journal is now decoupled from the HTML. Multi-layer parallax background is active. System Online.
-      </p>
-     </div>
-     <div class="note-item">
-      <span class="note-date mono">
-       Apr 04, 2026
-      </span>
-      <p class="note-content">
-       TaskFlow is hitting 0.9.0. The Python backend is finally as stable as I want it. Pushing for that flagship release soon.
-      </p>
-     </div>
-     <div class="note-item">
-      <span class="note-date mono">
-       Apr 03, 2026
-      </span>
-      <p class="note-content">
-       Exploring the concept of 'Cortisol Lowering' UI. Minimalist gold and neon accents against absolute black. It feels right.
-      </p>
-     </div>
+     <!-- Notes injected via notes.json and update_site.py -->
     </div>
    </section>
+
    <footer>
     <div class="social-links mono">
      <a href="https://www.instagram.com/refined.mov/" target="_blank">
       Instagram
      </a>
-     <button class="mono" id="grain-toggle" style="background: none; border: 1px solid var(--border); color: var(--muted); padding: 4px 8px; cursor: pointer; font-size: 0.6rem; margin-left: 15px;">
-      Grain: On
-     </button>
+     <button id="grain-toggle" class="mono" style="background: none; border: 1px solid var(--border); color: var(--muted); padding: 4px 8px; cursor: pointer; font-size: 0.6rem; margin-left: 15px;">Grain: On</button>
     </div>
     <p class="mono">
      Refined © 2026 | Built with no sleep and low cortisol *_*
@@ -785,7 +707,7 @@
    </footer>
   </div>
   <script>
-   // 1. Immediate Reveal Logic (Unblocks visibility instantly)
+    // 1. Immediate Reveal Logic (Unblocks visibility instantly)
     const observerOptions = { threshold: 0.05 };
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
@@ -888,8 +810,8 @@
 
             const centerX = hoveredCardRect.width / 2;
             const centerY = hoveredCardRect.height / 2;
-            targetRotX = -(y - centerY) / (hoveredCard.classList.contains('featured-card') ? 25 : 40);
-            targetRotY = (x - centerX) / (hoveredCard.classList.contains('featured-card') ? 25 : 40);
+            targetRotX = -(y - centerY) / 40;
+            targetRotY = (x - centerX) / 40;
 
             curRotX = lerp(curRotX, targetRotX, 0.1);
             curRotY = lerp(curRotY, targetRotY, 0.1);
