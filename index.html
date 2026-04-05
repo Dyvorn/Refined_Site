@@ -211,7 +211,6 @@
             z-index: 1;
             transform-style: preserve-3d;
             will-change: transform;
-            transition: transform 0.1s ease-out;
         }
 
         .featured-card > * {
@@ -435,6 +434,7 @@
     let scale = 1;
     let isMoving = false;
     let isHoveringFeatured = false;
+    let curRotX = 0, curRotY = 0;
 
     document.addEventListener('mousemove', e => {
         mouseX = e.clientX;
@@ -459,6 +459,8 @@
         const card = document.querySelector('.featured-card');
         if (card) {
             const rect = card.getBoundingClientRect();
+            let targetRotX = 0;
+            let targetRotY = 0;
             
             if (isHoveringFeatured) {
                 const x = cursorX - rect.left;
@@ -466,16 +468,16 @@
                 card.style.setProperty('--mouse-x', `${x}px`);
                 card.style.setProperty('--mouse-y', `${y}px`);
 
-                // Physical Depth Tilt Logic
                 const centerX = rect.width / 2;
                 const centerY = rect.height / 2;
-                const rotateX = (y - centerY) / 30;
-                const rotateY = (x - centerX) / 30;
-
-                card.style.transform = `rotateX(${-rotateX}deg) rotateY(${rotateY}deg)`;
-            } else {
-                card.style.transform = `rotateX(0deg) rotateY(0deg)`;
+                targetRotX = -(y - centerY) / 25;
+                targetRotY = (x - centerX) / 25;
             }
+
+            // Smoothly lerp the rotation values
+            curRotX = lerp(curRotX, targetRotX, 0.1);
+            curRotY = lerp(curRotY, targetRotY, 0.1);
+            card.style.transform = `rotateX(${curRotX}deg) rotateY(${curRotY}deg)`;
         }
 
         // Parallax scroll logic (moves background at 20% of scroll speed)
