@@ -1,15 +1,17 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>REFINED | Portfolio</title>
-    <!-- Typography: Space Grotesk for headings, JetBrains Mono for accents -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@300;500;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1" name="viewport"/>
+  <title>
+   REFINED | Portfolio
+  </title>
+  <!-- Typography: Space Grotesk for headings, JetBrains Mono for accents -->
+  <link href="https://fonts.googleapis.com" rel="preconnect"/>
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&amp;family=Space+Grotesk:wght@300;500;700&amp;display=swap" rel="stylesheet"/>
+  <style>
+   :root {
             --black: #050505;
             --surface: #0f0f0f;
             --gold: #D4AF37;
@@ -107,59 +109,107 @@
             .hero { text-align: center; }
             .hero p { margin: 0 auto; }
         }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <nav>
-            <div class="logo">REFINED</div>
-            <div class="nav-links mono">
-                <a href="#projects">Work</a>
-                <a href="#videos">Content</a>
-                <a href="https://github.com/Dyvorn" target="_blank">Source</a>
-            </div>
-        </nav>
-
-        <header class="hero">
-            <span class="mono accent">System: Online</span>
-            <h1>Calm focus. <br>Refined <span class="accent">Code.</span></h1>
-            <p>A minimalist space documenting my journey through software development and cinematic production.</p>
-        </header>
-
-        <section id="videos">
-            <div class="section-label">
-                <span class="mono">Latest Production</span>
-                <span class="mono" style="color: var(--muted)">YouTube</span>
-            </div>
-            <div class="video-container">
-                <!-- This URL will be updated automatically by the Python script -->
-                <iframe src="https://www.youtube.com/embed/placeholder" title="YouTube video player" allowfullscreen></iframe>
-            </div>
-        </section>
-
-        <section id="projects">
-            <div class="section-label">
-                <span class="mono">Selected Projects</span>
-                <span class="mono" style="color: var(--muted)">GitHub</span>
-            </div>
-            <div class="grid" id="project-grid">
-                <!-- Project cards will be injected here -->
-                <div class="card">
-                    <span class="mono accent" style="font-size: 0.6rem; margin-bottom: 10px; display: block;">Python / Automation</span>
-                    <h3>TaskFlow</h3>
-                    <p>Advanced workflow optimization and task tracking system designed for high-performance teams.</p>
-                </div>
-                <div class="card">
-                    <span class="mono accent" style="font-size: 0.6rem; margin-bottom: 10px; display: block;">CSS / Design</span>
-                    <h3>Neon Minimalist</h3>
-                    <p>The core design language behind this portfolio. Focus on readability and atmospheric depth.</p>
-                </div>
-            </div>
-        </section>
-
-        <footer>
-            <p class="mono">Built with focus &copy; 2024</p>
-        </footer>
+  </style>
+ </head>
+ <body>
+  <div class="container">
+   <nav>
+    <div class="logo">
+     REFINED
     </div>
-</body>
+    <div class="nav-links mono">
+     <a href="#projects">
+      Work
+     </a>
+     <a href="#videos">
+      Content
+     </a>
+     <a href="https://github.com/Dyvorn" target="_blank">
+      Source
+     </a>
+    </div>
+   </nav>
+   <header class="hero">
+    <span class="mono accent">
+     System: Online
+    </span>
+    <h1>
+     Calm focus.
+     <br/>
+     Refined
+     <span class="accent">
+      Code.
+     </span>
+    </h1>
+    <p>
+     A minimalist space documenting my journey through software development and cinematic production.
+    </p>
+   </header>
+   <section id="videos">
+    <div class="section-label">
+     <span class="mono">
+      Latest Production
+     </span>
+     <span class="mono" style="color: var(--muted)">
+      YouTube
+     </span>
+    </div>
+    <div class="video-container">
+     <!-- This URL will be updated automatically by the Python script -->
+     <iframe allowfullscreen="" id="yt-iframe" src="https://www.youtube.com/embed/4OaKT9soozI" title="YouTube video player">
+     </iframe>
+    </div>
+   </section>
+   <section id="projects">
+    <div class="section-label">
+     <span class="mono">
+      Selected Projects
+     </span>
+     <span class="mono" style="color: var(--muted)">
+      GitHub
+     </span>
+    </div>
+    <div class="grid" id="project-grid">
+     <a class="card" href="https://github.com/Dyvorn/Refined_Site" target="_blank">
+      <span class="mono accent" style="font-size: 0.6rem; margin-bottom: 10px; display: block;">
+       HTML
+      </span>
+      <h3>
+       Refined_Site
+      </h3>
+      <p>
+       None
+      </p>
+     </a>
+     <a class="card" href="https://github.com/Dyvorn/Makesomethingmonday" target="_blank">
+      <span class="mono accent" style="font-size: 0.6rem; margin-bottom: 10px; display: block;">
+       HTML
+      </span>
+      <h3>
+       Makesomethingmonday
+      </h3>
+      <p>
+       None
+      </p>
+     </a>
+     <a class="card" href="https://github.com/Dyvorn/TaskFlow" target="_blank">
+      <span class="mono accent" style="font-size: 0.6rem; margin-bottom: 10px; display: block;">
+       Python
+      </span>
+      <h3>
+       TaskFlow
+      </h3>
+      <p>
+       None
+      </p>
+     </a>
+    </div>
+   </section>
+   <footer>
+    <p class="mono">
+     Built with focus © 2024
+    </p>
+   </footer>
+  </div>
+ </body>
 </html>
