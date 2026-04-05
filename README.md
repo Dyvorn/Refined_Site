@@ -1,19 +1,20 @@
-# Refined — static site
+# Refined — Cozylands
 
-This repository contains a small static landing page you can publish with GitHub Pages.
+A minimalist, high-performance static landing page designed for clarity and aesthetic appeal. Ready for deployment via GitHub Pages.
 
-How to publish
-- Option A (recommended): Create a repository named `username.github.io` and push these files to its `main` branch. GitHub Pages will serve the site at `https://username.github.io`.
-- Option B: In repository settings, enable GitHub Pages and select the `main` branch (or `gh-pages` branch) and `/ (root)` as the folder.
+## ✨ Features
+- **Clean Design**: Minimalist aesthetic with a focus on typography.
+- **Dark Mode**: Automatic theme detection with a manual toggle.
+- **Responsive**: Optimized for mobile and desktop screens.
 
-Files
-- `index.html` — landing page
-- `style.css` — main styles
-- `script.js` — theme toggle
-- `assets/` — images and logo
+## 📂 Project Structure
+- `index.html` — Semantic structure and content.
+- `style.css` — Modern styles using CSS variables.
+- `script.js` — Lightweight theme toggle logic.
+- `assets/` — Project images and branding.
 
-Local preview
-Open `index.html` in a browser or use a simple server, e.g.:
+## 🚀 Quick Start
+Open `index.html` directly or serve locally:
 
 ```bash
 python -m http.server 8000

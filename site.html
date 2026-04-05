@@ -100,27 +100,27 @@
         <div>
           <div class="eyebrow"><i></i>inspired by fast motion-product sites</div>
           <h1>A sharper home for your <span style="color:var(--primary)">videos</span> and projects.</h1>
-          <p class="hero-copy">This version now uses your real public links: the Refined YouTube channel, your Buy Me a Coffee page, and your GitHub projects. Your YouTube channel currently shows 17 subscribers, 28 videos, and links out to your Buy Me a Coffee page from the channel header. [page:55][page:54][cite:3]</p>
+          <p class="hero-copy">A cinematic showcase for the latest uploads and public repositories from Refined. Optimized for performance and clarity.</p>
           <div class="hero-actions">
             <a class="btn btn-primary" href="#videos">Watch latest</a>
             <a class="btn btn-ghost" href="#projects">Browse projects</a>
           </div>
         </div>
         <div class="hero-bottom">
-          <div class="stat"><div class="stat-value">28</div><div class="stat-label">videos [page:55]</div></div>
-          <div class="stat"><div class="stat-value">17</div><div class="stat-label">subscribers [page:55]</div></div>
-          <div class="stat"><div class="stat-value">3</div><div class="stat-label">public repos [cite:3]</div></div>
+          <div class="stat"><div class="stat-value" id="stat-videos">28</div><div class="stat-label">videos</div></div>
+          <div class="stat"><div class="stat-value" id="stat-subs">17</div><div class="stat-label">subscribers</div></div>
+          <div class="stat"><div class="stat-value" id="stat-repos">3</div><div class="stat-label">public repos</div></div>
         </div>
       </div>
 
       <aside class="panel hero-side" id="videos">
         <div class="video-frame">
-          <iframe src="https://www.youtube.com/embed/OCc98_qBNpo?start=500" title="To much Yapping | Taskflow Devlog" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>
+          <iframe id="latest-video-frame" src="https://www.youtube.com/embed/OCc98_qBNpo" title="Latest video" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>
         </div>
         <div class="side-box">
           <div class="small-label">Latest upload</div>
-          <div class="video-title">To much Yapping | Taskflow Devlog</div>
-          <div class="video-desc">Your channel page lists this video in the Videos section as uploaded 6 days ago, making it the newest standard video currently visible there. [page:55]</div>
+          <div class="video-title" id="latest-video-title">Loading...</div>
+          <div class="video-desc" id="latest-video-desc">Check out the newest content on the Refined YouTube channel.</div>
         </div>
         <div class="side-box">
           <div class="small-label">Style direction</div>
@@ -133,19 +133,8 @@
       <div class="stack">
         <section class="panel section" id="projects">
           <div class="section-head"><h2 class="section-title">Featured projects</h2><div class="section-note">from public GitHub repos</div></div>
-          <div class="projects">
-            <article class="project">
-              <div class="cover" style="background:linear-gradient(135deg, rgba(76,132,255,.22), rgba(100,240,255,.10));"><svg viewBox="0 0 800 150" preserveAspectRatio="none" aria-hidden="true"><defs><pattern id="r1" width="50" height="50" patternUnits="userSpaceOnUse"><path d="M0 50L50 0" stroke="rgba(111,179,255,.18)"/></pattern></defs><rect width="800" height="150" fill="url(#r1)"/></svg><div class="icon">✅</div></div>
-              <div class="project-body"><div class="project-row"><div><h3 class="project-name">TaskFlow</h3><p class="project-copy">TaskFlow is your most active public repo, listed as Python, created on February 5, 2026 and updated on April 5, 2026. [cite:3]</p></div><div class="badges"><span class="badge b1">Python</span><span class="badge b2">Active</span></div></div><div class="project-bottom"><div class="meta"><span>size 437972 [cite:3]</span><span>main branch [cite:3]</span><span>public [cite:3]</span></div><a class="btn btn-ghost" href="https://github.com/Dyvorn/TaskFlow" target="_blank" rel="noopener noreferrer">Open repo</a></div></div>
-            </article>
-            <article class="project">
-              <div class="cover" style="background:linear-gradient(135deg, rgba(100,240,255,.18), rgba(76,132,255,.08));"><svg viewBox="0 0 800 150" preserveAspectRatio="none" aria-hidden="true"><defs><pattern id="r2" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="1.3" fill="rgba(100,240,255,.24)"/></pattern></defs><rect width="800" height="150" fill="url(#r2)"/></svg><div class="icon">🛠️</div></div>
-              <div class="project-body"><div class="project-row"><div><h3 class="project-name">Makesomethingmoday</h3><p class="project-copy">Makesomethingmoday is a public HTML repository created on March 2, 2026 and updated on April 4, 2026. [cite:3]</p></div><div class="badges"><span class="badge b3">HTML</span><span class="badge b2">Public</span></div></div><div class="project-bottom"><div class="meta"><span>size 126874 [cite:3]</span><span>not a fork [cite:3]</span><span>updated Apr 4 [cite:3]</span></div><a class="btn btn-ghost" href="https://github.com/Dyvorn/Makesomethingmoday" target="_blank" rel="noopener noreferrer">Open repo</a></div></div>
-            </article>
-            <article class="project">
-              <div class="cover" style="background:linear-gradient(135deg, rgba(98,211,155,.18), rgba(76,132,255,.08));"><svg viewBox="0 0 800 150" preserveAspectRatio="none" aria-hidden="true"><defs><pattern id="r3" width="70" height="18" patternUnits="userSpaceOnUse"><path d="M0 9H70" stroke="rgba(98,211,155,.25)"/></pattern></defs><rect width="800" height="150" fill="url(#r3)"/></svg><div class="icon">🌧️</div></div>
-              <div class="project-body"><div class="project-row"><div><h3 class="project-name">Rainmeter</h3><p class="project-copy">Rainmeter is a smaller public repository created on March 15, 2026 and updated on March 16, 2026. [cite:3]</p></div><div class="badges"><span class="badge b2">Desktop</span><span class="badge b1">Utility</span></div></div><div class="project-bottom"><div class="meta"><span>size 10 [cite:3]</span><span>public [cite:3]</span><span>updated Mar 16 [cite:3]</span></div><a class="btn btn-ghost" href="https://github.com/Dyvorn/Rainmeter" target="_blank" rel="noopener noreferrer">Open repo</a></div></div>
-            </article>
+          <div class="projects" id="projects-container">
+            <!-- Projects will be injected here -->
           </div>
         </section>
       </div>
@@ -156,7 +145,7 @@
           <div class="support-grid">
             <div class="support">
               <h3>Buy Me a Coffee</h3>
-              <p>Your public support page is live at <code>buymeacoffee.com/refined</code>, and it currently offers supporter tiers including Early Access at €5/month, Supporter+ at €18/month, Billpayer at €44/month, and Forever Member at €655 one-time. [page:54]</p>
+              <p>Support Refined via Buy Me a Coffee to get early access and exclusive updates.</p>
               <a class="coffee" href="https://buymeacoffee.com/refined" target="_blank" rel="noopener noreferrer">Support Refined</a>
             </div>
             <div class="support">
@@ -170,14 +159,14 @@
             </div>
             <div class="support">
               <h3>Publishing plan</h3>
-              <p>GitHub Pages supports a main user site through a repository named <code>username.github.io</code>, so the cleanest setup is still to publish this as your root site and use it as the link hub everywhere else. [web:32]</p>
+              <p>This site is automatically updated using GitHub Actions to reflect the latest content across all platforms.</p>
             </div>
           </div>
         </section>
       </aside>
     </section>
 
-    <div class="footer">Refined main site with real YouTube, Twitch, Buy Me a Coffee, and GitHub links wired in. [page:54][page:55][cite:3]</div>
+    <div class="footer">© Refined — Links to public channels and projects.</div>
   </main>
 
   <script>
