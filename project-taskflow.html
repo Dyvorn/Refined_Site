@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1" name="viewport"/>
+  <title>TaskFlow | Flagship Deep Dive</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&amp;family=Space+Grotesk:wght@300;700&amp;display=swap" rel="stylesheet"/>
+  <style>
+    :root { --black: #050505; --gold: #D4AF37; --text: #e0e0e0; --muted: #777777; --border: rgba(212, 175, 55, 0.1); }
+    body { background: var(--black); color: var(--text); font-family: 'Space Grotesk', sans-serif; line-height: 1.7; margin: 0; }
+    .container { max-width: 900px; margin: 0 auto; padding: 80px 30px; }
+    .mono { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.15em; color: var(--gold); }
+    h1 { font-size: 4rem; color: var(--gold); margin: 20px 0; letter-spacing: -0.05em; }
+    .back-link { text-decoration: none; color: var(--muted); transition: 0.3s; }
+    .back-link:hover { color: var(--gold); }
+    .content-block { margin: 60px 0; border-left: 1px solid var(--border); padding-left: 40px; }
+    .content-block h2 { color: var(--gold); font-size: 1.8rem; margin-bottom: 20px; }
+    .content-block p { color: var(--muted); font-size: 1.1rem; }
+    .tech-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 30px; }
+    .tech-item { background: rgba(212, 175, 55, 0.05); padding: 20px; border: 1px solid var(--border); }
+    .tech-item span { display: block; margin-bottom: 5px; }
+    .visual-placeholder { width: 100%; aspect-ratio: 16/9; background: #0f0f0f; border: 1px solid var(--border); margin-top: 40px; display: flex; align-items: center; justify-content: center; }
+    /* Grain & Vignette reused from main for consistency */
+    .grain { position: fixed; inset: 0; background-image: url("https://upload.wikimedia.org/wikipedia/commons/7/76/1k_Noise_Texture.png"); opacity: 0.03; pointer-events: none; z-index: 99; }
+  </style>
+ </head>
+ <body>
+  <div class="grain"></div>
+  <div class="container">
+   <a href="index.html" class="back-link mono">← Return to System</a>
+   <header>
+    <span class="mono" style="margin-top: 40px; display: block;">Flagship Production</span>
+    <h1>TaskFlow</h1>
+    <p style="font-size: 1.4rem; color: var(--muted);">Redefining asynchronous workflow automation for modern cinematic pipelines.</p>
+   </header>
+
+   <div class="visual-placeholder mono">
+    [ Cinematic Interface Preview ]
+   </div>
+
+   <section class="content-block">
+    <h2>The Vision</h2>
+    <p>TaskFlow was born from the need to bridge the gap between heavy technical logic and the calm, creative flow required in media production. It automates the "boring stuff" so you can focus on the art.</p>
+   </section>
+
+   <section class="content-block">
+    <h2>Technical Stack</h2>
+    <div class="tech-grid">
+     <div class="tech-item">
+      <span class="mono">Engine</span>
+      Python 3.11 / Asyncio
+     </div>
+     <div class="tech-item">
+      <span class="mono">Interface</span>
+      Custom C++ Modules
+     </div>
+     <div class="tech-item">
+      <span class="mono">Database</span>
+      Redis / PostgreSQL
+     </div>
+     <div class="tech-item">
+      <span class="mono">Delivery</span>
+      Docker / GitHub Actions
+     </div>
+    </div>
+   </section>
+
+   <section class="content-block">
+    <h2>Key Results</h2>
+    <p>By implementing a non-blocking execution model, TaskFlow reduced pipeline latency by 40% while maintaining a "Refined" minimalist overhead of less than 50MB RAM during peak operations.</p>
+   </section>
+
+   <footer style="margin-top: 100px; opacity: 0.4;" class="mono">
+    Transmission End // 2026
+   </footer>
+  </div>
+ </body>
+</html>

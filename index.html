@@ -263,6 +263,7 @@
             width: 100%;
             padding: 25px 0;
             background: rgba(5, 5, 5, 0.7);
+            min-height: 82px; /* Prevent jump on load */
             position: sticky;
             top: 0;
             z-index: 1000;
@@ -283,6 +284,7 @@
         /* Hero */
         .hero { padding: 100px 0; }
         .hero h1 { font-size: clamp(2.5rem, 8vw, 4.5rem); line-height: 1; margin: 20px 0; font-weight: 700; color: var(--gold); }
+        .hero h1 .typewriter-wrap { display: inline-block; min-height: 1em; vertical-align: bottom; }
         .hero p { font-size: 1.25rem; color: var(--muted); max-width: 550px; font-weight: 300; }
 
         /* Hero Stats */
@@ -300,7 +302,7 @@
         }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 
-        /* Gallery */
+        /* Gallery - Zero CLS */
         .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
         .gallery-item { aspect-ratio: 16/9; overflow: hidden; border: 1px solid var(--border); background: var(--surface); position: relative; }
         .gallery-item img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1); filter: grayscale(1); }
@@ -323,6 +325,7 @@
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 40px; perspective: 1200px; }
         .card {
             background: var(--surface);
+            min-height: 200px;
             border: 1px solid rgba(212, 175, 55, 0.05);
             padding: 40px;
             transition: border-color 0.4s ease, box-shadow 0.4s ease, background 0.4s ease;
@@ -529,7 +532,8 @@
      </span>
     </span>
     <h1>
-     <span id="typewriter">
+     <span class="typewriter-wrap">
+      <span id="typewriter"></span>
      </span>
      <br/>
      Refined
@@ -606,9 +610,9 @@
        <span class="accent">
         ⭐ 0 Stars
        </span>
-       <span style="color: var(--muted);">
-        View Source Code →
-       </span>
+       <a href="project-taskflow.html" class="magnetic" style="color: var(--muted); text-decoration: none;">
+        View Case Study →
+       </a>
       </div>
      </a>
     </div>
