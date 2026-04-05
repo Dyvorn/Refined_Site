@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1" name="viewport"/>
+  <title>404 | System Offline</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root { --black: #050505; --gold: #D4AF37; --text: #e0e0e0; }
+    body { 
+        background: var(--black); color: var(--text); 
+        font-family: 'Space Grotesk', sans-serif; 
+        height: 100vh; display: flex; align-items: center; justify-content: center;
+        margin: 0; overflow: hidden;
+    }
+    .content { text-align: center; z-index: 10; }
+    h1 { font-size: 8rem; color: var(--gold); margin: 0; letter-spacing: -0.05em; }
+    p { font-size: 1.2rem; opacity: 0.5; margin-bottom: 30px; }
+    a { 
+        color: var(--gold); text-decoration: none; border: 1px solid var(--gold); 
+        padding: 10px 20px; transition: 0.3s;
+    }
+    a:hover { background: var(--gold); color: var(--black); }
+    .stars {
+        position: fixed; inset: 0;
+        background-image: radial-gradient(1px 1px at 20px 30px, var(--gold), rgba(0,0,0,0));
+        background-size: 200px 200px; opacity: 0.1;
+    }
+  </style>
+ </head>
+ <body>
+  <div class="stars"></div>
+  <div class="content">
+   <h1>404</h1>
+   <p>Coordinate mismatch. Destination offline.</p>
+   <a href="/">Return to System</a>
+  </div>
+ </body>
+</html>

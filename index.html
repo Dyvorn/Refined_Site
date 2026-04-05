@@ -7,16 +7,28 @@
    REFINED | Portfolio
   </title>
   <!-- SEO & Social Meta Tags -->
-  <meta name="description" content="A high-performance, cinematic portfolio showcasing software development and media production." />
-  <meta property="og:title" content="REFINED | Portfolio" />
-  <meta property="og:description" content="A high-performance, cinematic portfolio designed to be professional yet calm and chill." />
-  <meta property="og:type" content="website" />
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="REFINED | Portfolio" />
-  <meta name="theme-color" content="#050505" />
-  <link rel="manifest" href="manifest.json" />
-  <link rel="apple-touch-icon" href="assets/logo.svg" />
-
+  <meta content="A high-performance, cinematic portfolio showcasing software development and media production." name="description"/>
+  <meta content="REFINED | Portfolio" property="og:title"/>
+  <meta content="A high-performance, cinematic portfolio designed to be professional yet calm and chill." property="og:description"/>
+  <meta content="website" property="og:type"/>
+  <meta content="summary_large_image" name="twitter:card"/>
+  <meta content="REFINED | Portfolio" name="twitter:title"/>
+  <script type="application/ld+json">
+   {
+      "@context": "https://schema.org/",
+      "@type": "Person",
+      "name": "Lennard Finn Penzler",
+      "url": "https://github.com/Dyvorn",
+      "jobTitle": "Software Developer & Media Producer",
+      "description": "A high-performance, cinematic portfolio designed to be professional yet calm and chill.",
+      "sameAs": [
+        "https://github.com/Dyvorn"
+      ]
+    }
+  </script>
+  <meta content="#050505" name="theme-color"/>
+  <link href="manifest.json" rel="manifest"/>
+  <link href="assets/logo.svg" rel="apple-touch-icon"/>
   <!-- Typography: Space Grotesk for headings, JetBrains Mono for accents -->
   <link href="https://fonts.googleapis.com" rel="preconnect"/>
   <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
@@ -60,18 +72,34 @@
 
         .container { max-width: 1100px; margin: 0 auto; padding: 0 30px; }
 
-        /* Parallax Background Layer */
-        #parallax-bg {
+        /* Multi-Layered Parallax Background */
+        .parallax-layer {
             position: fixed;
             top: 0; left: 0;
             width: 100%; height: 120%;
-            background: 
-                radial-gradient(circle at 50% 50%, rgba(212, 175, 55, 0.02) 0%, transparent 50%),
-                linear-gradient(rgba(212, 175, 55, 0.02) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(212, 175, 55, 0.02) 1px, transparent 1px);
-            background-size: 100% 100%, 60px 60px, 60px 60px;
-            z-index: -2;
+            pointer-events: none;
             will-change: transform;
+        }
+        #parallax-grid {
+            background: 
+                linear-gradient(rgba(212, 175, 55, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(212, 175, 55, 0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
+            z-index: -3;
+        }
+        #parallax-stars {
+            background-image: 
+                radial-gradient(1px 1px at 20px 30px, var(--gold), rgba(0,0,0,0)),
+                radial-gradient(1px 1px at 40px 70px, var(--neon), rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 50px 160px, #fff, rgba(0,0,0,0));
+            background-repeat: repeat;
+            background-size: 200px 200px;
+            opacity: 0.1;
+            z-index: -4;
+        }
+        #parallax-glow {
+            background: radial-gradient(circle at 50% 50%, rgba(212, 175, 55, 0.02) 0%, transparent 50%);
+            z-index: -2;
         }
 
         /* Custom Cursor */
@@ -439,9 +467,12 @@
   </div>
   <div id="cursor">
   </div>
-  <div class="cursor-trail" style="--d: 1"></div>
-  <div class="cursor-trail" style="--d: 2"></div>
-  <div class="cursor-trail" style="--d: 3"></div>
+  <div class="cursor-trail" style="--d: 1">
+  </div>
+  <div class="cursor-trail" style="--d: 2">
+  </div>
+  <div class="cursor-trail" style="--d: 3">
+  </div>
   <div class="bg-glow">
   </div>
   <div class="grain">
@@ -450,33 +481,44 @@
   </div>
   <!-- Contact Modal -->
   <div id="contact-modal">
-      <div class="modal-content">
-          <button class="close-modal magnetic" onclick="toggleContact()">×</button>
-          <span class="mono accent">Encrypted Channel</span>
-          <h2 style="margin: 10px 0 30px; color: var(--gold);">Send a Message</h2>
-          <form action="https://formspree.io/f/your_id" method="POST">
-              <label class="mono" style="font-size: 0.6rem; color: var(--muted);">Identity</label>
-              <input type="email" name="email" placeholder="email@example.com" required>
-              <label class="mono" style="font-size: 0.6rem; color: var(--muted); margin-top: 20px; display: block;">Transmission</label>
-              <textarea name="message" rows="4" placeholder="Your message..." required></textarea>
-              <button type="submit" class="send-btn magnetic">Initiate Transfer</button>
-          </form>
-      </div>
+   <div class="modal-content">
+    <button class="close-modal magnetic" onclick="toggleContact()">
+     ×
+    </button>
+    <span class="mono accent">
+     Encrypted Channel
+    </span>
+    <h2 style="margin: 10px 0 30px; color: var(--gold);">
+     Send a Message
+    </h2>
+    <form action="https://formspree.io/f/your_id" method="POST">
+     <label class="mono" style="font-size: 0.6rem; color: var(--muted);">
+      Identity
+     </label>
+     <input name="email" placeholder="email@example.com" required="" type="email"/>
+     <label class="mono" style="font-size: 0.6rem; color: var(--muted); margin-top: 20px; display: block;">
+      Transmission
+     </label>
+     <textarea name="message" placeholder="Your message..." required="" rows="4"></textarea>
+     <button class="send-btn magnetic" type="submit">
+      Initiate Transfer
+     </button>
+    </form>
+   </div>
   </div>
-
   <div class="container">
    <nav class="fade-in">
     <div class="logo">
      REFINED
     </div>
-    <div class="nav-links mono" role="navigation" aria-label="Main Navigation">
-     <a class="magnetic" href="#projects" aria-label="View my projects">
+    <div aria-label="Main Navigation" class="nav-links mono" role="navigation">
+     <a aria-label="View my projects" class="magnetic" href="#projects">
       Work
      </a>
-     <a class="magnetic" href="#videos" aria-label="View my content">
+     <a aria-label="View my content" class="magnetic" href="#videos">
       Content
      </a>
-     <a class="magnetic" href="javascript:void(0)" onclick="toggleContact()" aria-label="Contact me">
+     <a aria-label="Contact me" class="magnetic" href="javascript:void(0)" onclick="toggleContact()">
       Connect
      </a>
     </div>
@@ -537,7 +579,7 @@
        TaskFlow
       </h2>
       <p style="font-size: 1.2rem; max-width: 700px; color: var(--muted); position: relative; z-index: 2;">
-       None
+       A cornerstone project focused on high-performance workflow optimization and cinematic execution.
       </p>
       <div class="featured-features mono">
        <div class="f-item">
@@ -580,9 +622,15 @@
      </span>
     </div>
     <div class="filter-bar mono">
-        <button class="filter-btn active magnetic" onclick="filterProjects('all', this)">All</button>
-        <button class="filter-btn magnetic" onclick="filterProjects('python', this)">Python</button>
-        <button class="filter-btn magnetic" onclick="filterProjects('html', this)">HTML</button>
+     <button class="filter-btn active magnetic" onclick="filterProjects('all', this)">
+      All
+     </button>
+     <button class="filter-btn magnetic" onclick="filterProjects('python', this)">
+      Python
+     </button>
+     <button class="filter-btn magnetic" onclick="filterProjects('html', this)">
+      HTML
+     </button>
     </div>
     <div class="grid" id="project-grid">
      <a class="card" href="https://github.com/Dyvorn/Refined_Site" target="_blank">
@@ -619,31 +667,62 @@
      </a>
     </div>
    </section>
-
-   <!-- Notes Section -->
-   <section class="reveal" id="notes">
+   <!-- Snippets Feed -->
+   <section class="reveal" id="snippets">
     <div class="section-label">
-     <span class="mono">Journal</span>
-     <span class="mono" style="color: var(--muted)">Micro-blog</span>
+     <span class="mono">
+      Snippets
+     </span>
+     <span class="mono" style="color: var(--muted)">
+      Gists
+     </span>
     </div>
-    <div class="notes-grid">
-     <div class="note-item">
-      <span class="note-date mono">Apr 05, 2026</span>
-      <p class="note-content">Reworked the entire portfolio architecture today. Focusing on "cortisol lowering" UI patterns and cinematic depth. Feeling refined. 🥂</p>
-     </div>
-     <div class="note-item">
-      <span class="note-date mono">Apr 04, 2026</span>
-      <p class="note-content">TaskFlow is hitting 0.9.0. The Python backend is finally as stable as I want it. Cinematic code is coming.</p>
+    <div class="grid" id="snippets-grid">
+     <!-- Snippets injected via update_site.py -->
+     <div class="skeleton" style="width: 100%; height: 150px;">
      </div>
     </div>
    </section>
-
+   <!-- Notes Section -->
+   <section class="reveal" id="notes">
+    <div class="section-label">
+     <span class="mono">
+      Journal
+     </span>
+     <span class="mono" style="color: var(--muted)">
+      Micro-blog
+     </span>
+    </div>
+    <div class="notes-grid" id="notes-grid">
+     <div class="note-item">
+      <span class="note-date mono">
+       Apr 05, 2026
+      </span>
+      <p class="note-content">
+       Implemented Phase 2 automation. The Journal is now decoupled from the HTML. Multi-layer parallax background is active. Audio system initialized.
+      </p>
+     </div>
+     <div class="note-item">
+      <span class="note-date mono">
+       Apr 04, 2026
+      </span>
+      <p class="note-content">
+       Added a Jarvis mode to Taskflow. I will expand on this in the future.
+      </p>
+     </div>
+    </div>
+   </section>
    <footer>
     <div class="social-links mono">
      <a href="https://www.instagram.com/refined.mov/" target="_blank">
       Instagram
      </a>
-     <button id="grain-toggle" class="mono" style="background: none; border: 1px solid var(--border); color: var(--muted); padding: 4px 8px; cursor: pointer; font-size: 0.6rem; margin-left: 15px;">Grain: On</button>
+     <button class="mono" id="audio-toggle" style="background: none; border: 1px solid var(--border); color: var(--muted); padding: 4px 8px; cursor: pointer; font-size: 0.6rem; margin-left: 15px;">
+      Audio: Off
+     </button>
+     <button class="mono" id="grain-toggle" style="background: none; border: 1px solid var(--border); color: var(--muted); padding: 4px 8px; cursor: pointer; font-size: 0.6rem; margin-left: 15px;">
+      Grain: On
+     </button>
     </div>
     <p class="mono">
      Refined © 2026 | Built with no sleep and low cortisol *_*
@@ -652,15 +731,58 @@
   </div>
   <script>
    const cursor = document.getElementById('cursor');
-    const pBg = document.getElementById('parallax-bg');
+    const pGrid = document.getElementById('parallax-grid');
+    const pGlow = document.getElementById('parallax-glow');
+    const pStars = document.getElementById('parallax-stars');
     const trails = document.querySelectorAll('.cursor-trail');
     let mouseX = 0, mouseY = 0;
     let cursorX = 0, cursorY = 0;
     let trailPositions = Array.from({ length: 3 }, () => ({ x: 0, y: 0 }));
+    let velX = 0, velY = 0;
     let scale = 1;
     let isMoving = false;
     let hoveredCard = null;
     let curRotX = 0, curRotY = 0;
+
+    // Ambient Audio Engine
+    class AudioEngine {
+        constructor() {
+            this.ctx = null;
+            this.enabled = false;
+        }
+        init() {
+            if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        playSystemSound(freq, type, duration, volume) {
+            if (!this.enabled || !this.ctx) return;
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+            gain.gain.setValueAtTime(volume, this.ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + duration);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start();
+            osc.stop(this.ctx.currentTime + duration);
+        }
+        thud() { this.playSystemSound(60, 'sine', 0.2, 0.1); }
+        click() { this.playSystemSound(800, 'square', 0.05, 0.02); }
+    }
+    const sfx = new AudioEngine();
+    const audioBtn = document.getElementById('audio-toggle');
+    audioBtn.addEventListener('click', () => {
+        sfx.init();
+        sfx.enabled = !sfx.enabled;
+        audioBtn.textContent = `Audio: ${sfx.enabled ? 'On' : 'Off'}`;
+        audioBtn.style.color = sfx.enabled ? 'var(--neon)' : 'var(--muted)';
+    });
+
+    document.addEventListener('mousedown', () => sfx.click());
+    document.addEventListener('mouseover', e => {
+        if (e.target.closest('a, button, .card, .featured-card')) sfx.thud();
+    });
+
 
     // Discord Status (Lanyard API) - Replace DISCORD_ID with your actual ID
     const DISCORD_ID = "736569145618776094"; 
@@ -696,10 +818,19 @@
     const lerp = (a, b, n) => (1 - n) * a + n * b;
 
     function render() {
-        // The 0.15 value determines the "chill" follow speed (lower = smoother/slower)
+        const prevX = cursorX;
+        const prevY = cursorY;
+
         cursorX = lerp(cursorX, mouseX, 0.15);
         cursorY = lerp(cursorY, mouseY, 0.15);
         
+        // Calculate Velocity for Liquid Effect
+        velX = cursorX - prevX;
+        velY = cursorY - prevY;
+        const speed = Math.min(Math.hypot(velX, velY), 100);
+        const stretch = 1 + speed / 150;
+        const rotation = Math.atan2(velY, velX) * (180 / Math.PI);
+
         trailPositions.forEach((pos, i) => {
             pos.x = lerp(pos.x, i === 0 ? cursorX : trailPositions[i-1].x, 0.15 - (i * 0.03));
             pos.y = lerp(pos.y, i === 0 ? cursorY : trailPositions[i-1].y, 0.15 - (i * 0.03));
@@ -736,9 +867,11 @@
             curRotX = 0; curRotY = 0;
         }
 
-        // Parallax scroll logic (moves background at 20% of scroll speed)
+        // Multi-Layer Parallax Logic
         const scrollY = window.pageYOffset;
-        pBg.style.transform = `translate3d(0, ${scrollY * 0.2}px, 0)`;
+        pGrid.style.transform = `translate3d(0, ${scrollY * 0.15}px, 0)`;
+        pGlow.style.transform = `translate3d(0, ${scrollY * 0.25}px, 0)`;
+        pStars.style.transform = `translate3d(0, ${scrollY * 0.05}px, 0)`;
 
         // Magnetic elements logic
         document.querySelectorAll('.magnetic').forEach(el => {
@@ -754,7 +887,7 @@
             } else { el.style.transform = `translate3d(0, 0, 0)`; }
         });
 
-        cursor.style.transform = `translate3d(${cursorX}px, ${cursorY}px, 0) translate(-50%, -50%) scale(${scale})`;
+        cursor.style.transform = `translate3d(${cursorX}px, ${cursorY}px, 0) translate(-50%, -50%) rotate(${rotation}deg) scale(${scale * stretch}, ${scale / stretch})`;
         requestAnimationFrame(render);
     }
     render();

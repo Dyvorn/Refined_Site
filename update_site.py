@@ -1,5 +1,6 @@
 import os
 import requests
+import json
 from datetime import datetime
 from bs4 import BeautifulSoup
 
@@ -10,6 +11,7 @@ YT_CHANNEL_ID = os.getenv("YT_CHANNEL_ID", "UCGe5VOk80siQe0r2OfQQWPw")
 GH_USERNAME = os.getenv("GH_USERNAME", "Dyvorn")
 GH_TOKEN = os.getenv("GH_TOKEN")
 HTML_FILE = "index.html"
+NOTES_FILE = "notes.json"
 
 def get_latest_youtube_video():
     """Fetches the latest video ID using the uploads playlist (100x more quota efficient)."""
@@ -46,10 +48,25 @@ def get_github_repos():
         print(f"Error fetching GitHub data: {e}")
     return []
 
+def get_github_gists():
+    """Fetches the latest public Gists from GitHub."""
+    headers = {}
+    if GH_TOKEN:
+        headers["Authorization"] = f"token {GH_TOKEN}"
+    try:
+        url = f"https://api.github.com/users/{GH_USERNAME}/gists?per_page=3"
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        return response.json()
+    except Exception as e:
+        print(f"Error fetching Gists: {e}")
+    return []
+
 def update_site():
     print("Syncing with external APIs...")
     video_url = get_latest_youtube_video()
     repos = get_github_repos()
+    gists = get_github_gists()
 
     if not video_url and not repos:
         print("No updates found. Skipping sync to preserve content.")
@@ -123,6 +140,45 @@ def update_site():
             '''
             grid.append(BeautifulSoup(card_html, 'html.parser'))
         print(f"Updated {len(repos)} GitHub projects.")
+
+    # Update Snippets (Gists)
+    snippets_grid = soup.find(id="snippets-grid")
+    if snippets_grid and gists:
+        snippets_grid.clear()
+        for gist in gists:
+            # Take the first filename found
+            filename = list(gist['files'].keys())[0]
+            desc = gist.get('description') or f"Code snippet: {filename}"
+            link = gist.get('html_url', '#')
+            
+            gist_html = f'''
+            <a href="{link}" target="_blank" class="card">
+                <span class="mono accent" style="font-size: 0.6rem; margin-bottom: 10px; display: block;">Snippet</span>
+                <h3 style="font-family: 'JetBrains Mono', monospace; font-size: 1rem;">{filename}</h3>
+                <p style="font-size: 0.85rem; opacity: 0.8;">{desc}</p>
+            </a>
+            '''
+            snippets_grid.append(BeautifulSoup(gist_html, 'html.parser'))
+        print(f"Updated {len(gists)} Snippets.")
+
+    # Update Journal (Notes) from JSON
+    notes_grid = soup.find(id="notes-grid")
+    if notes_grid and os.path.exists(NOTES_FILE):
+        try:
+            with open(NOTES_FILE, 'r', encoding='utf-8') as nf:
+                notes = json.load(nf)
+            notes_grid.clear()
+            for note in notes[:5]: # Show latest 5
+                note_html = f'''
+                <div class="note-item">
+                    <span class="note-date mono">{note['date']}</span>
+                    <p class="note-content">{note['content']}</p>
+                </div>
+                '''
+                notes_grid.append(BeautifulSoup(note_html, 'html.parser'))
+            print("Updated Journal from notes.json")
+        except Exception as e:
+            print(f"Error updating notes: {e}")
 
     # Write changes back
     with open(HTML_FILE, 'w', encoding='utf-8') as f:
