@@ -71,12 +71,34 @@
         .grain {
             position: fixed;
             top: 0; left: 0;
-            width: 100%; height: 100%;
+            width: 200%; height: 200%;
             background-image: url("https://upload.wikimedia.org/wikipedia/commons/7/76/1k_Noise_Texture.png");
             background-repeat: repeat;
             opacity: 0.03;
             pointer-events: none;
             z-index: 9999;
+            animation: noiseMove 0.2s steps(2) infinite;
+        }
+
+        @keyframes noiseMove {
+            0% { transform: translate(0, 0); }
+            10% { transform: translate(-1%, -1%); }
+            20% { transform: translate(-2%, 1%); }
+            30% { transform: translate(1%, -2%); }
+            40% { transform: translate(-1%, 2%); }
+            50% { transform: translate(-2%, -1%); }
+            60% { transform: translate(2%, 1%); }
+            70% { transform: translate(1%, 2%); }
+            80% { transform: translate(-2%, -2%); }
+            90% { transform: translate(2%, -1%); }
+        }
+
+        .vignette {
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(circle, transparent 40%, rgba(0,0,0,0.4) 150%);
+            pointer-events: none;
+            z-index: 9998;
         }
 
         .bg-glow {
@@ -141,6 +163,7 @@
             top: 0;
             z-index: 1000;
             backdrop-filter: blur(10px);
+            transition: transform 0.3s ease;
             margin-bottom: 20px;
         }
         .logo { font-weight: 700; font-size: 1.2rem; letter-spacing: 0.2em; color: var(--gold); }
@@ -259,51 +282,18 @@
             .hero { text-align: center; }
             .hero p { margin: 0 auto; }
         }
-
-        /* Music Visualizer */
-        .music-vibe {
-            position: fixed;
-            bottom: 40px;
-            left: 30px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            z-index: 1000;
-        }
-        .visualizer {
-            display: flex;
-            align-items: flex-end;
-            gap: 3px;
-            height: 14px;
-        }
-        .visualizer .bar {
-            width: 2px;
-            height: 100%;
-            background: var(--gold);
-            box-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
-            transform: scaleY(0.3);
-            transform-origin: bottom;
-            transition: transform 0.3s ease;
-        }
   </style>
  </head>
  <body>
-  <div id="parallax-bg"></div>
+  <div id="parallax-bg">
+  </div>
   <div id="cursor">
   </div>
   <div class="bg-glow">
   </div>
   <div class="grain">
   </div>
-  <div class="music-vibe fade-in delay-3">
-   <div class="visualizer">
-    <div class="bar"></div>
-    <div class="bar"></div>
-    <div class="bar"></div>
-    <div class="bar"></div>
-    <div class="bar"></div>
-   </div>
-   <button class="mono" id="vibe-toggle" style="background: none; border: none; color: var(--muted); font-size: 0.65rem; letter-spacing: 0.1em; outline: none;">VIBE: OFF</button>
+  <div class="vignette">
   </div>
   <div class="container">
    <nav class="fade-in">
@@ -311,13 +301,13 @@
      REFINED
     </div>
     <div class="nav-links mono">
-     <a href="#projects">
+     <a class="magnetic" href="#projects">
       Work
      </a>
-     <a href="#videos">
+     <a class="magnetic" href="#videos">
       Content
      </a>
-     <a href="https://github.com/Dyvorn" target="_blank">
+     <a class="magnetic" href="https://github.com/Dyvorn" target="_blank">
       Source
      </a>
     </div>
@@ -332,7 +322,8 @@
      </span>
     </span>
     <h1>
-     Absolute vibes.
+     <span id="typewriter">
+     </span>
      <br/>
      Refined
      <span class="accent">
@@ -358,30 +349,58 @@
      </iframe>
     </div>
    </section>
-
    <!-- Featured Section for TaskFlow -->
    <section class="reveal" id="featured-project">
     <div class="section-label">
-     <span class="mono">Main Project</span>
-     <span class="mono accent">Flagship</span>
+     <span class="mono">
+      Main Project
+     </span>
+     <span class="mono accent">
+      Flagship
+     </span>
     </div>
     <div id="featured-container">
-        <div class="card featured-card">
-            <span class="mono featured-tag">Flagship Project</span>
-            <h2>TaskFlow</h2>
-            <p style="font-size: 1.2rem; max-width: 700px; color: var(--muted);">The core of my development journey. A high-performance, automated workflow engine built to bridge the gap between complex logic and calm productivity.</p>
-            <div class="featured-features mono">
-                <div class="f-item"><i>//</i> High Performance</div>
-                <div class="f-item"><i>//</i> Python Backend</div>
-                <div class="f-item"><i>//</i> Neon UI</div>
-            </div>
-            <div style="margin-top: 40px; display: flex; gap: 20px;" class="mono">
-                <a href="https://github.com/Dyvorn/TaskFlow" target="_blank" class="accent" style="text-decoration: none;">View Repository →</a>
-            </div>
-        </div>
+     <a class="featured-card" href="https://github.com/Dyvorn/TaskFlow" style="text-decoration: none; display: block;" target="_blank">
+      <span class="mono featured-tag">
+       Flagship Project
+      </span>
+      <h2 style="text-decoration: none;">
+       TaskFlow
+      </h2>
+      <p style="font-size: 1.2rem; max-width: 700px; color: var(--muted); position: relative; z-index: 2;">
+       None
+      </p>
+      <div class="featured-features mono">
+       <div class="f-item">
+        <i>
+         //
+        </i>
+        Active Dev
+       </div>
+       <div class="f-item">
+        <i>
+         //
+        </i>
+        Open Source
+       </div>
+       <div class="f-item">
+        <i>
+         //
+        </i>
+        Python Based
+       </div>
+      </div>
+      <div class="mono" style="margin-top: 40px; display: flex; gap: 20px;">
+       <span class="accent">
+        ⭐ 0 Stars
+       </span>
+       <span style="color: var(--muted);">
+        View Source Code →
+       </span>
+      </div>
+     </a>
     </div>
    </section>
-
    <section class="reveal" id="projects">
     <div class="section-label">
      <span class="mono">
@@ -424,22 +443,6 @@
        Last sync: Apr 2026
       </div>
      </a>
-     <a class="card" href="https://github.com/Dyvorn/TaskFlow" target="_blank">
-      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
-       <span class="mono accent" style="font-size: 0.6rem;">
-        Python
-       </span>
-       <span class="mono" style="font-size: 0.6rem; color: var(--muted);">
-        ⭐ 0
-       </span>
-      </div>
-      <h3>
-       TaskFlow
-      </h3>
-      <div class="mono" style="font-size: 0.55rem; color: var(--muted); margin-top: 20px; opacity: 0.5;">
-       Last sync: Apr 2026
-      </div>
-     </a>
     </div>
    </section>
    <footer>
@@ -462,6 +465,20 @@
     let isMoving = false;
     let isHoveringFeatured = false;
     let curRotX = 0, curRotY = 0;
+
+    // Typewriter Logic
+    const typewriter = document.getElementById('typewriter');
+    const roles = ["Absolute vibes.", "High performance.", "Clean logic.", "Cinematic code."];
+    let roleIdx = 0, charIdx = 0, isDeleting = false;
+
+    function type() {
+        const current = roles[roleIdx];
+        typewriter.textContent = isDeleting ? current.substring(0, charIdx--) : current.substring(0, charIdx++);
+        if (!isDeleting && charIdx === current.length + 1) { isDeleting = true; setTimeout(type, 2000); }
+        else if (isDeleting && charIdx === 0) { isDeleting = false; roleIdx = (roleIdx + 1) % roles.length; setTimeout(type, 500); }
+        else { setTimeout(type, isDeleting ? 50 : 100); }
+    }
+    type();
 
     document.addEventListener('mousemove', e => {
         mouseX = e.clientX;
@@ -511,6 +528,19 @@
         const scrollY = window.pageYOffset;
         pBg.style.transform = `translate3d(0, ${scrollY * 0.2}px, 0)`;
 
+        // Magnetic elements logic
+        document.querySelectorAll('.magnetic').forEach(el => {
+            const rect = el.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            const dist = Math.hypot(mouseX - centerX, mouseY - centerY);
+            if (dist < 80) {
+                const x = (mouseX - centerX) * 0.4;
+                const y = (mouseY - centerY) * 0.4;
+                el.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+            } else { el.style.transform = `translate3d(0, 0, 0)`; }
+        });
+
         cursor.style.transform = `translate3d(${cursorX}px, ${cursorY}px, 0) translate(-50%, -50%) scale(${scale})`;
         requestAnimationFrame(render);
     }
@@ -548,28 +578,6 @@
     }, observerOptions);
 
     document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
-
-    // Music Visualizer Logic
-    const vibeToggle = document.getElementById('vibe-toggle');
-    const bars = document.querySelectorAll('.visualizer .bar');
-    let isVibing = false;
-
-    vibeToggle.addEventListener('click', () => {
-        isVibing = !isVibing;
-        vibeToggle.innerText = `VIBE: ${isVibing ? 'ON' : 'OFF'}`;
-        vibeToggle.style.color = isVibing ? 'var(--neon)' : 'var(--muted)';
-        if (isVibing) animateBars();
-        else bars.forEach(bar => bar.style.transform = 'scaleY(0.3)');
-    });
-
-    function animateBars() {
-        if (!isVibing) return;
-        bars.forEach(bar => {
-            const scale = Math.random() * 0.7 + 0.3;
-            bar.style.transform = `scaleY(${scale})`;
-        });
-        setTimeout(() => requestAnimationFrame(animateBars), 200);
-    }
   </script>
  </body>
 </html>
