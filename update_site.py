@@ -12,6 +12,7 @@ GH_USERNAME = os.getenv("GH_USERNAME", "Dyvorn")
 GH_TOKEN = os.getenv("GH_TOKEN")
 HTML_FILE = "index.html"
 NOTES_FILE = "notes.json"
+SNIPPETS_FILE = "snippets.json"
 
 def get_latest_youtube_video():
     """Fetches the latest video ID using the uploads playlist (100x more quota efficient)."""
@@ -143,22 +144,38 @@ def update_site():
 
     # Update Snippets (Gists)
     snippets_grid = soup.find(id="snippets-grid")
-    if snippets_grid and gists:
-        snippets_grid.clear()
-        for gist in gists:
-            filename = list(gist['files'].keys())[0]
-            desc = gist.get('description') or f"Code snippet: {filename}"
-            link = gist.get('html_url', '#')
-            
-            gist_html = f'''
-            <a href="{link}" target="_blank" class="card">
-                <span class="mono accent" style="font-size: 0.6rem; margin-bottom: 10px; display: block;">Snippet</span>
-                <h3 style="font-family: 'JetBrains Mono', monospace; font-size: 1rem;">{filename}</h3>
-                <p style="font-size: 0.85rem; opacity: 0.8;">{desc}</p>
-            </a>
-            '''
-            snippets_grid.append(BeautifulSoup(gist_html, 'html.parser'))
-        print(f"Updated {len(gists)} Snippets.")
+    if snippets_grid:
+        display_snippets = []
+        # Try manual snippets first
+        if os.path.exists(SNIPPETS_FILE):
+            try:
+                with open(SNIPPETS_FILE, 'r', encoding='utf-8') as sf:
+                    display_snippets = json.load(sf)
+            except Exception as e:
+                print(f"Error reading snippets.json: {e}")
+        
+        # Fallback to GitHub Gists if no manual snippets
+        if not display_snippets and gists:
+            for gist in gists:
+                filename = list(gist['files'].keys())[0]
+                display_snippets.append({
+                    "title": filename,
+                    "description": gist.get('description') or f"Code snippet: {filename}",
+                    "url": gist.get('html_url', '#')
+                })
+
+        if display_snippets:
+            snippets_grid.clear()
+            for item in display_snippets[:3]:
+                gist_html = f'''
+                <a href="{item['url']}" target="_blank" class="card">
+                    <span class="mono accent" style="font-size: 0.6rem; margin-bottom: 10px; display: block;">Snippet</span>
+                    <h3 style="font-family: 'JetBrains Mono', monospace; font-size: 1rem;">{item['title']}</h3>
+                    <p style="font-size: 0.85rem; opacity: 0.8;">{item['description']}</p>
+                </a>
+                '''
+                snippets_grid.append(BeautifulSoup(gist_html, 'html.parser'))
+            print(f"Updated {len(display_snippets)} Snippets.")
 
     # Update Journal (Notes) from JSON
     notes_grid = soup.find(id="notes-grid")
