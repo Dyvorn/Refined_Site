@@ -45,6 +45,10 @@ def update_site():
     video_url = get_latest_youtube_video()
     repos = get_github_repos()
 
+    if not video_url and not repos:
+        print("No updates found. Skipping sync to preserve content.")
+        return
+
     with open(HTML_FILE, 'r', encoding='utf-8') as f:
         soup = BeautifulSoup(f, 'html.parser')
 
@@ -88,7 +92,7 @@ def update_site():
 
     # Update GitHub Projects
     grid = soup.find(id="project-grid")
-    if grid:
+    if grid and other_repos:
         grid.clear()
         for repo in other_repos:
             lang = repo.get('language', 'Project')
