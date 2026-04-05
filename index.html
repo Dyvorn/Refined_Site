@@ -36,6 +36,20 @@
 
         .container { max-width: 1100px; margin: 0 auto; padding: 0 30px; }
 
+        /* Custom Cursor */
+        #cursor {
+            width: 20px; height: 20px;
+            border: 1px solid var(--gold);
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 10000;
+            transition: transform 0.1s ease, width 0.3s ease, height 0.3s ease, background 0.3s ease;
+            transform: translate(-50%, -50%);
+            display: none;
+        }
+        @media (hover: hover) { #cursor { display: block; } }
+
         /* Cinematic Grain */
         .grain {
             position: fixed;
@@ -46,6 +60,16 @@
             opacity: 0.03;
             pointer-events: none;
             z-index: 9999;
+        }
+
+        .bg-glow {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: radial-gradient(circle at 20% 20%, rgba(212, 175, 55, 0.05) 0%, transparent 40%),
+                        radial-gradient(circle at 80% 80%, rgba(255, 215, 0, 0.03) 0%, transparent 40%);
+            pointer-events: none;
+            z-index: -1;
         }
 
         /* Animations */
@@ -109,7 +133,7 @@
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 40px; }
         .card {
             background: var(--surface);
-            border: 1px solid var(--border);
+            border: 1px solid rgba(212, 175, 55, 0.05);
             padding: 40px;
             transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
             text-decoration: none;
@@ -120,6 +144,7 @@
             border-color: var(--gold);
             box-shadow: var(--neon-glow);
             transform: translateY(-8px);
+            background: rgba(15, 15, 15, 0.8);
         }
         .card h3 { margin-bottom: 15px; font-size: 1.4rem; color: var(--gold); }
         .card p { font-size: 0.95rem; color: var(--muted); }
@@ -165,6 +190,8 @@
   </style>
  </head>
  <body>
+  <div id="cursor"></div>
+  <div class="bg-glow"></div>
   <div class="grain"></div>
   <div class="container">
    <nav class="fade-in">
@@ -280,5 +307,25 @@
     </p>
    </footer>
   </div>
+  <script>
+    const cursor = document.getElementById('cursor');
+    document.addEventListener('mousemove', e => {
+        cursor.style.left = e.clientX + 'px';
+        cursor.style.top = e.clientY + 'px';
+    });
+
+    document.querySelectorAll('a, button, .card').forEach(el => {
+        el.addEventListener('mouseenter', () => {
+            cursor.style.transform = 'translate(-50%, -50%) scale(2.5)';
+            cursor.style.background = 'rgba(212, 175, 55, 0.1)';
+            cursor.style.borderColor = 'transparent';
+        });
+        el.addEventListener('mouseleave', () => {
+            cursor.style.transform = 'translate(-50%, -50%) scale(1)';
+            cursor.style.background = 'transparent';
+            cursor.style.borderColor = 'var(--gold)';
+        });
+    });
+  </script>
  </body>
 </html>

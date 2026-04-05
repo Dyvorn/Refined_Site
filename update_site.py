@@ -1,5 +1,6 @@
 import os
 import requests
+from datetime import datetime
 from bs4 import BeautifulSoup
 
 # --- CONFIGURATION ---
@@ -65,12 +66,18 @@ def update_site():
             desc_tag = f'<p>{desc}</p>' if desc else ''
             name = repo.get('name', 'Untitled')
             link = repo.get('html_url', '#')
+            stars = repo.get('stargazers_count', 0)
+            updated = datetime.strptime(repo.get('updated_at'), '%Y-%m-%dT%H:%M:%SZ').strftime('%b %Y')
 
             card_html = f'''
             <a href="{link}" target="_blank" class="card">
-                <span class="mono accent" style="font-size: 0.6rem; margin-bottom: 10px; display: block;">{lang}</span>
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
+                    <span class="mono accent" style="font-size: 0.6rem;">{lang}</span>
+                    <span class="mono" style="font-size: 0.6rem; color: var(--muted);">⭐ {stars}</span>
+                </div>
                 <h3>{name}</h3>
                 {desc_tag}
+                <div class="mono" style="font-size: 0.55rem; color: var(--muted); margin-top: 20px; opacity: 0.5;">Last sync: {updated}</div>
             </a>
             '''
             grid.append(BeautifulSoup(card_html, 'html.parser'))
