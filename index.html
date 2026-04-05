@@ -142,7 +142,6 @@
         }
 
         @media (hover: hover) { 
-            #cursor { display: block; } 
             .cursor-trail { display: block; }
             body, a, button, .card, .featured-card { cursor: none !important; }
         }
@@ -731,18 +730,22 @@
   </div>
   <script>
    const cursor = document.getElementById('cursor');
-    const pGrid = document.getElementById('parallax-grid');
-    const pGlow = document.getElementById('parallax-glow');
-    const pStars = document.getElementById('parallax-stars');
-    const trails = document.querySelectorAll('.cursor-trail');
-    let mouseX = 0, mouseY = 0;
-    let cursorX = 0, cursorY = 0;
-    let trailPositions = Array.from({ length: 3 }, () => ({ x: 0, y: 0 }));
-    let velX = 0, velY = 0;
-    let scale = 1;
-    let isMoving = false;
-    let hoveredCard = null;
-    let curRotX = 0, curRotY = 0;
+   const pGrid = document.getElementById('parallax-grid');
+   const pGlow = document.getElementById('parallax-glow');
+   const pStars = document.getElementById('parallax-stars');
+   const trails = document.querySelectorAll('.cursor-trail');
+   const allCards = document.querySelectorAll('.card, .featured-card');
+   const magneticElements = document.querySelectorAll('.magnetic');
+
+   let mouseX = 0, mouseY = 0;
+   let cursorX = 0, cursorY = 0;
+   let trailPositions = Array.from({ length: 3 }, () => ({ x: 0, y: 0 }));
+   let velX = 0, velY = 0;
+   let scale = 1;
+   let isMoving = false;
+   let hoveredCard = null;
+   let curRotX = 0, curRotY = 0;
+   let resetTiltNeeded = false;
 
     // Ambient Audio Engine
     class AudioEngine {
@@ -859,32 +862,38 @@
             curRotX = lerp(curRotX, targetRotX, 0.1);
             curRotY = lerp(curRotY, targetRotY, 0.1);
             hoveredCard.style.transform = `rotateX(${curRotX}deg) rotateY(${curRotY}deg)`;
+            resetTiltNeeded = true;
         } else {
-            // Reset tilt for all cards when none are hovered
-            document.querySelectorAll('.card, .featured-card').forEach(c => {
-                c.style.transform = `rotateX(0deg) rotateY(0deg)`;
-            });
-            curRotX = 0; curRotY = 0;
+            if (resetTiltNeeded) {
+                allCards.forEach(c => c.style.transform = 'rotateX(0deg) rotateY(0deg)');
+                curRotX = 0; curRotY = 0;
+                resetTiltNeeded = false;
+            }
         }
 
         // Multi-Layer Parallax Logic
-        const scrollY = window.pageYOffset;
+        const scrollY = window.scrollY;
         pGrid.style.transform = `translate3d(0, ${scrollY * 0.15}px, 0)`;
         pGlow.style.transform = `translate3d(0, ${scrollY * 0.25}px, 0)`;
         pStars.style.transform = `translate3d(0, ${scrollY * 0.05}px, 0)`;
 
-        // Magnetic elements logic
-        document.querySelectorAll('.magnetic').forEach(el => {
+        // Magnetic elements logic (Optimized)
+        magneticElements.forEach(el => {
             const rect = el.getBoundingClientRect();
             const centerX = rect.left + rect.width / 2;
             const centerY = rect.top + rect.height / 2;
             const dist = Math.hypot(mouseX - centerX, mouseY - centerY);
+            
             if (dist < 80) {
                 const strength = 1 - (dist / 80);
                 const x = (mouseX - centerX) * 0.5 * strength;
                 const y = (mouseY - centerY) * 0.5 * strength;
                 el.style.transform = `translate3d(${x}px, ${y}px, 0)`;
-            } else { el.style.transform = `translate3d(0, 0, 0)`; }
+                el.dataset.magneticActive = "true";
+            } else if (el.dataset.magneticActive === "true") {
+                el.style.transform = `translate3d(0, 0, 0)`;
+                el.dataset.magneticActive = "false";
+            }
         });
 
         cursor.style.transform = `translate3d(${cursorX}px, ${cursorY}px, 0) translate(-50%, -50%) rotate(${rotation}deg) scale(${scale * stretch}, ${scale / stretch})`;
