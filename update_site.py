@@ -1,6 +1,5 @@
 import os
 import requests
-import json
 from datetime import datetime
 from bs4 import BeautifulSoup
 
@@ -11,7 +10,6 @@ YT_CHANNEL_ID = os.getenv("YT_CHANNEL_ID", "UCGe5VOk80siQe0r2OfQQWPw")
 GH_USERNAME = os.getenv("GH_USERNAME", "Dyvorn")
 GH_TOKEN = os.getenv("GH_TOKEN")
 HTML_FILE = "index.html"
-NOTES_FILE = "notes.json"
 
 def get_latest_youtube_video():
     """Fetches the latest video ID using the uploads playlist (100x more quota efficient)."""
@@ -125,25 +123,6 @@ def update_site():
             '''
             grid.append(BeautifulSoup(card_html, 'html.parser'))
         print(f"Updated {len(repos)} GitHub projects.")
-
-    # Update Journal (Notes) from JSON
-    notes_grid = soup.find(id="notes-grid")
-    if notes_grid and os.path.exists(NOTES_FILE):
-        try:
-            with open(NOTES_FILE, 'r', encoding='utf-8') as nf:
-                notes = json.load(nf)
-            notes_grid.clear()
-            for note in notes[:5]: # Show latest 5
-                note_html = f'''
-                <div class="note-item">
-                    <span class="note-date mono">{note['date']}</span>
-                    <p class="note-content">{note['content']}</p>
-                </div>
-                '''
-                notes_grid.append(BeautifulSoup(note_html, 'html.parser'))
-            print("Updated Journal from notes.json")
-        except Exception as e:
-            print(f"Error updating notes: {e}")
 
     # Write changes back
     with open(HTML_FILE, 'w', encoding='utf-8') as f:

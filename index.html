@@ -13,19 +13,6 @@
   <meta property="og:type" content="website" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="REFINED | Portfolio" />
-  <script type="application/ld+json">
-    {
-      "@context": "https://schema.org/",
-      "@type": "Person",
-      "name": "Lennard Finn Penzler",
-      "url": "https://github.com/Dyvorn",
-      "jobTitle": "Software Developer & Media Producer",
-      "description": "A high-performance, cinematic portfolio designed to be professional yet calm and chill.",
-      "sameAs": [
-        "https://github.com/Dyvorn"
-      ]
-    }
-  </script>
   <meta name="theme-color" content="#050505" />
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="assets/logo.svg" />
@@ -73,34 +60,18 @@
 
         .container { max-width: 1100px; margin: 0 auto; padding: 0 30px; }
 
-        /* Multi-Layered Parallax Background */
-        .parallax-layer {
+        /* Parallax Background Layer */
+        #parallax-bg {
             position: fixed;
             top: 0; left: 0;
             width: 100%; height: 120%;
-            pointer-events: none;
-            will-change: transform;
-        }
-        #parallax-grid {
             background: 
-                linear-gradient(rgba(212, 175, 55, 0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(212, 175, 55, 0.03) 1px, transparent 1px);
-            background-size: 60px 60px;
-            z-index: -3;
-        }
-        #parallax-stars {
-            background-image: 
-                radial-gradient(1px 1px at 20px 30px, var(--gold), rgba(0,0,0,0)),
-                radial-gradient(1px 1px at 40px 70px, var(--neon), rgba(0,0,0,0)),
-                radial-gradient(2px 2px at 50px 160px, #fff, rgba(0,0,0,0));
-            background-repeat: repeat;
-            background-size: 200px 200px;
-            opacity: 0.1;
-            z-index: -4;
-        }
-        #parallax-glow {
-            background: radial-gradient(circle at 50% 50%, rgba(212, 175, 55, 0.02) 0%, transparent 50%);
+                radial-gradient(circle at 50% 50%, rgba(212, 175, 55, 0.02) 0%, transparent 50%),
+                linear-gradient(rgba(212, 175, 55, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(212, 175, 55, 0.02) 1px, transparent 1px);
+            background-size: 100% 100%, 60px 60px, 60px 60px;
             z-index: -2;
+            will-change: transform;
         }
 
         /* Custom Cursor */
@@ -655,8 +626,15 @@
      <span class="mono">Journal</span>
      <span class="mono" style="color: var(--muted)">Micro-blog</span>
     </div>
-    <div class="notes-grid" id="notes-grid">
-     <!-- Notes injected via notes.json and update_site.py -->
+    <div class="notes-grid">
+     <div class="note-item">
+      <span class="note-date mono">Apr 05, 2026</span>
+      <p class="note-content">Reworked the entire portfolio architecture today. Focusing on "cortisol lowering" UI patterns and cinematic depth. Feeling refined. 🥂</p>
+     </div>
+     <div class="note-item">
+      <span class="note-date mono">Apr 04, 2026</span>
+      <p class="note-content">TaskFlow is hitting 0.9.0. The Python backend is finally as stable as I want it. Cinematic code is coming.</p>
+     </div>
     </div>
    </section>
 
@@ -665,7 +643,6 @@
      <a href="https://www.instagram.com/refined.mov/" target="_blank">
       Instagram
      </a>
-     <button id="audio-toggle" class="mono" style="background: none; border: 1px solid var(--border); color: var(--muted); padding: 4px 8px; cursor: pointer; font-size: 0.6rem; margin-left: 15px;">Audio: Off</button>
      <button id="grain-toggle" class="mono" style="background: none; border: 1px solid var(--border); color: var(--muted); padding: 4px 8px; cursor: pointer; font-size: 0.6rem; margin-left: 15px;">Grain: On</button>
     </div>
     <p class="mono">
@@ -675,9 +652,7 @@
   </div>
   <script>
    const cursor = document.getElementById('cursor');
-    const pGrid = document.getElementById('parallax-grid');
-    const pGlow = document.getElementById('parallax-glow');
-    const pStars = document.getElementById('parallax-stars');
+    const pBg = document.getElementById('parallax-bg');
     const trails = document.querySelectorAll('.cursor-trail');
     let mouseX = 0, mouseY = 0;
     let cursorX = 0, cursorY = 0;
@@ -686,46 +661,6 @@
     let isMoving = false;
     let hoveredCard = null;
     let curRotX = 0, curRotY = 0;
-
-    // Ambient Audio Engine
-    class AudioEngine {
-        constructor() {
-            this.ctx = null;
-            this.enabled = false;
-        }
-        init() {
-            if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-        }
-        playSystemSound(freq, type, duration, volume) {
-            if (!this.enabled || !this.ctx) return;
-            const osc = this.ctx.createOscillator();
-            const gain = this.ctx.createGain();
-            osc.type = type;
-            osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
-            gain.gain.setValueAtTime(volume, this.ctx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + duration);
-            osc.connect(gain);
-            gain.connect(this.ctx.destination);
-            osc.start();
-            osc.stop(this.ctx.currentTime + duration);
-        }
-        thud() { this.playSystemSound(60, 'sine', 0.2, 0.1); }
-        click() { this.playSystemSound(800, 'square', 0.05, 0.02); }
-    }
-    const sfx = new AudioEngine();
-    const audioBtn = document.getElementById('audio-toggle');
-    audioBtn.addEventListener('click', () => {
-        sfx.init();
-        sfx.enabled = !sfx.enabled;
-        audioBtn.textContent = `Audio: ${sfx.enabled ? 'On' : 'Off'}`;
-        audioBtn.style.color = sfx.enabled ? 'var(--neon)' : 'var(--muted)';
-    });
-
-    document.addEventListener('mousedown', () => sfx.click());
-    document.addEventListener('mouseover', e => {
-        if (e.target.closest('a, button, .card, .featured-card')) sfx.thud();
-    });
-
 
     // Discord Status (Lanyard API) - Replace DISCORD_ID with your actual ID
     const DISCORD_ID = "736569145618776094"; 
@@ -801,11 +736,9 @@
             curRotX = 0; curRotY = 0;
         }
 
-        // Multi-Layer Parallax Logic
+        // Parallax scroll logic (moves background at 20% of scroll speed)
         const scrollY = window.pageYOffset;
-        pGrid.style.transform = `translate3d(0, ${scrollY * 0.15}px, 0)`;
-        pGlow.style.transform = `translate3d(0, ${scrollY * 0.25}px, 0)`;
-        pStars.style.transform = `translate3d(0, ${scrollY * 0.05}px, 0)`;
+        pBg.style.transform = `translate3d(0, ${scrollY * 0.2}px, 0)`;
 
         // Magnetic elements logic
         document.querySelectorAll('.magnetic').forEach(el => {
