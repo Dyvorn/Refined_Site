@@ -2,14 +2,14 @@
 
 ## 1. Immersive Experience (The "Atmosphere")
 - [x] **Ambient UI Sound Design**: Implemented Web Audio oscillator sounds for clicks/hovers.
-- [x] **Physics-Based Cursor**: Implemented velocity-based squash/stretch and rotation.
+- [ ] **Physics-Based Cursor**: Replace the current Lerp cursor with a physics-based "liquid" cursor that deforms slightly based on velocity.
 - [x] **Multi-Layered Parallax**: Separated Grid, Glow, and Stars into asynchronous layers.
-- [x] **Custom 404 Page**: Created minimalist cinematic 404.html.
+- [ ] **Custom 404 Page**: Design a cinematic "Lost in Space" error page that maintains the Gold/Neon aesthetic.
 
 ## 2. Deep Content (The "Story")
 - [ ] **Case Study Deep Dives**: Create dedicated sub-pages for flagship projects like **TaskFlow**, allowing for long-form technical explanations and galleries.
 - [ ] **Cinematic Media Gallery**: A lightbox-style gallery for high-resolution stills or short clips from your media productions.
-- [x] **Snippets Feed**: Integrated GitHub Gists via update_site.py.
+- [ ] **Snippets Feed**: Integrate GitHub Gists to showcase a "Live Code Snippet" feed for reusable Python logic.
 - [ ] **Testimonial Slider**: A minimalist, high-typography section for quotes from collaborators or clients.
 
 ## 3. Advanced Automation (The "Intelligence")

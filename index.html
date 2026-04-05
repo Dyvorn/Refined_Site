@@ -7,14 +7,14 @@
    REFINED | Portfolio
   </title>
   <!-- SEO & Social Meta Tags -->
-  <meta content="A high-performance, cinematic portfolio showcasing software development and media production." name="description"/>
-  <meta content="REFINED | Portfolio" property="og:title"/>
-  <meta content="A high-performance, cinematic portfolio designed to be professional yet calm and chill." property="og:description"/>
-  <meta content="website" property="og:type"/>
-  <meta content="summary_large_image" name="twitter:card"/>
-  <meta content="REFINED | Portfolio" name="twitter:title"/>
+  <meta name="description" content="A high-performance, cinematic portfolio showcasing software development and media production." />
+  <meta property="og:title" content="REFINED | Portfolio" />
+  <meta property="og:description" content="A high-performance, cinematic portfolio designed to be professional yet calm and chill." />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="REFINED | Portfolio" />
   <script type="application/ld+json">
-   {
+    {
       "@context": "https://schema.org/",
       "@type": "Person",
       "name": "Lennard Finn Penzler",
@@ -26,9 +26,10 @@
       ]
     }
   </script>
-  <meta content="#050505" name="theme-color"/>
-  <link href="manifest.json" rel="manifest"/>
-  <link href="assets/logo.svg" rel="apple-touch-icon"/>
+  <meta name="theme-color" content="#050505" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="assets/logo.svg" />
+
   <!-- Typography: Space Grotesk for headings, JetBrains Mono for accents -->
   <link href="https://fonts.googleapis.com" rel="preconnect"/>
   <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
@@ -142,6 +143,7 @@
         }
 
         @media (hover: hover) { 
+            #cursor { display: block; } 
             .cursor-trail { display: block; }
             body, a, button, .card, .featured-card { cursor: none !important; }
         }
@@ -462,17 +464,13 @@
   </style>
  </head>
  <body>
-  <div class="parallax-layer" id="parallax-grid"></div>
-  <div class="parallax-layer" id="parallax-glow"></div>
-  <div class="parallax-layer" id="parallax-stars"></div>
+  <div id="parallax-bg">
+  </div>
   <div id="cursor">
   </div>
-  <div class="cursor-trail" style="--d: 1">
-  </div>
-  <div class="cursor-trail" style="--d: 2">
-  </div>
-  <div class="cursor-trail" style="--d: 3">
-  </div>
+  <div class="cursor-trail" style="--d: 1"></div>
+  <div class="cursor-trail" style="--d: 2"></div>
+  <div class="cursor-trail" style="--d: 3"></div>
   <div class="bg-glow">
   </div>
   <div class="grain">
@@ -481,44 +479,33 @@
   </div>
   <!-- Contact Modal -->
   <div id="contact-modal">
-   <div class="modal-content">
-    <button class="close-modal magnetic" onclick="toggleContact()">
-     ×
-    </button>
-    <span class="mono accent">
-     Encrypted Channel
-    </span>
-    <h2 style="margin: 10px 0 30px; color: var(--gold);">
-     Send a Message
-    </h2>
-    <form action="https://formspree.io/f/your_id" method="POST">
-     <label class="mono" style="font-size: 0.6rem; color: var(--muted);">
-      Identity
-     </label>
-     <input name="email" placeholder="email@example.com" required="" type="email"/>
-     <label class="mono" style="font-size: 0.6rem; color: var(--muted); margin-top: 20px; display: block;">
-      Transmission
-     </label>
-     <textarea name="message" placeholder="Your message..." required="" rows="4"></textarea>
-     <button class="send-btn magnetic" type="submit">
-      Initiate Transfer
-     </button>
-    </form>
-   </div>
+      <div class="modal-content">
+          <button class="close-modal magnetic" onclick="toggleContact()">×</button>
+          <span class="mono accent">Encrypted Channel</span>
+          <h2 style="margin: 10px 0 30px; color: var(--gold);">Send a Message</h2>
+          <form action="https://formspree.io/f/your_id" method="POST">
+              <label class="mono" style="font-size: 0.6rem; color: var(--muted);">Identity</label>
+              <input type="email" name="email" placeholder="email@example.com" required>
+              <label class="mono" style="font-size: 0.6rem; color: var(--muted); margin-top: 20px; display: block;">Transmission</label>
+              <textarea name="message" rows="4" placeholder="Your message..." required></textarea>
+              <button type="submit" class="send-btn magnetic">Initiate Transfer</button>
+          </form>
+      </div>
   </div>
+
   <div class="container">
    <nav class="fade-in">
     <div class="logo">
      REFINED
     </div>
-    <div aria-label="Main Navigation" class="nav-links mono" role="navigation">
-     <a aria-label="View my projects" class="magnetic" href="#projects">
+    <div class="nav-links mono" role="navigation" aria-label="Main Navigation">
+     <a class="magnetic" href="#projects" aria-label="View my projects">
       Work
      </a>
-     <a aria-label="View my content" class="magnetic" href="#videos">
+     <a class="magnetic" href="#videos" aria-label="View my content">
       Content
      </a>
-     <a aria-label="Contact me" class="magnetic" href="javascript:void(0)" onclick="toggleContact()">
+     <a class="magnetic" href="javascript:void(0)" onclick="toggleContact()" aria-label="Contact me">
       Connect
      </a>
     </div>
@@ -579,7 +566,7 @@
        TaskFlow
       </h2>
       <p style="font-size: 1.2rem; max-width: 700px; color: var(--muted); position: relative; z-index: 2;">
-       A cornerstone project focused on high-performance workflow optimization and cinematic execution.
+       None
       </p>
       <div class="featured-features mono">
        <div class="f-item">
@@ -622,15 +609,9 @@
      </span>
     </div>
     <div class="filter-bar mono">
-     <button class="filter-btn active magnetic" onclick="filterProjects('all', this)">
-      All
-     </button>
-     <button class="filter-btn magnetic" onclick="filterProjects('python', this)">
-      Python
-     </button>
-     <button class="filter-btn magnetic" onclick="filterProjects('html', this)">
-      HTML
-     </button>
+        <button class="filter-btn active magnetic" onclick="filterProjects('all', this)">All</button>
+        <button class="filter-btn magnetic" onclick="filterProjects('python', this)">Python</button>
+        <button class="filter-btn magnetic" onclick="filterProjects('html', this)">HTML</button>
     </div>
     <div class="grid" id="project-grid">
      <a class="card" href="https://github.com/Dyvorn/Refined_Site" target="_blank">
@@ -667,62 +648,25 @@
      </a>
     </div>
    </section>
-   <!-- Snippets Feed -->
-   <section class="reveal" id="snippets">
-    <div class="section-label">
-     <span class="mono">
-      Snippets
-     </span>
-     <span class="mono" style="color: var(--muted)">
-      Gists
-     </span>
-    </div>
-    <div class="grid" id="snippets-grid">
-     <!-- Snippets injected via update_site.py -->
-     <div class="skeleton" style="width: 100%; height: 150px;">
-     </div>
-    </div>
-   </section>
+
    <!-- Notes Section -->
    <section class="reveal" id="notes">
     <div class="section-label">
-     <span class="mono">
-      Journal
-     </span>
-     <span class="mono" style="color: var(--muted)">
-      Micro-blog
-     </span>
+     <span class="mono">Journal</span>
+     <span class="mono" style="color: var(--muted)">Micro-blog</span>
     </div>
     <div class="notes-grid" id="notes-grid">
-     <div class="note-item">
-      <span class="note-date mono">
-       Apr 05, 2026
-      </span>
-      <p class="note-content">
-       Implemented Phase 2 automation. The Journal is now decoupled from the HTML. Multi-layer parallax background is active. Audio system initialized.
-      </p>
-     </div>
-     <div class="note-item">
-      <span class="note-date mono">
-       Apr 04, 2026
-      </span>
-      <p class="note-content">
-       Added a Jarvis mode to Taskflow. I will expand on this in the future.
-      </p>
-     </div>
+     <!-- Notes injected via notes.json and update_site.py -->
     </div>
    </section>
+
    <footer>
     <div class="social-links mono">
      <a href="https://www.instagram.com/refined.mov/" target="_blank">
       Instagram
      </a>
-     <button class="mono" id="audio-toggle" style="background: none; border: 1px solid var(--border); color: var(--muted); padding: 4px 8px; cursor: pointer; font-size: 0.6rem; margin-left: 15px;">
-      Audio: Off
-     </button>
-     <button class="mono" id="grain-toggle" style="background: none; border: 1px solid var(--border); color: var(--muted); padding: 4px 8px; cursor: pointer; font-size: 0.6rem; margin-left: 15px;">
-      Grain: On
-     </button>
+     <button id="audio-toggle" class="mono" style="background: none; border: 1px solid var(--border); color: var(--muted); padding: 4px 8px; cursor: pointer; font-size: 0.6rem; margin-left: 15px;">Audio: Off</button>
+     <button id="grain-toggle" class="mono" style="background: none; border: 1px solid var(--border); color: var(--muted); padding: 4px 8px; cursor: pointer; font-size: 0.6rem; margin-left: 15px;">Grain: On</button>
     </div>
     <p class="mono">
      Refined © 2026 | Built with no sleep and low cortisol *_*
@@ -730,47 +674,20 @@
    </footer>
   </div>
   <script>
-   // 1. Immediate Reveal Logic (Unblock visibility first)
-   const observerOptions = { threshold: 0.05 };
-   const observer = new IntersectionObserver((entries) => {
-       entries.forEach(entry => {
-           if (entry.isIntersecting) {
-               entry.target.classList.add('active');
-           }
-       });
-   }, observerOptions);
-   document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
-
-   // 2. Performance-Focused Core Logic
    const cursor = document.getElementById('cursor');
-   const pGrid = document.getElementById('parallax-grid');
-   const pGlow = document.getElementById('parallax-glow');
-   const pStars = document.getElementById('parallax-stars');
-   const trails = document.querySelectorAll('.cursor-trail');
-   const allCards = document.querySelectorAll('.card, .featured-card');
-   const magneticElements = document.querySelectorAll('.magnetic');
+    const pGrid = document.getElementById('parallax-grid');
+    const pGlow = document.getElementById('parallax-glow');
+    const pStars = document.getElementById('parallax-stars');
+    const trails = document.querySelectorAll('.cursor-trail');
+    let mouseX = 0, mouseY = 0;
+    let cursorX = 0, cursorY = 0;
+    let trailPositions = Array.from({ length: 3 }, () => ({ x: 0, y: 0 }));
+    let scale = 1;
+    let isMoving = false;
+    let hoveredCard = null;
+    let curRotX = 0, curRotY = 0;
 
-   let mouseX = 0, mouseY = 0;
-   let cursorX = 0, cursorY = 0;
-   let trailPositions = Array.from({ length: 3 }, () => ({ x: 0, y: 0 }));
-   let velX = 0, velY = 0;
-   let scale = 1;
-   let isMoving = false;
-   let hoveredCard = null;
-   let hoveredCardRect = null;
-   let curRotX = 0, curRotY = 0;
-   let resetTiltNeeded = false;
-
-   // Cache Magnetic Rects to prevent Layout Thrashing
-   let magneticRects = [];
-   function updateMagneticRects() {
-       magneticRects = Array.from(magneticElements).map(el => ({
-           el,
-           rect: el.getBoundingClientRect()
-       }));
-   }
-
-   // Ambient Audio Engine
+    // Ambient Audio Engine
     class AudioEngine {
         constructor() {
             this.ctx = null;
@@ -829,10 +746,6 @@
     }
     type();
 
-    // Initialize cached positions
-    updateMagneticRects();
-    window.addEventListener('resize', updateMagneticRects);
-
     document.addEventListener('mousemove', e => {
         mouseX = e.clientX;
         mouseY = e.clientY;
@@ -848,78 +761,67 @@
     const lerp = (a, b, n) => (1 - n) * a + n * b;
 
     function render() {
-        const prevX = cursorX;
-        const prevY = cursorY;
-
+        // The 0.15 value determines the "chill" follow speed (lower = smoother/slower)
         cursorX = lerp(cursorX, mouseX, 0.15);
         cursorY = lerp(cursorY, mouseY, 0.15);
         
-        // Calculate Velocity for Liquid Effect
-        velX = cursorX - prevX;
-        velY = cursorY - prevY;
-        const speed = Math.min(Math.hypot(velX, velY), 100);
-        const stretch = 1 + speed / 150;
-        const rotation = Math.atan2(velY, velX) * (180 / Math.PI);
-
         trailPositions.forEach((pos, i) => {
             pos.x = lerp(pos.x, i === 0 ? cursorX : trailPositions[i-1].x, 0.15 - (i * 0.03));
             pos.y = lerp(pos.y, i === 0 ? cursorY : trailPositions[i-1].y, 0.15 - (i * 0.03));
             trails[i].style.transform = `translate3d(${pos.x}px, ${pos.y}px, 0) translate(-50%, -50%)`;
         });
 
-        
         // Card tilt logic (Handles both featured and standard cards)
-        if (hoveredCard && hoveredCardRect) {
+        if (hoveredCard) {
+            const rect = hoveredCard.getBoundingClientRect();
             let targetRotX = 0;
             let targetRotY = 0;
             
-            const x = cursorX - hoveredCardRect.left;
-            const y = cursorY - hoveredCardRect.top;
+            const x = cursorX - rect.left;
+            const y = cursorY - rect.top;
             
             if (hoveredCard.classList.contains('featured-card')) {
                 hoveredCard.style.setProperty('--mouse-x', `${x}px`);
+                hoveredCard.style.setProperty('--mouse-y', `${y}px`);
             }
 
-            const centerX = hoveredCardRect.width / 2;
-            const centerY = hoveredCardRect.height / 2;
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
             targetRotX = -(y - centerY) / (hoveredCard.classList.contains('featured-card') ? 25 : 40);
             targetRotY = (x - centerX) / (hoveredCard.classList.contains('featured-card') ? 25 : 40);
-
 
             curRotX = lerp(curRotX, targetRotX, 0.1);
             curRotY = lerp(curRotY, targetRotY, 0.1);
             hoveredCard.style.transform = `rotateX(${curRotX}deg) rotateY(${curRotY}deg)`;
-            resetTiltNeeded = true;
         } else {
-            if (resetTiltNeeded) {
-                allCards.forEach(c => c.style.transform = 'rotateX(0deg) rotateY(0deg)');
-                curRotX = 0; curRotY = 0;
-                resetTiltNeeded = false;
-            }
+            // Reset tilt for all cards when none are hovered
+            document.querySelectorAll('.card, .featured-card').forEach(c => {
+                c.style.transform = `rotateX(0deg) rotateY(0deg)`;
+            });
+            curRotX = 0; curRotY = 0;
         }
 
         // Multi-Layer Parallax Logic
-        const scrollY = window.scrollY;
-        if(pGrid) pGrid.style.transform = `translate3d(0, ${scrollY * 0.15}px, 0)`;
-        if(pGlow) pGlow.style.transform = `translate3d(0, ${scrollY * 0.25}px, 0)`;
-        if(pStars) pStars.style.transform = `translate3d(0, ${scrollY * 0.05}px, 0)`;
+        const scrollY = window.pageYOffset;
+        pGrid.style.transform = `translate3d(0, ${scrollY * 0.15}px, 0)`;
+        pGlow.style.transform = `translate3d(0, ${scrollY * 0.25}px, 0)`;
+        pStars.style.transform = `translate3d(0, ${scrollY * 0.05}px, 0)`;
 
-        // Magnetic elements logic (Visual update only)
-        magneticElements.forEach(el => {
-            const mX = parseFloat(el.dataset.mX || 0);
-            const mY = parseFloat(el.dataset.mY || 0);
-            const curX = parseFloat(el.dataset.curX || 0);
-            const curY = parseFloat(el.dataset.curY || 0);
-            
-            const nextX = lerp(curX, mX, 0.1);
-            const nextY = lerp(curY, mY, 0.1);
-            
-            el.style.transform = `translate3d(${nextX}px, ${nextY}px, 0)`;
-            el.dataset.curX = nextX;
-            el.dataset.curY = nextY;
+        // Magnetic elements logic
+        document.querySelectorAll('.magnetic').forEach(el => {
+            const rect = el.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            const dist = Math.hypot(mouseX - centerX, mouseY - centerY);
+            if (dist < 80) {
+                const strength = 1 - (dist / 80);
+                const x = (mouseX - centerX) * 0.5 * strength;
+                const y = (mouseY - centerY) * 0.5 * strength;
+                el.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+            } else { el.style.transform = `translate3d(0, 0, 0)`; }
         });
 
-        cursor.style.transform = `translate3d(${cursorX}px, ${cursorY}px, 0) translate(-50%, -50%) rotate(${rotation}deg) scale(${scale * stretch}, ${scale / stretch})`;
+        cursor.style.transform = `translate3d(${cursorX}px, ${cursorY}px, 0) translate(-50%, -50%) scale(${scale})`;
         requestAnimationFrame(render);
     }
     render();
@@ -932,7 +834,6 @@
             cursor.style.background = 'rgba(212, 175, 55, 0.1)';
             cursor.style.borderColor = 'transparent';
             hoveredCard = target;
-            hoveredCardRect = target.getBoundingClientRect();
         }
     });
 
@@ -943,26 +844,20 @@
             cursor.style.background = 'transparent';
             cursor.style.borderColor = 'var(--gold)';
             hoveredCard = null;
-            hoveredCardRect = null;
         }
     });
 
-    // Efficient Proximity Check for Magnetic Elements
-    document.addEventListener('mousemove', () => {
-        magneticRects.forEach(({el, rect}) => {
-            const centerX = rect.left + rect.width / 2;
-            const centerY = rect.top + rect.height / 2;
-            const dist = Math.hypot(mouseX - centerX, mouseY - centerY);
-            if (dist < 80) {
-                const strength = 1 - (dist / 80);
-                el.dataset.mX = (mouseX - centerX) * 0.4 * strength;
-                el.dataset.mY = (mouseY - centerY) * 0.4 * strength;
-            } else {
-                el.dataset.mX = 0;
-                el.dataset.mY = 0;
+    // Scroll Reveal Observer
+    const observerOptions = { threshold: 0.1 };
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('active');
             }
         });
-    });
+    }, observerOptions);
+
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
     // Contact Modal Toggle
     function toggleContact() {
