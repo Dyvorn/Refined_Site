@@ -99,7 +99,17 @@
         .delay-1 { animation-delay: 0.1s; }
         .delay-2 { animation-delay: 0.3s; }
         .delay-3 { animation-delay: 0.5s; }
-        .delay-4 { animation-delay: 0.7s; }
+
+        /* Scroll Reveal Initial State */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
 
         /* Typography Helpers */
         .mono { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.15em; }
@@ -152,11 +162,14 @@
         .card h3 { margin-bottom: 15px; font-size: 1.4rem; color: var(--gold); }
         .card p { font-size: 0.95rem; color: var(--muted); }
 
-        /* Toolbox */
-        .tools-list { display: flex; flex-wrap: wrap; gap: 20px; color: var(--muted); }
-        .tools-list span { color: var(--gold); }
-        .tools-list div { border: 1px solid var(--border); padding: 10px 20px; transition: 0.3s; }
-        .tools-list div:hover { border-color: var(--neon); color: var(--text); background: var(--surface); }
+        /* Featured Project Styling */
+        .featured-card {
+            background: linear-gradient(to right, rgba(212, 175, 55, 0.05), transparent);
+            border-left: 2px solid var(--gold);
+            padding: 60px;
+        }
+        .featured-card h2 { font-size: 3rem; color: var(--gold); margin-bottom: 20px; }
+        .featured-tag { background: var(--gold); color: var(--black); padding: 4px 12px; font-weight: 700; margin-bottom: 20px; display: inline-block; }
 
         /* Video Embed */
         .video-container {
@@ -237,7 +250,7 @@
      A minimalist space documenting my journey through software development and cinematic production.
     </p>
    </header>
-   <section class="fade-in delay-2" id="videos">
+   <section class="fade-in delay-2 reveal" id="videos">
     <div class="section-label">
      <span class="mono">
       Latest Production
@@ -252,7 +265,19 @@
      </iframe>
     </div>
    </section>
-   <section class="fade-in delay-3" id="projects">
+
+   <!-- Featured Section for TaskFlow -->
+   <section class="reveal" id="featured-project">
+    <div class="section-label">
+     <span class="mono">Main Project</span>
+     <span class="mono accent">Flagship</span>
+    </div>
+    <div id="featured-container">
+        <!-- TaskFlow will be injected here by update_site.py -->
+    </div>
+   </section>
+
+   <section class="reveal" id="projects">
     <div class="section-label">
      <span class="mono">
       Selected Projects
@@ -312,51 +337,8 @@
      </a>
     </div>
    </section>
-   <section class="fade-in delay-4" id="toolbox">
-    <div class="section-label">
-     <span class="mono">
-      Toolbox
-     </span>
-     <span class="mono" style="color: var(--muted)">
-      Tech &amp; Media
-     </span>
-    </div>
-    <div class="tools-list mono">
-     <div>
-      <span>
-       01.
-      </span>
-      Python
-     </div>
-     <div>
-      <span>
-       02.
-      </span>
-      HTML/CSS
-     </div>
-     <div>
-      <span>
-       03.
-      </span>
-      Davinci Resolve
-     </div>
-     <div>
-      <span>
-       04.
-      </span>
-      Automation
-     </div>
-     <div>
-      <span>
-       05.
-      </span>
-      Cinematic Design
-     </div>
-    </div>
-   </section>
    <footer>
     <div class="social-links mono">
-     <a href="https://www.instagram.com/refined.mov/" target="_blank">
      <a href="https://instagram.com/your_insta" target="_blank">
       Instagram
      </a>
@@ -413,6 +395,18 @@
             cursor.style.borderColor = 'var(--gold)';
         }
     });
+
+    // Scroll Reveal Observer
+    const observerOptions = { threshold: 0.1 };
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('active');
+            }
+        });
+    }, observerOptions);
+
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
   </script>
  </body>
 </html>

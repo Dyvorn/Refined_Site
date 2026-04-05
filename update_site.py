@@ -55,11 +55,37 @@ def update_site():
             iframe['src'] = video_url
             print("Updated YouTube video.")
 
+    # Separate TaskFlow from other projects
+    featured_repo = next((r for r in repos if r['name'].lower() == 'taskflow'), None)
+    other_repos = [r for r in repos if r['name'].lower() != 'taskflow'][:3]
+
+    # Update Featured Project (TaskFlow)
+    featured_container = soup.find(id="featured-container")
+    if featured_container and featured_repo:
+        featured_container.clear()
+        desc = featured_repo.get('description', 'High-performance workflow optimization.')
+        stars = featured_repo.get('stargazers_count', 0)
+        link = featured_repo.get('html_url', '#')
+        
+        featured_html = f'''
+        <a href="{link}" target="_blank" class="card featured-card">
+            <span class="mono featured-tag">Primary Project</span>
+            <h2>{featured_repo['name']}</h2>
+            <p style="font-size: 1.2rem; max-width: 700px;">{desc}</p>
+            <div style="margin-top: 30px; display: flex; gap: 20px;" class="mono">
+                <span class="accent">⭐ {stars} Stars</span>
+                <span style="color: var(--muted);">View Documentation →</span>
+            </div>
+        </a>
+        '''
+        featured_container.append(BeautifulSoup(featured_html, 'html.parser'))
+        print("Updated Featured Project: TaskFlow")
+
     # Update GitHub Projects
     grid = soup.find(id="project-grid")
-    if grid and repos:
+    if grid:
         grid.clear()
-        for repo in repos:
+        for repo in other_repos:
             lang = repo.get('language', 'Project')
             # Clean up empty or "None" descriptions
             desc = repo.get('description')
