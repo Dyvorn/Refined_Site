@@ -270,10 +270,9 @@
 
         /* Header */
         nav {
-            padding: 50px 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            width: 100%;
+            padding: 25px 0;
+            background: rgba(5, 5, 5, 0.7);
             position: sticky;
             top: 0;
             z-index: 1000;
@@ -489,39 +488,27 @@
   </div>
   <div class="vignette">
   </div>
-  <!-- Contact Modal -->
-  <div id="contact-modal">
-      <div class="modal-content">
-          <button class="close-modal magnetic" onclick="toggleContact()">×</button>
-          <span class="mono accent">Encrypted Channel</span>
-          <h2 style="margin: 10px 0 30px; color: var(--gold);">Send a Message</h2>
-          <form action="https://formspree.io/f/your_id" method="POST">
-              <label class="mono" style="font-size: 0.6rem; color: var(--muted);">Identity</label>
-              <input type="email" name="email" placeholder="email@example.com" required>
-              <label class="mono" style="font-size: 0.6rem; color: var(--muted); margin-top: 20px; display: block;">Transmission</label>
-              <textarea name="message" rows="4" placeholder="Your message..." required></textarea>
-              <button type="submit" class="send-btn magnetic">Initiate Transfer</button>
-          </form>
-      </div>
-  </div>
+
+  <nav class="fade-in">
+    <div class="container" style="display: flex; justify-content: space-between; align-items: center;">
+      <div class="logo">
+        REFINED
+       </div>
+       <div class="nav-links mono" role="navigation" aria-label="Main Navigation">
+        <a class="magnetic" href="#projects" aria-label="View my projects">
+         Work
+        </a>
+        <a class="magnetic" href="#videos" aria-label="View my content">
+         Content
+        </a>
+        <a class="magnetic" href="javascript:void(0)" onclick="toggleContact()" aria-label="Contact me">
+         Connect
+        </a>
+       </div>
+    </div>
+  </nav>
 
   <div class="container">
-   <nav class="fade-in">
-    <div class="logo">
-     REFINED
-    </div>
-    <div class="nav-links mono" role="navigation" aria-label="Main Navigation">
-     <a class="magnetic" href="#projects" aria-label="View my projects">
-      Work
-     </a>
-     <a class="magnetic" href="#videos" aria-label="View my content">
-      Content
-     </a>
-     <a class="magnetic" href="javascript:void(0)" onclick="toggleContact()" aria-label="Contact me">
-      Connect
-     </a>
-    </div>
-   </nav>
    <header class="hero fade-in delay-1">
     <span class="mono">
      <span class="status-dot">
@@ -694,6 +681,22 @@
     </div>
    </section>
 
+   <!-- Contact Modal -->
+   <div id="contact-modal">
+       <div class="modal-content">
+           <button class="close-modal magnetic" onclick="toggleContact()">×</button>
+           <span class="mono accent">Encrypted Channel</span>
+           <h2 style="margin: 10px 0 30px; color: var(--gold);">Send a Message</h2>
+           <form action="https://formspree.io/f/your_id" method="POST">
+               <label class="mono" style="font-size: 0.6rem; color: var(--muted);">Identity</label>
+               <input type="email" name="email" placeholder="email@example.com" required>
+               <label class="mono" style="font-size: 0.6rem; color: var(--muted); margin-top: 20px; display: block;">Transmission</label>
+               <textarea name="message" rows="4" placeholder="Your message..." required></textarea>
+               <button type="submit" class="send-btn magnetic">Initiate Transfer</button>
+           </form>
+       </div>
+   </div>
+
    <footer>
     <div class="social-links mono">
      <a href="https://www.instagram.com/refined.mov/" target="_blank">
@@ -810,8 +813,10 @@
 
             const centerX = hoveredCardRect.width / 2;
             const centerY = hoveredCardRect.height / 2;
-            targetRotX = -(y - centerY) / 40;
-            targetRotY = (x - centerX) / 40;
+            
+            const divisor = hoveredCard.classList.contains('featured-card') ? 25 : 40;
+            targetRotX = -(y - centerY) / divisor;
+            targetRotY = (x - centerX) / divisor;
 
             curRotX = lerp(curRotX, targetRotX, 0.1);
             curRotY = lerp(curRotY, targetRotY, 0.1);
