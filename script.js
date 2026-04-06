@@ -119,6 +119,19 @@ window.addEventListener('load', () => {
   processBoot();
 });
 
+// Split Text Utility for smooth reveals
+document.querySelectorAll('.split-reveal').forEach(el => {
+  const text = el.textContent;
+  el.textContent = '';
+  text.split('').forEach((char, i) => {
+    const span = document.createElement('span');
+    span.textContent = char === ' ' ? '\u00A0' : char;
+    span.className = 'char';
+    span.style.transitionDelay = `${i * 0.03}s`;
+    el.appendChild(span);
+  });
+});
+
 // Intersection Observer for Reveal Animations
 const revealCallback = (entries, observer) => {
   entries.forEach(entry => {
@@ -143,11 +156,17 @@ function animateFilter(el) {
     const elapsed = currentTime - startTime;
     const progress = Math.min(elapsed / duration, 1);
     const ease = 1 - Math.pow(1 - progress, 4); // Quartic Out
-    filter.setAttribute('scale', 50 - (50 * ease));
+    filter.setAttribute('scale', (1 - ease) * 30); 
     if (progress < 1) requestAnimationFrame(update);
   }
   requestAnimationFrame(update);
 }
+
+// Performance Optimization: Cache scroll height on resize
+let cachedHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+window.addEventListener('resize', () => {
+  cachedHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+}, { passive: true });
 
 const revealObserver = new IntersectionObserver(revealCallback, {
   threshold: 0.15
@@ -159,19 +178,28 @@ document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
 const sections = document.querySelectorAll('section[id]');
 const navLinks = document.querySelectorAll('nav ul li a');
 const header = document.querySelector('header');
+const scrollProgress = document.getElementById('progress-bar');
 
-window.addEventListener('scroll', () => {
+function handleScroll() {
+  const scrollY = window.scrollY;
+
   // Header logic
-  if (window.scrollY > 50) {
+  if (scrollY > 50) {
     header.classList.add('scrolled');
   } else {
     header.classList.remove('scrolled');
   }
 
+  // Progress Bar
+  scrollProgress.style.width = (scrollY / cachedHeight) * 100 + "%";
+
+  // Background Parallax
+  document.body.style.setProperty('--scroll-y', `${scrollY}px`);
+
   let current = "";
   sections.forEach(section => {
     const sectionTop = section.offsetTop;
-    if (pageYOffset >= sectionTop - 150) {
+    if (scrollY >= sectionTop - 150) {
       current = section.getAttribute('id');
     }
   });
@@ -179,24 +207,69 @@ window.addEventListener('scroll', () => {
   navLinks.forEach(link => {
     link.classList.toggle('active', link.getAttribute('href').includes(current));
   });
-});
+}
 
-// Custom Cursor Logic
+window.addEventListener('scroll', handleScroll, { passive: true });
+
+// Custom Cursor Logic with LERP (Linear Interpolation)
 const cursor = document.getElementById('cursor');
-let cursorVisible = false;
+const state = {
+  mouseX: 0,
+  mouseY: 0,
+  cursorX: 0,
+  cursorY: 0,
+  scrollY: 0,
+  targetScrollY: 0,
+  cursorVisible: false
+};
 
 document.addEventListener('mousemove', (e) => {
-  if (!cursorVisible) {
+  if (!state.cursorVisible) {
     cursor.style.display = 'block';
-    cursorVisible = true;
+    state.cursorVisible = true;
   }
-  cursor.style.left = e.clientX + 'px';
-  cursor.style.top = e.clientY + 'px';
+  state.mouseX = e.clientX;
+  state.mouseY = e.clientY;
+
+  // Card Spotlight Logic
+  const cards = document.querySelectorAll('.card');
+  cards.forEach(card => {
+    const rect = card.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    card.style.setProperty('--mouse-x', `${x}px`);
+    card.style.setProperty('--mouse-y', `${y}px`);
+  });
 });
 
+function update() {
+  // High-performance elastic LERP
+  const lerpFactor = 0.15;
+  state.cursorX += (state.mouseX - state.cursorX) * lerpFactor;
+  state.cursorY += (state.mouseY - state.cursorY) * lerpFactor;
+  
+  cursor.style.transform = `translate3d(${state.cursorX}px, ${state.cursorY}px, 0) translate3d(-50%, -50%, 0)`;
+
+  requestAnimationFrame(update);
+}
+update();
+
 document.querySelectorAll('a, button, .card').forEach(el => {
-  el.addEventListener('mouseenter', () => cursor.style.transform = 'translate(-50%, -50%) scale(3)');
-  el.addEventListener('mouseleave', () => cursor.style.transform = 'translate(-50%, -50%) scale(1)');
+  el.addEventListener('mouseenter', () => cursor.classList.add('expanding'));
+  el.addEventListener('mouseleave', () => cursor.classList.remove('expanding'));
+});
+
+// Magnetic Button Effect
+document.querySelectorAll('.btn-primary, .btn-ghost, nav ul li a').forEach(item => {
+  item.addEventListener('mousemove', (e) => {
+    const rect = item.getBoundingClientRect();
+    const x = (e.clientX - rect.left - rect.width / 2) * 0.4;
+    const y = (e.clientY - rect.top - rect.height / 2) * 0.4;
+    item.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+  });
+  item.addEventListener('mouseleave', () => {
+    item.style.transform = 'translate3d(0, 0, 0)';
+  });
 });
 
 // 3D Tilt Card Logic
