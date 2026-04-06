@@ -34,6 +34,12 @@
       scroll-snap-type: y mandatory;
       /* Adjust padding to match header height so links land correctly, accounting for increased header size */
       scroll-padding-top: 5rem;
+      scrollbar-width: none; /* Firefox */
+      -ms-overflow-style: none; /* IE and Edge */
+    }
+
+    html::-webkit-scrollbar {
+      display: none; /* Chrome, Safari and Opera */
     }
 
     body {
