@@ -35,6 +35,7 @@
       <nav aria-label="Main navigation">
         <ul>
           <li><a href="#about">About</a></li>
+          <li><a href="#new">News</a></li>
           <li><a href="#projects">Work</a></li>
           <li><a href="#contact">Contact</a></li>
         </ul>
@@ -91,6 +92,40 @@
         <p>
           I’m focusing on projects that improve my daily workflow and let me explore new creative ideas. I like building tools that are a pleasure to use and making edits that are satisfying to watch. I also share my process and what I learn along the way, hoping to inspire others and connect with people who share similar interests
         </p>
+      </div>
+    </section>
+
+    <!-- WHAT'S NEW -->
+    <section id="new" class="reveal" aria-labelledby="new-title">
+      <div class="section-header">
+        <div class="section-title">
+          <div class="section-bar"></div>
+          <h2 id="new-title" class="split-reveal">What's New</h2>
+        </div>
+        <p class="section-kicker">Latest updates & media.</p>
+      </div>
+      <div class="new-content-grid">
+        <div class="card reveal">
+          <h3>Latest Updates</h3>
+          <ul class="updates-list">
+            <!-- ADD NEW UPDATES HERE: Copy a <li> line and change the text -->
+            <li><span class="update-date">Recent</span> Added the "What's New" section to the portfolio.</li>
+            <li><span class="update-date">Recent</span> Integrated automated YouTube latest-video feed.</li>
+          </ul>
+        </div>
+        <div class="card reveal video-card">
+          <div class="card-label" style="display: flex; justify-content: space-between; align-items: center;">
+            <span>YouTube Feed</span>
+            <span class="badge" style="margin: 0; font-size: 0.6rem; padding: 0.1rem 0.4rem; border-color: var(--gold-deep);">Latest Upload</span>
+          </div>
+          <div class="video-container" id="video-container">
+            <iframe id="latest-video-frame" src="" title="Latest Video" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+            <div class="video-loader" id="video-loader">
+              <div class="spinner"></div>
+              <span>Fetching Feed...</span>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
 

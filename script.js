@@ -335,3 +335,39 @@ function type() {
 }
 
 document.addEventListener('DOMContentLoaded', type);
+
+// Automated YouTube Latest Video Fetcher
+async function loadLatestVideo() {
+  const channelID = 'UCGe5VOk80siQe0r2OfQQWPw';
+  const fallbackID = 'dQw4w9WgXcQ'; // Replace with a default video ID you like
+  const videoFrame = document.getElementById('latest-video-frame');
+  const container = document.getElementById('video-container');
+  const loader = document.getElementById('video-loader');
+  
+  try {
+    // Using a public RSS-to-JSON API to fetch the channel's feed
+    const response = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.youtube.com%2Ffeeds%2Fvideos.xml%3Fchannel_id%3D${channelID}`, {
+      cache: 'no-store'
+    });
+    const data = await response.json();
+    
+    if (data.items && data.items.length > 0) {
+      // More robust ID extraction
+      const url = new URL(data.items[0].link);
+      const videoId = url.searchParams.get('v');
+      
+      videoFrame.src = `https://www.youtube-nocookie.com/embed/${videoId || fallbackID}?rel=0&modestbranding=1`;
+      
+      videoFrame.onload = () => {
+        container.classList.add('loaded');
+        setTimeout(() => {
+          loader.style.display = 'none';
+        }, 800);
+      };
+    }
+  } catch (error) {
+    console.error("Error fetching latest video:", error);
+  }
+}
+
+loadLatestVideo();
