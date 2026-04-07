@@ -274,8 +274,7 @@ nav a:focus-visible::after { width: 100%; }
 
 .hero {
   display: grid;
-
-  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  grid-template-columns: 1.6fr 1fr; /* Rigid ratio prevents UI shifting */
   gap: 4rem;
   align-items: center;
   align-content: center;
@@ -312,7 +311,28 @@ nav a:focus-visible::after { width: 100%; }
   margin-bottom: 1.2rem;
 }
 
-.hero h1 span {
+#hero-title {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  position: relative;
+  z-index: 5;
+  margin-bottom: 0.5rem;
+}
+
+.typewriter-wrapper {
+  display: flex;
+  align-items: center;
+  min-height: 1.2em; /* Locked height prevents text below from jumping up/down */
+  width: 100%;
+  overflow: hidden;  /* Prevents the text from "crushing" the focus box */
+  white-space: nowrap;
+  font-size: 0.7em;  /* Slightly smaller secondary line for better hierarchy */
+}
+
+.hero h1 .gold-text,
+.hero h1 .char {
   background: linear-gradient(90deg, var(--gold), var(--gold-deep));
   -webkit-background-clip: text;
   background-clip: text;
@@ -321,10 +341,12 @@ nav a:focus-visible::after { width: 100%; }
 }
 
 #typewriter-text {
-  display: inline-block;
+  display: inline;
   min-height: 1.1em;
   vertical-align: bottom;
   transition: transform 0.1s ease;
+  color: var(--text-main);
+  white-space: nowrap;
 }
 
 .glitch {
@@ -349,8 +371,10 @@ nav a:focus-visible::after { width: 100%; }
   width: 3px;
   height: 1em;
   background-color: var(--gold);
-  margin-left: 4px;
+  margin-left: 2px;
   vertical-align: middle;
+  position: relative;
+  z-index: 10;
   animation: blink 1s step-end infinite;
 }
 @keyframes blink {

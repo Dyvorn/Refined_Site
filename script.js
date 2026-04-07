@@ -292,7 +292,6 @@ document.querySelectorAll('.card').forEach(card => {
 });
 
 // Typewriter Animation Engine
-const typewriterEl = document.getElementById('typewriter-text');
 const phrases = [
   "Designing spaces, tools, and motion.",
   "Building worlds through level design.",
@@ -308,6 +307,9 @@ let isDeleting = false;
 let typeSpeed = 100;
 
 function type() {
+  const typewriterEl = document.getElementById('typewriter-text');
+  if (!typewriterEl) return;
+
   const currentPhrase = phrases[phraseIndex];
   
   if (isDeleting) {
