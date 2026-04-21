@@ -209,15 +209,54 @@ const scrollProgress = document.getElementById('progress-bar');
 const navLinks = document.querySelectorAll('nav ul li a');
 const sections = document.querySelectorAll('section[id]');
 
+function updateTimeline() {
+  const container = document.querySelector('.timeline-container');
+  const line = document.querySelector('.timeline-line-inner');
+  if (!container || !line) return;
+
+  const rect = container.getBoundingClientRect();
+  const windowHeight = window.innerHeight;
+  
+  // Calculate progress based on container's position in viewport
+  // Line starts growing when bottom of viewport hits top of container
+  // Line finishes when top of container is 20% above the viewport
+  const startTrigger = windowHeight * 0.9;
+  const endTrigger = windowHeight * 0.1;
+  const progress = (startTrigger - rect.top) / (rect.height + (startTrigger - endTrigger));
+  
+  line.style.height = `${Math.min(Math.max(progress * 100, 0), 100)}%`;
+}
+
 function handleScroll() {
   const scrollY = window.scrollY;
   const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
   header.classList.toggle('scrolled', scrollY > 50);
   scrollProgress.style.width = (scrollY / (maxScroll || 1)) * 100 + "%";
   document.body.style.setProperty('--scroll-y', `${scrollY}px`);
+  updateTimeline();
 }
 
 window.addEventListener('scroll', handleScroll, { passive: true });
+
+// Instant-Smooth Navigation Transitions
+navLinks.forEach(link => {
+  link.addEventListener('click', (e) => {
+    const targetId = link.getAttribute('href');
+    if (targetId && targetId.startsWith('#')) {
+      e.preventDefault();
+      const target = document.querySelector(targetId);
+      if (target) {
+        // Disable snapping temporarily to prevent "drag" or "trapping" during jump
+        document.documentElement.style.scrollSnapType = 'none';
+        target.scrollIntoView({ behavior: 'smooth' });
+        // Re-enable snapping once the jump is complete
+        setTimeout(() => {
+          document.documentElement.style.scrollSnapType = 'y mandatory';
+        }, 800);
+      }
+    }
+  });
+});
 
 // Optimized Scroll Spy using Intersection Observer
 const spyOptions = { threshold: 0.5, rootMargin: "0px" };

@@ -311,6 +311,7 @@ nav a:focus-visible::after { width: 100%; }
 /* HERO */
 
 .hero {
+  min-height: 100vh;
   display: grid;
   grid-template-columns: 1.6fr 1fr; /* Rigid ratio prevents UI shifting */
   gap: 4rem;
@@ -562,21 +563,66 @@ nav a:focus-visible::after { width: 100%; }
   font-size: 0.75rem;
 }
 
-/* SECTION BASE */
-
 section {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 4rem 0;
+  padding: 6rem 0;
   scroll-snap-align: start;
-  scroll-snap-stop: always;
+  scroll-snap-stop: normal;
 }
+
+/* Overrides for specific section heights/layouts */
+#about {
+  min-height: 200vh; /* Keeps space for timeline scroll */
+  justify-content: flex-start;
+  padding-top: 15vh;
+}
+
+.timeline-container {
+
+  position: relative;
+  margin-top: 6rem;
+  padding-left: 3rem;
+  max-width: 700px;
+}
+
+.timeline-line {
+  position: absolute;
+  left: 0.5rem;
+  top: 0;
+  width: 2px;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.timeline-line-inner {
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 0%;
+  background: var(--gold);
+  box-shadow: 0 0 15px var(--gold);
+  transition: height 0.1s ease-out;
+}
+
+.timeline-item {
+  position: relative;
+  margin-bottom: 8rem;
+}
+
+.timeline-dot {
+  position: absolute;
+  left: -3rem; top: 0.4rem;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  border: 2px solid var(--gold);
+  background: var(--bg-main);
+  z-index: 2;
+}
+
 
 section + section {
   border-top: 1px solid rgba(255, 255, 255, 0.04);
-  margin-top: 0;
 }
 
 .section-header {
@@ -717,7 +763,6 @@ section + section {
   overflow: hidden;
   contain: layout style paint;
   transition:
-    transform 0.4s cubic-bezier(0.2, 1, 0.2, 1),
     box-shadow 0.4s ease,
     border-color 0.4s ease;
   font-size: 0.85rem;
