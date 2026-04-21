@@ -5,6 +5,7 @@ const canvas = document.getElementById('binary-rain-canvas');
 const ctx = canvas.getContext('2d');
 
 let animationFrameId; // To store the requestAnimationFrame ID for binary rain
+let lastRainTime = 0;
 
 function setupBinaryRain() {
   // Ensure canvas is visible before setting dimensions
@@ -25,7 +26,15 @@ function setupBinaryRain() {
     const rootStyles = getComputedStyle(document.documentElement);
     const goldColor = rootStyles.getPropertyValue('--gold').trim();
 
-    function drawBinaryRain() {
+    function drawBinaryRain(timestamp) {
+      if (document.hidden) {
+        animationFrameId = requestAnimationFrame(drawBinaryRain);
+        return;
+      }
+
+      const deltaTime = timestamp - (lastRainTime || timestamp);
+      lastRainTime = timestamp;
+
       // Semi-transparent black rectangle to create the fading trail effect
       ctx.fillStyle = 'rgba(5, 6, 8, 0.05)'; // Use bg-main with transparency
       ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -41,23 +50,40 @@ function setupBinaryRain() {
         if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
           drops[i] = 0;
         }
-        drops[i]++;
+        // Normalize speed: ~16 units per second
+        drops[i] += (deltaTime * 0.06);
       }
 
       animationFrameId = requestAnimationFrame(drawBinaryRain);
     }
 
-    drawBinaryRain();
+    requestAnimationFrame(drawBinaryRain);
   }
 }
 
 // Handle window resize for responsiveness
-window.addEventListener('resize', () => {
+// Debounce utility to consolidate and optimize resize logic
+function debounce(func, wait) {
+  let timeout;
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+}
+
+const handleResize = debounce(() => {
   if (document.getElementById('loading-screen') && !document.getElementById('loading-screen').classList.contains('hidden')) {
     if (animationFrameId) { cancelAnimationFrame(animationFrameId); }
     setupBinaryRain();
   }
-});
+  cachedHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+}, 300);
+
+window.addEventListener('resize', handleResize, { passive: true });
 
 // Loading Screen Logic
 window.addEventListener('load', () => {
@@ -132,23 +158,28 @@ document.querySelectorAll('.split-reveal').forEach(el => {
   });
 });
 
+// Cache selectors for performance
+const revealElements = document.querySelectorAll('.reveal');
+const cardElements = document.querySelectorAll('.card');
+const filterElement = document.querySelector('#liquid-deform feDisplacementMap');
+let isFilterAnimateRunning = false;
+let cachedHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+
 // Intersection Observer for Reveal Animations
 const revealCallback = (entries, observer) => {
   entries.forEach(entry => {
     if (entry.isIntersecting) {
       entry.target.classList.add('visible');
-      animateFilter(entry.target);
-    } else {
-      // Remove visibility to allow re-triggering the "insane" transition
-      entry.target.classList.remove('visible');
+      if (!isFilterAnimateRunning) animateFilter();
+      observer.unobserve(entry.target);
     }
   });
 };
 
 // Animate the SVG filter scale to "crystallize" the content
-function animateFilter(el) {
-  const filter = document.querySelector('#liquid-deform feDisplacementMap');
-  let start = 50;
+function animateFilter() {
+  if (!filterElement) return;
+  isFilterAnimateRunning = true;
   const duration = 1200;
   const startTime = performance.now();
 
@@ -156,60 +187,52 @@ function animateFilter(el) {
     const elapsed = currentTime - startTime;
     const progress = Math.min(elapsed / duration, 1);
     const ease = 1 - Math.pow(1 - progress, 4); // Quartic Out
-    filter.setAttribute('scale', (1 - ease) * 30); 
-    if (progress < 1) requestAnimationFrame(update);
+    filterElement.setAttribute('scale', (1 - ease) * 30); 
+    if (progress < 1) {
+      requestAnimationFrame(update);
+    } else {
+      isFilterAnimateRunning = false;
+    }
   }
   requestAnimationFrame(update);
 }
-
-// Performance Optimization: Cache scroll height on resize
-let cachedHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-window.addEventListener('resize', () => {
-  cachedHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-}, { passive: true });
 
 const revealObserver = new IntersectionObserver(revealCallback, {
   threshold: 0.15
 });
 
-document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+revealElements.forEach(el => revealObserver.observe(el));
 
-// Navigation Scroll Spy
-const sections = document.querySelectorAll('section[id]');
-const navLinks = document.querySelectorAll('nav ul li a');
+// Refined Scroll Logic
 const header = document.querySelector('header');
 const scrollProgress = document.getElementById('progress-bar');
+const navLinks = document.querySelectorAll('nav ul li a');
+const sections = document.querySelectorAll('section[id]');
 
 function handleScroll() {
   const scrollY = window.scrollY;
-
-  // Header logic
-  if (scrollY > 50) {
-    header.classList.add('scrolled');
-  } else {
-    header.classList.remove('scrolled');
-  }
-
-  // Progress Bar
-  scrollProgress.style.width = (scrollY / cachedHeight) * 100 + "%";
-
-  // Background Parallax
+  const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+  header.classList.toggle('scrolled', scrollY > 50);
+  scrollProgress.style.width = (scrollY / (maxScroll || 1)) * 100 + "%";
   document.body.style.setProperty('--scroll-y', `${scrollY}px`);
-
-  let current = "";
-  sections.forEach(section => {
-    const sectionTop = section.offsetTop;
-    if (scrollY >= sectionTop - 150) {
-      current = section.getAttribute('id');
-    }
-  });
-
-  navLinks.forEach(link => {
-    link.classList.toggle('active', link.getAttribute('href').includes(current));
-  });
 }
 
 window.addEventListener('scroll', handleScroll, { passive: true });
+
+// Optimized Scroll Spy using Intersection Observer
+const spyOptions = { threshold: 0.5, rootMargin: "0px" };
+const spyObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const id = entry.target.getAttribute('id');
+      navLinks.forEach(link => {
+        link.classList.toggle('active', link.getAttribute('href') === `#${id}`);
+      });
+    }
+  });
+}, spyOptions);
+
+sections.forEach(section => spyObserver.observe(section));
 
 // Custom Cursor Logic with LERP (Linear Interpolation)
 const cursor = document.getElementById('cursor');
@@ -232,8 +255,7 @@ document.addEventListener('mousemove', (e) => {
   state.mouseY = e.clientY;
 
   // Card Spotlight Logic
-  const cards = document.querySelectorAll('.card');
-  cards.forEach(card => {
+  cardElements.forEach(card => {
     const rect = card.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
@@ -245,16 +267,20 @@ document.addEventListener('mousemove', (e) => {
 function update() {
   // High-performance elastic LERP
   const lerpFactor = 0.15;
-  state.cursorX += (state.mouseX - state.cursorX) * lerpFactor;
-  state.cursorY += (state.mouseY - state.cursorY) * lerpFactor;
+  const dx = state.mouseX - state.cursorX;
+  const dy = state.mouseY - state.cursorY;
   
-  cursor.style.transform = `translate3d(${state.cursorX}px, ${state.cursorY}px, 0) translate3d(-50%, -50%, 0)`;
+  if (Math.abs(dx) > 0.1 || Math.abs(dy) > 0.1) {
+    state.cursorX += dx * lerpFactor;
+    state.cursorY += dy * lerpFactor;
+    cursor.style.transform = `translate3d(${state.cursorX}px, ${state.cursorY}px, 0) translate3d(-50%, -50%, 0)`;
+  }
 
   requestAnimationFrame(update);
 }
 update();
 
-document.querySelectorAll('a, button, .card').forEach(el => {
+document.querySelectorAll('a, button, .card:not(.contact-form), input, textarea, .legal-trigger, .modal-close').forEach(el => {
   el.addEventListener('mouseenter', () => cursor.classList.add('expanding'));
   el.addEventListener('mouseleave', () => cursor.classList.remove('expanding'));
 });
@@ -273,23 +299,57 @@ document.querySelectorAll('.btn-primary, .btn-ghost, nav ul li a').forEach(item 
 });
 
 // 3D Tilt Card Logic
-document.querySelectorAll('.card').forEach(card => {
+// Filter out the contact form card from the tilt effect
+const tiltableCards = Array.from(cardElements).filter(card => !card.classList.contains('contact-form'));
+tiltableCards.forEach(card => {
   card.addEventListener('mousemove', (e) => {
     const rect = card.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
     const centerX = rect.width / 2;
     const centerY = rect.height / 2;
-    const rotateX = (y - centerY) / 10;
-    const rotateY = (centerX - x) / 10;
+    const rotateX = (y - centerY) / 40;
+    const rotateY = (centerX - x) / 40;
     
-    card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-5px)`;
+    card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-2px)`;
   });
 
   card.addEventListener('mouseleave', () => {
     card.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0)`;
   });
 });
+
+// Add click handler for video container to enable iframe interaction
+const videoContainer = document.getElementById('video-container');
+const latestVideoFrame = document.getElementById('latest-video-frame');
+
+if (videoContainer && latestVideoFrame) {
+  videoContainer.addEventListener('click', () => {
+    latestVideoFrame.style.pointerEvents = 'auto';
+    // Instantly switch to system cursor on click
+    videoContainer.style.cursor = 'auto';
+    cursor.style.opacity = '0';
+
+    // Reset the tilt effect on the parent card immediately
+    const parentCard = videoContainer.closest('.card');
+    if (parentCard) {
+      parentCard.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0)`;
+    }
+  }, { once: true });
+
+  videoContainer.addEventListener('mouseenter', () => {
+    // If video is already active (pointer-events is auto), hide custom cursor
+    if (latestVideoFrame.style.pointerEvents === 'auto') {
+      cursor.style.opacity = '0';
+      videoContainer.style.cursor = 'auto';
+    }
+  });
+
+  videoContainer.addEventListener('mouseleave', () => {
+    // Restore custom cursor when leaving the video area
+    cursor.style.opacity = '1';
+  });
+}
 
 // Typewriter Animation Engine
 const phrases = [
@@ -336,7 +396,10 @@ function type() {
   setTimeout(type, typeSpeed);
 }
 
-document.addEventListener('DOMContentLoaded', type);
+document.addEventListener('DOMContentLoaded', () => {
+  type();
+  loadLatestVideo();
+});
 
 // Automated YouTube Latest Video Fetcher
 async function loadLatestVideo() {
@@ -366,10 +429,179 @@ async function loadLatestVideo() {
           loader.style.display = 'none';
         }, 800);
       };
+    } else {
+      throw new Error("No items found");
     }
   } catch (error) {
     console.error("Error fetching latest video:", error);
+    if (loader) {
+      loader.innerHTML = `<span style="color: var(--text-muted)">Feed unavailable</span>`;
+      videoFrame.src = `https://www.youtube-nocookie.com/embed/${fallbackID}`;
+      container.classList.add('loaded');
+    }
   }
 }
 
-loadLatestVideo();
+// Generalized Modal Logic
+const modalTriggers = document.querySelectorAll('.legal-trigger');
+const modalCloses = document.querySelectorAll('.modal-close');
+const modals = document.querySelectorAll('.modal-overlay');
+
+modalTriggers.forEach(trigger => {
+  trigger.addEventListener('click', (e) => {
+    e.preventDefault();
+    const modalId = trigger.getAttribute('data-modal-target');
+    const modal = document.getElementById(modalId);
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  });
+});
+
+const closeAllModals = () => {
+  modals.forEach(modal => modal.classList.remove('active'));
+  document.body.style.overflow = '';
+};
+
+modalCloses.forEach(btn => btn.addEventListener('click', closeAllModals));
+modals.forEach(modal => {
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) closeAllModals();
+  });
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeAllModals();
+});
+
+// Toast Notification Engine
+function showToast(message, type = 'success', duration = 3000) {
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+  toast.className = `toast-notification toast-${type}`; // Add type class for styling
+  toast.innerHTML = `
+    <div class="toast-content">
+      <span class="toast-dot toast-dot-${type}"></span>
+      <span class="toast-text">${message}</span>
+    </div>
+  `;
+  container.appendChild(toast);
+  
+  // Force reflow to ensure transition plays
+  void toast.offsetWidth; 
+  toast.classList.add('active');
+
+  // Remove toast after duration
+  setTimeout(() => {
+    toast.classList.remove('active');
+    setTimeout(() => toast.remove(), 500);
+  }, duration);
+}
+
+// Captcha Logic
+let captchaExpectedAnswer = ''; // Store the expected answer
+function generateCaptcha() {
+  const questions = [
+    { q: "SYSTEM_CHECK: What is the primary accent color of Refined_OS?", a: "gold" },
+    { q: "SYSTEM_CHECK: What is the first letter of 'Refined'?", a: "r" },
+    { q: "SYSTEM_CHECK: How many fingers are on one human hand?", a: "5" } // Simple numeric for variety
+  ];
+  const selectedQuestion = questions[Math.floor(Math.random() * questions.length)];
+  captchaExpectedAnswer = String(selectedQuestion.a).toLowerCase(); // Store lowercase string answer
+  const captchaLabel = document.getElementById('captcha-label');
+  if (captchaLabel) {
+    captchaLabel.textContent = selectedQuestion.q;
+  }
+}
+
+// Initialize captcha on page load
+document.addEventListener('DOMContentLoaded', generateCaptcha);
+
+
+// Contact Form Submission
+const contactForm = document.getElementById('contact-form');
+if (contactForm) {
+  contactForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = contactForm.querySelector('button');
+    const originalText = btn.textContent;
+    const captchaInput = document.getElementById('captcha-input');
+
+    // Captcha validation
+    if (captchaInput.value.toLowerCase().trim() !== captchaExpectedAnswer) {
+      showToast("Captcha incorrect. Please try again.", 'error', 4000);
+      captchaInput.value = ''; // Clear input
+      generateCaptcha(); // Generate new captcha
+      return; // Stop submission
+    }
+
+    const formData = new FormData(contactForm);
+
+    // Remove captcha field from formData before sending to Web3Forms
+    formData.delete('captcha');
+
+    btn.textContent = "Sending...";
+    btn.disabled = true;
+    
+    try {
+      // Note: Replace 'YOUR_WEB3FORMS_ACCESS_KEY' in index.html with your actual key
+      const response = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        body: formData,
+        headers: {
+          'Accept': 'application/json'
+        }
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        showToast("Message sent successfully", 'success');
+        contactForm.reset();
+        generateCaptcha(); // Generate new captcha after successful submission
+      } else if (result.message === "Honeypot field detected!") {
+        // Silently handle honeypot, act like it was successful to not alert bots
+        showToast("Message sent successfully (spam detected and blocked)", 'success');
+        contactForm.reset();
+        generateCaptcha();
+      } else if (result.message) {
+        showToast(`Transmission error: ${result.message}`, 'error', 5000);
+      } else {
+        showToast("Transmission error. Please try again.", 'error');
+      }
+    } catch (error) {
+      showToast("Network error. Check your connection.", 'error');
+    } finally {
+      btn.textContent = originalText;
+      btn.disabled = false;
+    }
+  });
+}
+
+// System Status Engine (Clock, Simulated CPU, Browser RAM)
+function updateSystemStatus() {
+  const clockEl = document.getElementById('system-clock');
+  const cpuEl = document.getElementById('system-cpu');
+  const ramEl = document.getElementById('system-ram');
+
+  if (!clockEl) return;
+
+  // 1. Actual Live Clock
+  const now = new Date();
+  clockEl.textContent = now.toLocaleTimeString('en-GB', { hour12: false });
+
+  // 2. Simulated CPU Load (Jittering between 2.4% and 12.8% for OS feel)
+  const simulatedCPU = (Math.random() * 10 + 2).toFixed(1);
+  cpuEl.textContent = `${simulatedCPU}%`;
+
+  // 3. RAM Usage (Performance API for Current Tab)
+  if (performance.memory) {
+    const usedRam = Math.round(performance.memory.usedJSHeapSize / 1048576);
+    ramEl.textContent = `${usedRam}MB`;
+  } else {
+    // Fallback for browsers without performance.memory (Safari/Firefox)
+    const jitter = (Math.random() * 5 + 124).toFixed(0);
+    ramEl.textContent = `${jitter}MB`;
+  }
+}
+
+setInterval(updateSystemStatus, 1000);

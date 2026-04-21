@@ -3,7 +3,20 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Refined — Portfolio</title>
+  <title>Refined — Lennard Finn Penzler | Dev & Video</title>
+  <meta name="description" content="Portfolio of Lennard Finn Penzler. Specializing in tool development, game design, and cinematic video editing." />
+  
+  <!-- Open Graph / Social Media -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Refined — Lennard Finn Penzler" />
+  <meta property="og:description" content="Designing tools, games, and motion with cinematic precision." />
+  <meta property="og:image" content="https://refined.mov/og-image.jpg" />
+  <meta name="theme-color" content="#ffb606">
+  <meta name="twitter:card" content="summary_large_image" />
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2240%22 fill=%22%23ffb606%22/></svg>">
+  
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -24,7 +37,7 @@
   <div class="noise-overlay" aria-hidden="true"></div>
   <div class="scroll-progress" id="progress-bar"></div>
   <div class="cursor-follower" id="cursor"></div>
-  <a href="#main" style="position:absolute;left:-999px;top:auto;width:1px;height:1px;overflow:hidden;">Skip to main content</a>
+  <a href="#main" class="skip-link">Skip to main content</a>
 
   <header>
     <div class="nav-inner">
@@ -92,7 +105,7 @@
       </div>
       <div class="card reveal">
         <p>
-          I’m focusing on projects that improve my daily workflow and let me explore new creative ideas. I like building tools that are a pleasure to use and making edits that are satisfying to watch. I also share my process and what I learn along the way, hoping to inspire others and connect with people who share similar interests
+          I focus on building tools that streamline workflows and creating cinematic experiences through video. My goal is to lower the barrier to creativity—sharing my journey and the technical insights I gain along the way to inspire others in the dev and design community.
         </p>
       </div>
     </section>
@@ -104,24 +117,26 @@
           <div class="section-bar"></div>
           <h2 id="new-title" class="split-reveal">What's New</h2>
         </div>
-        <p class="section-kicker">Latest updates & media.</p>
+        <p class="section-kicker">System logs & recent transmissions.</p>
       </div>
       <div class="new-content-grid">
         <div class="card reveal">
           <h3>Latest Updates</h3>
           <ul class="updates-list">
-            <!-- ADD NEW UPDATES HERE: Copy a <li> line and change the text -->
-            <li><span class="update-date">Recent</span> Added the "What's New" section to the portfolio.</li>
-            <li><span class="update-date">Recent</span> Integrated automated YouTube latest-video feed.</li>
+            <li><span class="update-date">New</span> Added impressum and privacy policy pages.</li>
+            <li><span class="update-date">New</span> Added the new Contact section to the portfolio.</li>
+            <li><span class="update-date">New</span> Deployed system-wide scroll snapping and LERP engine optimizations.</li>
+            <li><span class="update-date">Update</span> Refined the content delivery hub with automated YouTube integration.</li>
+            <li><span class="update-date">Update</span> Fixed minor bugs and improved performance.</li>
           </ul>
         </div>
         <div class="card reveal video-card">
           <div class="card-label" style="display: flex; justify-content: space-between; align-items: center;">
             <span>YouTube Feed</span>
-            <span class="badge" style="margin: 0; font-size: 0.6rem; padding: 0.1rem 0.4rem; border-color: var(--gold-deep);">Latest Upload</span>
+            <span class="badge" id="video-tag" style="margin: 0; font-size: 0.6rem; padding: 0.1rem 0.4rem; border-color: var(--gold-deep);">Latest Upload</span>
           </div>
           <div class="video-container" id="video-container">
-            <iframe id="latest-video-frame" src="" title="Latest Video" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+        <iframe id="latest-video-frame" src="" title="Latest Video" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>
             <div class="video-loader" id="video-loader">
               <div class="spinner"></div>
               <span>Fetching Feed...</span>
@@ -148,7 +163,7 @@
             Roots Dont Burn is a short, atmospheric horror game made in Unreal Engine.
           </p>
           <div class="card-links">
-            <a class="link-inline" href="https://craft2fun.itch.io/roots-dont-burn" target="_blank" rel="noreferrer">
+            <a class="link-inline" href="https://craft2fun.itch.io/roots-dont-burn" target="_blank" rel="noopener noreferrer">
               View details <span>↗</span>
             </a>
           </div>
@@ -161,7 +176,7 @@
             Taskflow is a mental health and productivity tool I built to help myself and others manage tasks, track habits, and reflect on progress in a more mindful way.
           </p>
           <div class="card-links">
-            <a class="link-inline" href="https://github.com/Dyvorn/TaskFlow" target="_blank" rel="noreferrer">
+            <a class="link-inline" href="https://github.com/Dyvorn/TaskFlow" target="_blank" rel="noopener noreferrer">
               View on GitHub <span>↗</span>
             </a>
           </div>
@@ -174,7 +189,7 @@
             My youTube channel where I share cinematic edits, showreels, and creative experiments that explore the art of video editing, storytelling, development and so much more.
           </p>
           <div class="card-links">
-            <a class="link-inline" href="https://www.youtube.com/channel/UCGe5VOk80siQe0r2OfQQWPw" target="_blank" rel="noreferrer">
+            <a class="link-inline" href="https://www.youtube.com/channel/UCGe5VOk80siQe0r2OfQQWPw" target="_blank" rel="noopener noreferrer">
               Watch on YouTube <span>↗</span>
             </a>
           </div>
@@ -192,27 +207,43 @@
         <p class="section-kicker">Reach out or follow.</p>
       </div>
       <div class="contact-grid">
-        <!-- Coming Soon Placeholder for Form -->
-        <div class="card reveal" style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 1rem; border-style: dashed; border-color: rgba(255, 182, 6, 0.2); min-height: 320px;">
-          <div class="badge">
-            <span class="badge-dot"></span>
-            <span>Status: In Development</span>
+        <form id="contact-form" class="card reveal contact-form no-tilt-card">
+          <fieldset style="border: none; padding: 0; margin: 0;">
+            <legend style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border-width: 0;">Send a message</legend>
+          <input type="hidden" name="access_key" value="dd16da2d-59af-4b4f-a1bc-2e6402fb74b6"> <!-- Get this from web3forms.com -->
+          <input type="hidden" name="_gotcha"> <!-- Honeypot for spam protection -->
+          <input type="hidden" name="_subject" value="New message from Refined.mov">
+          <div class="field">
+            <label for="name">Identification</label>
+            <input type="text" id="name" name="name" placeholder="Your Name" required>
           </div>
-          <h3 style="font-size: 1.2rem; letter-spacing: 0.1em; color: var(--text-main);">MESSAGE SYSTEM COMING SOON</h3>
-          <p style="max-width: 280px; margin: 0 auto;">I'm currently refining the automated contact flow. In the meantime, please reach out via email below.</p>
-        </div>
+          <div class="field">
+            <label for="email">Return Address</label>
+            <input type="email" id="email" name="email" placeholder="email@example.com" required>
+          </div>
+          <div class="field">
+            <label for="message">Transmission</label>
+            <textarea id="message" name="message" rows="4" placeholder="Enter your message..." required></textarea>
+          </div>
+          <div class="field captcha-field">
+            <label for="captcha-input" id="captcha-label"></label>
+            <input type="text" id="captcha-input" name="captcha" placeholder="Your Answer" required>
+          </div>
+          <button type="submit" class="btn-primary" style="width: 100%; margin-top: 1rem;">Execute Send</button>
+          </fieldset>
+        </form>
 
         <div class="card reveal">
           <h3>Connect & Support</h3>
           <p class="contact-meta">
-            I'm always open to new projects, cinematic collaborations, or just a chat about development and video.
+            I'm always open to new projects, cinematic collaborations, or just a chat about development and video. You can also reach me directly via email.
           </p>
           <div class="contact-links">
-            <a href="mailto:refined.mov@gmail.com" class="link-inline" style="font-size: 1.1rem; margin-bottom: 0.8rem; font-weight: 600;">refined.mov@gmail.com ↗</a>
-            <a href="https://github.com/Dyvorn" target="_blank" rel="noreferrer">GitHub ↗</a>
-            <a href="https://www.youtube.com/channel/UCGe5VOk80siQe0r2OfQQWPw" target="_blank" rel="noreferrer">YouTube ↗</a>
-            <a href="https://discord.gg/FEt8ck4em4" target="_blank" rel="noreferrer">Discord Server ↗</a>
-            <a href="https://www.buymeacoffee.com/refined" target="_blank" rel="noreferrer">Buy Me a Coffee ↗</a>
+            <a href="mailto:refined.mov@gmail.com" class="link-inline" style="font-size: 1rem; font-weight: 600;">refined.mov@gmail.com ↗</a>
+            <a href="https://github.com/Dyvorn" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+            <a href="https://www.youtube.com/channel/UCGe5VOk80siQe0r2OfQQWPw" target="_blank" rel="noopener noreferrer">YouTube ↗</a>
+            <a href="https://discord.gg/FEt8ck4em4" target="_blank" rel="noopener noreferrer">Discord Server ↗</a>
+            <a href="https://www.buymeacoffee.com/refined" target="_blank" rel="noopener noreferrer">Buy Me a Coffee ↗</a>
           </div>
         </div>
       </div>
@@ -222,9 +253,71 @@
   <footer>
     <div class="footer-inner">
       <span> © <span id="year"></span> Lennard Finn Penzler</span>
+      <div class="system-status" aria-label="System status information">
+        <span id="system-clock">00:00:00</span>
+        <span class="status-separator" aria-hidden="true">|</span>
+        <span>CPU: <span id="system-cpu">--%</span></span>
+        <span class="status-separator" aria-hidden="true">|</span>
+        <span>RAM: <span id="system-ram">--MB</span></span>
+      </div>
+      <div class="footer-links" style="display: flex; gap: 1.5rem; align-items: center;">
+        <button data-modal-target="impressum-modal" class="link-inline legal-trigger">Impressum</button>
+        <button data-modal-target="privacy-modal" class="link-inline legal-trigger">Datenschutz</button>
+      </div>
       <span>Built with ❤️ &amp; Passion · Refined.</span>
     </div>
   </footer>
+
+  <!-- Impressum Modal -->
+  <div id="impressum-modal" class="modal-overlay" aria-hidden="true">
+    <div class="card reveal modal-content">
+      <button id="close-impressum" class="modal-close" aria-label="Close">&times;</button>
+      <div class="section-title" style="margin-bottom: 1.5rem;">
+        <div class="section-bar"></div>
+        <h2>Impressum</h2>
+      </div>
+      <div class="legal-body">
+        <p><strong>Angaben gemäß § 5 TMG</strong></p>
+        <p>Lennard Finn Penzler<br>
+        [Your Chosen Business Address / Service-Provider Address]<br>
+        [Postal Code] [City], Germany</p>
+        
+        <p style="margin-top: 1rem;"><strong>Kontakt</strong></p>
+        <p>E-Mail: refined.mov@gmail.com</p>
+        
+        <p style="margin-top: 1rem; font-size: 0.75rem; color: var(--text-muted);">Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV: Lennard Finn Penzler</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Privacy Policy Modal -->
+  <div id="privacy-modal" class="modal-overlay" aria-hidden="true">
+    <div class="card reveal modal-content">
+      <button class="modal-close" aria-label="Close">&times;</button>
+      <div class="section-title" style="margin-bottom: 1.5rem;">
+        <div class="section-bar"></div>
+        <h2>Datenschutz</h2>
+      </div>
+      <div class="legal-body" style="font-size: 0.8rem; max-height: 60vh; overflow-y: auto; padding-right: 1rem;">
+        <p><strong>1. Datenschutz auf einen Blick</strong></p>
+        <p>Diese Datenschutzerklärung klärt Sie über die Art, den Umfang und Zweck der Verarbeitung von personenbezogenen Daten innerhalb dieser Website auf.</p>
+        
+        <p style="margin-top: 1rem;"><strong>2. Hosting</strong></p>
+        <p>Diese Website wird extern gehostet (z.B. GitHub Pages). Personenbezogene Daten (wie IP-Adressen), die auf dieser Website erfasst werden, werden auf den Servern des Hosters gespeichert.</p>
+        
+        <p style="margin-top: 1rem;"><strong>3. YouTube mit erweitertem Datenschutz</strong></p>
+        <p>Wir binden Videos der Plattform “YouTube” ein. Wir nutzen den erweiterten Datenschutzmodus (youtube-nocookie.com), der laut Anbieter eine Speicherung von Nutzerinformationen nur dann auslöst, wenn das Video abgespielt wird.</p>
+        
+        <p style="margin-top: 1rem;"><strong>4. Kontakt</strong></p>
+        <p>Wenn Sie uns per E-Mail kontaktieren, werden Ihre Angaben zwecks Bearbeitung der Anfrage gespeichert. Diese Daten geben wir nicht ohne Ihre Einwilligung weiter.</p>
+        
+        <p style="margin-top: 1rem;"><strong>5. Ihre Rechte</strong></p>
+        <p>Sie haben jederzeit das Recht auf unentgeltliche Auskunft über Ihre gespeicherten personenbezogenen Daten, deren Herkunft und Empfänger und den Zweck der Datenverarbeitung sowie ein Recht auf Berichtigung oder Löschung dieser Daten.</p>
+        
+        <p style="margin-top: 1rem; color: var(--text-muted);">Stand: April 2024</p>
+      </div>
+    </div>
+  </div>
 
   <!-- Hidden SVG Filter for Liquid Deformation -->
   <svg style="display: none;">
@@ -235,6 +328,9 @@
       </filter>
     </defs>
   </svg>
+
+  <!-- Toast Notification System -->
+  <div id="toast-container" class="toast-container"></div>
 
   <script src="script.js" defer></script>
 </body>
