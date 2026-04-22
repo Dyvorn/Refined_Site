@@ -170,11 +170,12 @@
         <div class="card reveal">
           <h3>Latest Updates</h3>
           <ul class="updates-list">
-            <li><span class="update-date">New</span> Added impressum and privacy policy pages.</li>
-            <li><span class="update-date">New</span> Added the new Contact section to the portfolio.</li>
-            <li><span class="update-date">New</span> Deployed system-wide scroll snapping and LERP engine optimizations.</li>
-            <li><span class="update-date">Update</span> Refined the content delivery hub with automated YouTube integration.</li>
-            <li><span class="update-date">Update</span> Fixed minor bugs and improved performance.</li>
+            <li data-date="2026-04-22"><span class="update-date"></span> Optimized SVG Liquid Deformation for mobile devices.</li>
+            <li data-date="2026-04-22"><span class="update-date"></span> Enhanced custom cursor with event delegation and email utility.</li>
+            <li data-date="2026-04-21"><span class="update-date"></span> Integrated OG Metadata and Social Preview cards.</li>
+            <li data-date="2026-04-20"><span class="update-date"></span> Deployed system-wide scroll snapping and LERP engine.</li>
+            <li data-date="2026-04-18"><span class="update-date"></span> Refined content hub with automated YouTube integration.</li>
+            <li data-date="2026-04-15"><span class="update-date"></span> Added legal compliance pages and Contact section.</li>
           </ul>
         </div>
         <div class="card reveal video-card">
@@ -286,7 +287,7 @@
             I'm always open to new projects, cinematic collaborations, or just a chat about development and video. You can also reach me directly via email.
           </p>
           <div class="contact-links">
-            <a href="mailto:refined.mov@gmail.com" class="link-inline" style="font-size: 1rem; font-weight: 600;">refined.mov@gmail.com ↗</a>
+            <a href="mailto:refined.mov@gmail.com" id="email-copy-link" class="link-inline" style="font-size: 1rem; font-weight: 600;" title="Click to copy email">refined.mov@gmail.com ↗</a>
             <a href="https://github.com/Dyvorn" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
             <a href="https://www.youtube.com/channel/UCGe5VOk80siQe0r2OfQQWPw" target="_blank" rel="noopener noreferrer">YouTube ↗</a>
             <a href="https://discord.gg/FEt8ck4em4" target="_blank" rel="noopener noreferrer">Discord Server ↗</a>
@@ -361,7 +362,7 @@
         <p style="margin-top: 1rem;"><strong>5. Ihre Rechte</strong></p>
         <p>Sie haben jederzeit das Recht auf unentgeltliche Auskunft über Ihre gespeicherten personenbezogenen Daten, deren Herkunft und Empfänger und den Zweck der Datenverarbeitung sowie ein Recht auf Berichtigung oder Löschung dieser Daten.</p>
         
-        <p style="margin-top: 1rem; color: var(--text-muted);">Stand: April 2024</p>
+        <p style="margin-top: 1rem; color: var(--text-muted);">Stand: April 2026</p>
       </div>
     </div>
   </div>
@@ -370,7 +371,7 @@
   <svg style="display: none;">
     <defs>
       <filter id="liquid-deform">
-        <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="3" result="noise" />
+        <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="1" result="noise" />
         <feDisplacementMap in="SourceGraphic" in2="noise" scale="50" xChannelSelector="R" yChannelSelector="G" />
       </filter>
     </defs>

@@ -1084,6 +1084,11 @@ footer {
   background: var(--text-muted);
 }
 
+#email-copy-link {
+  cursor: copy;
+  transition: color var(--fast);
+}
+
 @media (max-width: 840px) {
   .hero { grid-template-columns: minmax(0, 1fr); }
   .hero-highlight { order: -1; }

@@ -95,11 +95,11 @@ window.addEventListener('load', () => {
   setupBinaryRain();
 
   const bootMessages = [
-    "Initializing Refined_OS...",
+    "Initializing Refined_OS v2.1.0...",
     "Loading Core.Geometry...",
-    "Mounting Level_Design.drv",
+    "Mounting Workspace_Dyvorn.drv",
     "Checking Motion_Engine...",
-    "Stabilizing Liquid_Deform.fx",
+    "Syncing Creative_Workflow...",
     "Optimizing UX_Shaders...",
     "System Check: Optimal.",
     "Bypassing Security...",
@@ -180,14 +180,18 @@ const revealCallback = (entries, observer) => {
 function animateFilter() {
   if (!filterElement) return;
   isFilterAnimateRunning = true;
-  const duration = 1200;
+  
+  // Mobile Optimization: Faster duration and lower scale for smaller screens
+  const isMobile = window.innerWidth < 768;
+  const duration = isMobile ? 600 : 1200;
+  const maxScale = isMobile ? 15 : 30;
   const startTime = performance.now();
 
   function update(currentTime) {
     const elapsed = currentTime - startTime;
     const progress = Math.min(elapsed / duration, 1);
     const ease = 1 - Math.pow(1 - progress, 4); // Quartic Out
-    filterElement.setAttribute('scale', (1 - ease) * 30); 
+    filterElement.setAttribute('scale', (1 - ease) * maxScale); 
     if (progress < 1) {
       requestAnimationFrame(update);
     } else {
@@ -319,9 +323,22 @@ function update() {
 }
 update();
 
-document.querySelectorAll('a, button, .card:not(.contact-form), input, textarea, .legal-trigger, .modal-close').forEach(el => {
-  el.addEventListener('mouseenter', () => cursor.classList.add('expanding'));
-  el.addEventListener('mouseleave', () => cursor.classList.remove('expanding'));
+// Optimized Event Delegation for Cursor and Interactions
+document.addEventListener('mouseover', (e) => {
+  const target = e.target.closest('a, button, .card:not(.contact-form), input, textarea, .legal-trigger, .modal-close');
+  if (target) cursor.classList.add('expanding');
+});
+
+document.addEventListener('mouseout', (e) => {
+  const target = e.target.closest('a, button, .card:not(.contact-form), input, textarea, .legal-trigger, .modal-close');
+  if (target) cursor.classList.remove('expanding');
+});
+
+// Quick Copy Email Feature
+document.getElementById('email-copy-link')?.addEventListener('click', (e) => {
+  e.preventDefault();
+  navigator.clipboard.writeText('refined.mov@gmail.com');
+  showToast("Email address copied to clipboard", 'success');
 });
 
 // Magnetic Button Effect
@@ -438,7 +455,31 @@ function type() {
 document.addEventListener('DOMContentLoaded', () => {
   type();
   loadLatestVideo();
+  updateRelativeTimes();
 });
+
+// Relative Time Engine for "What's New"
+function updateRelativeTimes() {
+  const updateItems = document.querySelectorAll('.updates-list li');
+  const now = new Date();
+
+  updateItems.forEach(item => {
+    const dateStr = item.getAttribute('data-date');
+    if (!dateStr) return;
+
+    const itemDate = new Date(dateStr);
+    const diffInMs = now - itemDate;
+    const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+
+    let relativeText = "";
+    if (diffInDays === 0) relativeText = "Today";
+    else if (diffInDays === 1) relativeText = "Yesterday";
+    else relativeText = `${diffInDays}d ago`;
+
+    const badge = item.querySelector('.update-date');
+    if (badge) badge.textContent = relativeText;
+  });
+}
 
 // Automated YouTube Latest Video Fetcher
 async function loadLatestVideo() {
