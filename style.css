@@ -1015,6 +1015,51 @@ footer {
 
 .legal-body p { margin-bottom: 0.5rem; line-height: 1.6; }
 
+.legal-body a {
+  color: var(--gold);
+  transition: color var(--fast), text-decoration var(--fast);
+}
+
+.legal-body a:hover {
+  color: var(--gold-deep);
+  text-decoration: underline;
+}
+
+.lang-toggle {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 182, 6, 0.3);
+  color: var(--text-muted);
+  padding: 0.3rem 0.7rem;
+  border-radius: 6px;
+  font-size: 0.65rem;
+  cursor: pointer;
+  transition: all var(--fast);
+  margin-left: auto;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.lang-toggle:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+  background: rgba(255, 182, 6, 0.05);
+}
+
+.legal-footer {
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* Language content visibility */
+[data-lang="en"] .lang-de,
+[data-lang="de"] .lang-en {
+  display: none;
+}
+
 /* SYSTEM STATUS WIDGET */
 .system-status {
   display: flex;

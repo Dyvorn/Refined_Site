@@ -549,6 +549,17 @@ modals.forEach(modal => {
   });
 });
 
+// Legal Language Toggle Logic
+document.querySelectorAll('.lang-toggle').forEach(toggle => {
+  toggle.addEventListener('click', () => {
+    const modal = toggle.closest('.modal-overlay');
+    const currentLang = modal.getAttribute('data-lang') || 'de';
+    const newLang = currentLang === 'de' ? 'en' : 'de';
+    modal.setAttribute('data-lang', newLang);
+    toggle.textContent = newLang === 'de' ? 'Switch to EN' : 'Switch to DE';
+  });
+});
+
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') closeAllModals();
 });
