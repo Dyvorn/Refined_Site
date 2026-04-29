@@ -28,6 +28,7 @@ html {
   /* Adjust padding to match header height so links land correctly, accounting for increased header size */
   scroll-padding-top: 5rem;
   scrollbar-width: none; /* Firefox */
+  scrollbar-color: var(--gold-deep) var(--bg-main);
   -ms-overflow-style: none; /* IE and Edge */
 }
 
@@ -764,10 +765,10 @@ section + section {
   contain: layout style paint;
   transition:
     box-shadow 0.4s ease,
-    border-color 0.4s ease;
+    border-color 0.4s ease,
+    transform 0.4s cubic-bezier(0.2, 1, 0.2, 1);
   font-size: 0.85rem;
   color: var(--text-muted);
-  will-change: transform;
 }
 
 .card::before {

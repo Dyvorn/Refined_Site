@@ -1,4 +1,13 @@
-document.getElementById("year").textContent = new Date().getFullYear();
+/**
+ * Refined_OS v2.2.0 - Core Engine
+ * Optimized for performance and high-end visual fidelity.
+ */
+
+const CONFIG = {
+  cursorLerp: 0.18,
+  tiltSensitivity: 40,
+  magneticStrength: 0.4
+};
 
 // Binary Rain Effect
 const canvas = document.getElementById('binary-rain-canvas');
@@ -61,17 +70,32 @@ function setupBinaryRain() {
   }
 }
 
-// Handle window resize for responsiveness
-// Debounce utility to consolidate and optimize resize logic
+let cardBounds = [];
+let timelineBounds = null;
+const cardElements = document.querySelectorAll('.card');
+
+function updateCachedBounds() {
+  cardBounds = Array.from(cardElements).map(card => ({
+    el: card,
+    rect: card.getBoundingClientRect(),
+    isTiltable: !card.classList.contains('contact-form')
+  }));
+  
+  const container = document.querySelector('.timeline-container');
+  if (container) timelineBounds = container.getBoundingClientRect();
+}
+
+// Use ResizeObserver for more robust boundary tracking
+const resizeObserver = new ResizeObserver(() => {
+  updateCachedBounds();
+});
+cardElements.forEach(card => resizeObserver.observe(card));
+
 function debounce(func, wait) {
   let timeout;
-  return function executedFunction(...args) {
-    const later = () => {
-      clearTimeout(timeout);
-      func(...args);
-    };
+  return (...args) => {
     clearTimeout(timeout);
-    timeout = setTimeout(later, wait);
+    timeout = setTimeout(() => func(...args), wait);
   };
 }
 
@@ -81,6 +105,7 @@ const handleResize = debounce(() => {
     setupBinaryRain();
   }
   cachedHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+  updateCachedBounds();
 }, 300);
 
 window.addEventListener('resize', handleResize, { passive: true });
@@ -88,6 +113,7 @@ window.addEventListener('resize', handleResize, { passive: true });
 // Loading Screen Logic
 window.addEventListener('load', () => {
   const loader = document.getElementById('loading-screen');
+  if (!loader) return;
   const progress = document.getElementById('loader-progress');
   const logContainer = document.getElementById('boot-logs');
 
@@ -138,12 +164,17 @@ window.addEventListener('load', () => {
           ctx.clearRect(0, 0, canvas.width, canvas.height);
           canvas.style.display = 'none'; // Hide canvas
         }
+        updateCachedBounds();
       }, 400);
     }
   }
 
   processBoot();
 });
+
+// Update copyright year
+const yearEl = document.getElementById("year");
+if (yearEl) yearEl.textContent = new Date().getFullYear();
 
 // Split Text Utility for smooth reveals
 document.querySelectorAll('.split-reveal').forEach(el => {
@@ -160,7 +191,6 @@ document.querySelectorAll('.split-reveal').forEach(el => {
 
 // Cache selectors for performance
 const revealElements = document.querySelectorAll('.reveal');
-const cardElements = document.querySelectorAll('.card');
 const filterElement = document.querySelector('#liquid-deform feDisplacementMap');
 let isFilterAnimateRunning = false;
 let cachedHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
@@ -216,18 +246,17 @@ const sections = document.querySelectorAll('section[id]');
 function updateTimeline() {
   const container = document.querySelector('.timeline-container');
   const line = document.querySelector('.timeline-line-inner');
-  if (!container || !line) return;
+  if (!container || !line || !timelineBounds) return;
 
-  const rect = container.getBoundingClientRect();
   const windowHeight = window.innerHeight;
   
   // Calculate progress based on container's position in viewport
-  // Line starts growing when bottom of viewport hits top of container
-  // Line finishes when top of container is 20% above the viewport
   const startTrigger = windowHeight * 0.9;
   const endTrigger = windowHeight * 0.1;
-  const progress = (startTrigger - rect.top) / (rect.height + (startTrigger - endTrigger));
-  
+  // Use cached timelineBounds.top adjusted by current scroll
+  const currentTop = timelineBounds.top - (window.scrollY - (timelineBounds.scrollY || 0));
+  const progress = (startTrigger - currentTop) / (timelineBounds.height + (startTrigger - endTrigger));
+
   line.style.height = `${Math.min(Math.max(progress * 100, 0), 100)}%`;
 }
 
@@ -248,7 +277,7 @@ navLinks.forEach(link => {
     const targetId = link.getAttribute('href');
     if (targetId && targetId.startsWith('#')) {
       e.preventDefault();
-      const target = document.querySelector(targetId);
+      const target = document.getElementById(targetId.substring(1));
       if (target) {
         // Disable snapping temporarily to prevent "drag" or "trapping" during jump
         document.documentElement.style.scrollSnapType = 'none';
@@ -294,34 +323,52 @@ document.addEventListener('mousemove', (e) => {
     cursor.style.display = 'block';
     state.cursorVisible = true;
   }
+  
   state.mouseX = e.clientX;
   state.mouseY = e.clientY;
-
-  // Card Spotlight Logic
-  cardElements.forEach(card => {
-    const rect = card.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    card.style.setProperty('--mouse-x', `${x}px`);
-    card.style.setProperty('--mouse-y', `${y}px`);
-  });
 });
 
-function update() {
-  // High-performance elastic LERP
-  const lerpFactor = 0.15;
+function updateApp() {
+  // 1. Smooth Cursor LERP
   const dx = state.mouseX - state.cursorX;
   const dy = state.mouseY - state.cursorY;
   
-  if (Math.abs(dx) > 0.1 || Math.abs(dy) > 0.1) {
-    state.cursorX += dx * lerpFactor;
-    state.cursorY += dy * lerpFactor;
+  if (Math.abs(dx) > 0.01 || Math.abs(dy) > 0.01) {
+    state.cursorX += dx * CONFIG.cursorLerp;
+    state.cursorY += dy * CONFIG.cursorLerp;
     cursor.style.transform = `translate3d(${state.cursorX}px, ${state.cursorY}px, 0) translate3d(-50%, -50%, 0)`;
   }
 
-  requestAnimationFrame(update);
+  // 2. Card Visuals (Spotlight & Tilt)
+  cardBounds.forEach(data => {
+    const x = state.mouseX - data.rect.left;
+    const y = state.mouseY - data.rect.top;
+    
+    // Check if mouse is over this specific card
+    const isOver = x >= 0 && y >= 0 && x <= data.rect.width && y <= data.rect.height;
+    
+    if (isOver) {
+      data.el.style.setProperty('--mouse-x', `${x}px`);
+      data.el.style.setProperty('--mouse-y', `${y}px`);
+
+      if (data.isTiltable) {
+        const centerX = data.rect.width / 2;
+        const centerY = data.rect.height / 2;
+        const rotateX = (y - centerY) / CONFIG.tiltSensitivity;
+        const rotateY = (centerX - x) / CONFIG.tiltSensitivity;
+        data.el.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-4px)`;
+      }
+    } else {
+      // Smooth reset
+      if (data.isTiltable) {
+        data.el.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0)`;
+      }
+    }
+  });
+
+  requestAnimationFrame(updateApp);
 }
-update();
+requestAnimationFrame(updateApp);
 
 // Optimized Event Delegation for Cursor and Interactions
 document.addEventListener('mouseover', (e) => {
@@ -343,10 +390,15 @@ document.getElementById('email-copy-link')?.addEventListener('click', (e) => {
 
 // Magnetic Button Effect
 document.querySelectorAll('.btn-primary, .btn-ghost, nav ul li a').forEach(item => {
+  let rect;
+  item.addEventListener('mouseenter', () => {
+    rect = item.getBoundingClientRect();
+  });
+  
   item.addEventListener('mousemove', (e) => {
-    const rect = item.getBoundingClientRect();
-    const x = (e.clientX - rect.left - rect.width / 2) * 0.4;
-    const y = (e.clientY - rect.top - rect.height / 2) * 0.4;
+    if (!rect) return;
+    const x = (e.clientX - rect.left - rect.width / 2) * CONFIG.magneticStrength;
+    const y = (e.clientY - rect.top - rect.height / 2) * CONFIG.magneticStrength;
     item.style.transform = `translate3d(${x}px, ${y}px, 0)`;
   });
   item.addEventListener('mouseleave', () => {
@@ -354,33 +406,11 @@ document.querySelectorAll('.btn-primary, .btn-ghost, nav ul li a').forEach(item 
   });
 });
 
-// 3D Tilt Card Logic
-// Filter out the contact form card from the tilt effect
-const tiltableCards = Array.from(cardElements).filter(card => !card.classList.contains('contact-form'));
-tiltableCards.forEach(card => {
-  card.addEventListener('mousemove', (e) => {
-    const rect = card.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    const centerX = rect.width / 2;
-    const centerY = rect.height / 2;
-    const rotateX = (y - centerY) / 40;
-    const rotateY = (centerX - x) / 40;
-    
-    card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-2px)`;
-  });
-
-  card.addEventListener('mouseleave', () => {
-    card.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0)`;
-  });
-});
-
 // Add click handler for video container to enable iframe interaction
 const videoContainer = document.getElementById('video-container');
-const latestVideoFrame = document.getElementById('latest-video-frame');
-
-if (videoContainer && latestVideoFrame) {
+if (videoContainer) {
   videoContainer.addEventListener('click', () => {
+    const latestVideoFrame = document.getElementById('latest-video-frame');
     latestVideoFrame.style.pointerEvents = 'auto';
     // Instantly switch to system cursor on click
     videoContainer.style.cursor = 'auto';
@@ -388,15 +418,11 @@ if (videoContainer && latestVideoFrame) {
 
     // Reset the tilt effect on the parent card immediately
     const parentCard = videoContainer.closest('.card');
-    if (parentCard) {
-      parentCard.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0)`;
-    }
   }, { once: true });
 
   videoContainer.addEventListener('mouseenter', () => {
-    // If video is already active (pointer-events is auto), hide custom cursor
-    if (latestVideoFrame.style.pointerEvents === 'auto') {
-      cursor.style.opacity = '0';
+    const frame = document.getElementById('latest-video-frame');
+    if (frame && frame.style.pointerEvents === 'auto') {
       videoContainer.style.cursor = 'auto';
     }
   });
