@@ -5,7 +5,8 @@
 
 const CONFIG = {
   cursorLerp: 0.18,
-  tiltSensitivity: 40,
+  tiltSensitivity: 30, // Slightly less sensitive tilt
+  streamCharDelay: 30, // Base delay for AI typing animation (ms)
   magneticStrength: 0.4
 };
 
@@ -121,7 +122,7 @@ window.addEventListener('load', () => {
   setupBinaryRain();
 
   const bootMessages = [
-    "Initializing Refined_OS v2.1.0...",
+    "Initializing Refined_OS v2.2.0...",
     "Loading Core.Geometry...",
     "Mounting Workspace_Dyvorn.drv",
     "Checking Motion_Engine...",
@@ -482,6 +483,7 @@ document.addEventListener('DOMContentLoaded', () => {
   type();
   loadLatestVideo();
   updateRelativeTimes();
+  handleCookieConsent();
 });
 
 // Relative Time Engine for "What's New"
@@ -719,6 +721,166 @@ function updateSystemStatus() {
     const jitter = (Math.random() * 5 + 124).toFixed(0);
     ramEl.textContent = `${jitter}MB`;
   }
+}
+
+const AI_CONTEXT_PROMPT = "You are Refined_AI, assisting a visitor on Lennard Finn Penzler's portfolio. Lennard is a developer (tools, UI), game designer (Roots Dont Burn), and video editor. Answer concisely.";
+
+// Local Browser AI Assistant Engine (Chrome Built-in AI)
+let aiEngine = null;
+let engineType = 'none';
+let aiWorker = null;
+let resolveResponse = null;
+
+async function initAI() {
+  const chatStatus = document.getElementById('chat-status-text');
+  const statusBar = document.querySelector('.chat-status-bar');
+  
+  // 1. Try Chrome Built-in AI (Primary - Fast, Zero Download)
+  if (window.ai && window.ai.languageModel) {
+    try {
+      const capabilities = await window.ai.languageModel.capabilities();
+      if (capabilities.available !== 'no') {
+        aiEngine = await window.ai.languageModel.create({
+          systemPrompt: AI_CONTEXT_PROMPT
+        });
+        engineType = 'built-in';
+        return;
+      }
+    } catch (e) { console.warn("Built-in AI failed, falling back..."); }
+  }
+
+  // 2. Universal Fallback: Transformers.js via Web Worker
+  if (statusBar) statusBar.classList.add('active');
+  if (chatStatus) chatStatus.textContent = "Spawning Background Neural Thread...";
+
+  aiWorker = new Worker('ai-worker.js', { type: 'module' });
+
+  aiWorker.onmessage = (e) => {
+    const { type, payload } = e.data;
+    if (type === 'progress' && chatStatus) {
+      chatStatus.textContent = `Syncing AI: ${Math.round(payload || 0)}%`;
+    }
+    if (type === 'ready') {
+      engineType = 'transformers';
+      if (chatStatus) chatStatus.textContent = "AI Online (Background)";
+      setTimeout(() => statusBar?.classList.remove('active'), 2000);
+    }
+    if (type === 'response') {
+      if (resolveResponse) resolveResponse(payload);
+    }
+    if (type === 'error') {
+      console.error("AI Worker Error:", payload);
+      if (chatStatus) chatStatus.textContent = "AI Offline (Thread Error)";
+    }
+  };
+
+  try {
+    aiWorker.postMessage({ type: 'init' });
+  } catch (err) {
+    console.error("Worker spawn failed:", err);
+  }
+}
+
+async function getAIResponse(query) {
+  const context = AI_CONTEXT_PROMPT;
+  
+  if (engineType === 'built-in') {
+    try {
+      return await aiEngine.prompt(query);
+    } catch (e) { return "Module Error: Connection reset."; }
+  }
+  
+  if (engineType === 'transformers') {
+    return new Promise((resolve) => {
+      resolveResponse = resolve;
+      aiWorker.postMessage({ 
+        type: 'generate', 
+        payload: { query, context } 
+      });
+    });
+  }
+
+  return `[Mock Response]: You asked "${query}". Please accept system cookies to initialize local AI modules.`;
+}
+
+// Cookie Consent & AI Activation Logic
+function handleCookieConsent() {
+  const banner = document.getElementById('cookie-consent-banner');
+  const btn = document.getElementById('accept-cookies-btn');
+  
+  if (!localStorage.getItem('refined_system_consent')) {
+    setTimeout(() => banner?.classList.add('active'), 2000);
+    btn?.addEventListener('click', () => {
+      localStorage.setItem('refined_system_consent', 'true');
+      banner?.classList.remove('active');
+      initAI();
+      chatWidget.classList.add('active'); // Open chat to show progress
+      showToast("System Modules Initialized", "success");
+    }, { once: true });
+  } else {
+    initAI();
+  }
+}
+
+// Chat Mockup Logic (UI-only)
+const chatWidget = document.getElementById('chat-mockup-widget');
+const chatTrigger = document.getElementById('chat-trigger');
+const chatWindow = document.getElementById('chat-window');
+const chatClose = document.getElementById('chat-close');
+const chatInput = document.getElementById('chat-input');
+const chatMessages = document.getElementById('chat-messages');
+
+async function streamMessage(element, text) {
+  element.innerHTML = `<span class="chat-bot-prefix">[Chat]:</span> `;
+  const contentSpan = document.createElement('span');
+  element.appendChild(contentSpan);
+
+  for (const char of text.split('')) {
+    contentSpan.textContent += char;
+    // Only scroll if the chat is already near the bottom
+    if (chatMessages.scrollHeight - chatMessages.scrollTop - chatMessages.clientHeight < 50) {
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+    await new Promise(r => setTimeout(r, CONFIG.streamCharDelay + Math.random() * CONFIG.streamCharDelay));
+  }
+}
+
+// Ensure chatWidget is defined before event listeners
+// This is already done globally, but good to ensure context
+if (chatTrigger && chatWidget) {
+  chatTrigger.addEventListener('click', () => {
+    chatWidget.classList.toggle('active');
+    if (chatWidget.classList.contains('active')) chatInput.focus();
+  });
+
+  chatClose?.addEventListener('click', () => chatWidget.classList.remove('active'));
+
+  chatInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter' && chatInput.value.trim() !== '') {
+      const userText = chatInput.value.trim();
+      const userMsg = document.createElement('div');
+      userMsg.className = 'chat-msg user';
+      userMsg.textContent = `> ${userText}`;
+      chatMessages.appendChild(userMsg);
+
+      chatInput.value = '';
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+
+      const thinkingMsg = document.createElement('div');
+      thinkingMsg.className = 'chat-msg';
+      thinkingMsg.innerHTML = `<span style="color:var(--gold)">[Chat]:</span> <span class="chat-thinking">Thinking...</span>`;
+      chatMessages.appendChild(thinkingMsg);
+
+      setTimeout(async () => {
+        const response = await getAIResponse(userText);
+        thinkingMsg.remove();
+        const botMsg = document.createElement('div');
+        botMsg.className = 'chat-msg bot-response';
+        chatMessages.appendChild(botMsg);
+        await streamMessage(botMsg, response);
+      }, 400);
+    }
+  });
 }
 
 setInterval(updateSystemStatus, 1000);

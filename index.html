@@ -1,6 +1,6 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
+<html lang="en"> <!-- Added lang attribute for accessibility -->
+<head> 
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Refined | Lennard Finn Penzler — Dev, Games & Motion</title>
@@ -29,7 +29,7 @@
     <canvas id="binary-rain-canvas"></canvas>
     <div class="loader-logo glitch">
       <div class="brand-mark loader-brand-mark"></div>
-      <div class="brand" style="font-size: 1.2rem;">
+      <div class="brand">
         <span>Refined</span>
       </div>
     </div>
@@ -181,11 +181,11 @@
         </div>
         <div class="card reveal video-card">
           <div class="card-label" style="display: flex; justify-content: space-between; align-items: center;">
-            <span>YouTube Feed</span>
-            <span class="badge" id="video-tag" style="margin: 0; font-size: 0.6rem; padding: 0.1rem 0.4rem; border-color: var(--gold-deep);">Latest Upload</span>
+            <span>YouTube Feed</span> 
+            <span class="badge" id="video-tag">Latest Upload</span>
           </div>
           <div class="video-container" id="video-container">
-        <iframe id="latest-video-frame" src="" title="Latest Video" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>
+        <iframe id="latest-video-frame" src="" title="Latest Video" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; compute-pressure" allowfullscreen loading="lazy"></iframe>
             <div class="video-loader" id="video-loader">
               <div class="spinner"></div>
               <span>Fetching Feed...</span>
@@ -258,7 +258,7 @@
       <div class="contact-grid">
         <form id="contact-form" class="card reveal contact-form no-tilt-card">
           <fieldset style="border: none; padding: 0; margin: 0;">
-            <legend style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border-width: 0;">Send a message</legend>
+            <legend>Send a message</legend>
           <input type="hidden" name="access_key" value="dd16da2d-59af-4b4f-a1bc-2e6402fb74b6"> <!-- Get this from web3forms.com -->
           <input type="hidden" name="_gotcha"> <!-- Honeypot for spam protection -->
           <input type="hidden" name="_subject" value="New message from Refined.mov">
@@ -288,7 +288,7 @@
             I'm always open to new projects, cinematic collaborations, or just a chat about development and video. You can also reach me directly via email.
           </p>
           <div class="contact-links">
-            <a href="mailto:refined.mov@gmail.com" id="email-copy-link" class="link-inline" style="font-size: 1rem; font-weight: 600;" title="Click to copy email">refined.mov@gmail.com ↗</a>
+            <a href="mailto:refined.mov@gmail.com" id="email-copy-link" class="link-inline" title="Click to copy email">refined.mov@gmail.com ↗</a>
             <a href="https://github.com/Dyvorn" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
             <a href="https://www.youtube.com/channel/UCGe5VOk80siQe0r2OfQQWPw" target="_blank" rel="noopener noreferrer">YouTube ↗</a>
             <a href="https://discord.gg/FEt8ck4em4" target="_blank" rel="noopener noreferrer">Discord Server ↗</a>
@@ -298,6 +298,32 @@
       </div>
     </section>
   </main>
+
+  <!-- Chat Mockup Widget -->
+  <div id="chat-mockup-widget" class="chat-widget">
+    <div id="chat-window" class="chat-window card">
+      <div class="chat-header">
+        <span class="update-date">Refined_AI</span>
+        <button id="chat-close" class="chat-close-btn" aria-label="Close Chat Mockup">&times;</button>
+      </div>
+      <div class="chat-status-bar">
+        <div id="chat-status-text">Ready</div>
+        <div class="chat-progress"></div>
+      </div>
+      <div id="chat-messages" class="chat-messages">
+        <div class="chat-msg">System initialized. How can I help you navigate Lennard's portfolio?</div>
+      </div>
+      <div class="chat-input-wrapper">
+        <input type="text" id="chat-input" placeholder="Enter message..." autocomplete="off">
+      </div>
+    </div>
+    <button id="chat-trigger" class="chat-trigger" aria-label="Toggle Chat Mockup">
+      <span class="chat-trigger-label">
+        <div class="chat-orb"></div>
+        <span class="chat-label">Chat</span>
+      </span>
+    </button>
+  </div>
 
   <footer>
     <div class="footer-inner">
@@ -309,7 +335,8 @@
         <span class="status-separator" aria-hidden="true">|</span>
         <span>RAM: <span id="system-ram">--MB</span></span>
       </div>
-      <div class="footer-links" style="display: flex; gap: 1.5rem; align-items: center;">
+      <div class="footer-links">
+        <button data-modal-target="terms-modal" class="link-inline legal-trigger">AGB / Terms</button>
         <button data-modal-target="impressum-modal" class="link-inline legal-trigger">Impressum</button>
         <button data-modal-target="privacy-modal" class="link-inline legal-trigger">Datenschutz</button>
       </div>
@@ -317,11 +344,50 @@
     </div>
   </footer>
 
+  <!-- Terms of Use Modal -->
+  <div id="terms-modal" class="modal-overlay" aria-hidden="true" data-lang="de">
+    <div class="card reveal modal-content">
+      <button class="modal-close" aria-label="Close">&times;</button> 
+      <div class="section-title">
+        <div class="section-bar"></div>
+        <h2>
+          <span class="lang-de">AGB</span>
+          <span class="lang-en">Terms of Use</span>
+        </h2>
+        <button class="lang-toggle">Switch to EN</button>
+      </div>
+      <div class="legal-body">
+        <div class="lang-de">
+          <p><strong>1. Geltungsbereich</strong></p>
+          <p>Diese Bedingungen gelten für die Nutzung der Website Refined.mov und aller darauf bereitgestellten Inhalte von Lennard Finn Penzler.</p>
+          <p style="margin-top: 1rem;"><strong>2. Geistiges Eigentum</strong></p>
+          <p>Alle Projekte, Grafiken, Videos und Codes (sofern nicht anders gekennzeichnet) unterliegen dem Urheberrecht des Betreibers. Eine Vervielfältigung ohne ausdrückliche Zustimmung ist untersagt.</p>
+          <p style="margin-top: 1rem;"><strong>3. Lokale KI-Module</strong></p>
+          <p>Der bereitgestellte Chat-Assistent basiert auf experimenteller, lokaler Browser-Technologie. Antworten sind automatisiert und dienen lediglich der Orientierung auf der Website.</p>
+          <p style="margin-top: 1rem;"><strong>4. Haftungsausschluss</strong></p>
+          <p>Die Nutzung der Website erfolgt auf eigene Gefahr. Für die Inhalte externer Links übernehmen wir keine Haftung.</p>
+          <p style="margin-top: 1rem; color: var(--text-muted);">Stand: April 2026</p>
+        </div>
+        <div class="lang-en">
+          <p><strong>1. Scope</strong></p>
+          <p>These terms apply to the use of the Refined.mov website and all content provided by Lennard Finn Penzler.</p>
+          <p style="margin-top: 1rem;"><strong>2. Intellectual Property</strong></p>
+          <p>All projects, graphics, videos, and code (unless otherwise marked) are subject to the operator's copyright. Reproduction without explicit consent is prohibited.</p>
+          <p style="margin-top: 1rem;"><strong>3. Local AI Modules</strong></p>
+          <p>The provided chat assistant is based on experimental, local browser technology. Responses are automated and are intended solely for navigating the website.</p>
+          <p style="margin-top: 1rem;"><strong>4. Disclaimer</strong></p>
+          <p>Use of the website is at your own risk. we assume no liability for the content of external links.</p>
+          <p style="margin-top: 1rem; color: var(--text-muted);">Status: April 2026</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Impressum Modal -->
   <div id="impressum-modal" class="modal-overlay" aria-hidden="true" data-lang="de">
     <div class="card reveal modal-content">
-      <button id="close-impressum" class="modal-close" aria-label="Close">&times;</button>
-      <div class="section-title" style="margin-bottom: 1.5rem; display: flex; align-items: center; width: 100%;">
+      <button id="close-impressum" class="modal-close" aria-label="Close">&times;</button> 
+      <div class="section-title">
         <div class="section-bar"></div>
         <h2>
           <span class="lang-de">Impressum</span>
@@ -356,8 +422,8 @@
   <!-- Privacy Policy Modal -->
   <div id="privacy-modal" class="modal-overlay" aria-hidden="true" data-lang="de">
     <div class="card reveal modal-content">
-      <button class="modal-close" aria-label="Close">&times;</button>
-      <div class="section-title" style="margin-bottom: 1.5rem; display: flex; align-items: center; width: 100%;">
+      <button class="modal-close" aria-label="Close">&times;</button> 
+      <div class="section-title">
         <div class="section-bar"></div>
         <h2>
           <span class="lang-de">Datenschutz</span>
@@ -365,7 +431,7 @@
         </h2>
         <button class="lang-toggle">Switch to EN</button>
       </div>
-      <div class="legal-body" style="font-size: 0.8rem; max-height: 60vh; overflow-y: auto; padding-right: 1rem;">
+      <div class="legal-body">
         <div class="lang-de">
           <p><strong>1. Datenschutz auf einen Blick</strong></p>
           <p>Diese Datenschutzerklärung klärt Sie über die Art, den Umfang und Zweck der Verarbeitung von personenbezogenen Daten innerhalb dieser Website auf.</p>
@@ -416,9 +482,18 @@
     </defs>
   </svg>
 
+  <!-- Cookie Consent Banner for AI -->
+  <div id="cookie-consent-banner" class="cookie-banner">
+    <div class="cookie-content">
+      <span class="update-date">Security & Experience</span>
+      <p>We use local storage and system cookies to optimize performance and initialize the neural AI module.</p>
+    </div>
+    <button id="accept-cookies-btn" class="btn-primary">Accept All</button>
+  </div>
+
   <!-- Toast Notification System -->
   <div id="toast-container" class="toast-container"></div>
 
-  <script src="script.js" defer></script>
+  <script type="module" src="script.js"></script>
 </body>
 </html>
