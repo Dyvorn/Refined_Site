@@ -33,9 +33,11 @@ self.onmessage = async (e) => {
             const prompt = `<|im_start|>system\n${context}<|im_end|>\n<|im_start|>user\n${query}<|im_end|>\n<|im_start|>assistant\n`;
 
             const output = await aiEngine(prompt, {
-                max_new_tokens: 100,
-                temperature: 0.7,
+                max_new_tokens: 40,
+                temperature: 0.4,
                 do_sample: true,
+                top_k: 20,
+                repetition_penalty: 1.3,
                 return_full_text: false,
             });
 
