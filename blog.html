@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog | Refined</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <script src="config.js"></script>
+    <script>
+        // Protection check
+        const isEarlyAccess = sessionStorage.getItem('early_access') === 'true';
+        if (!isEarlyAccess && new Date().getTime() < new Date(CONFIG.LAUNCH_DATE).getTime()) {
+            window.location.replace('index.html');
+        }
+    </script>
+    <!-- Scroll Progress Bar -->
+    <div id="progressBarContainer">
+        <div id="progressBarFill"></div>
+    </div>
+
+    <!-- Header -->
+    <header id="main-header">
+        <div class="logo"><a href="home.html">Refined</a></div>
+        <nav class="nav-links">
+            <a href="home.html#home">Home</a>
+            <a href="home.html#projects">Projects</a>
+            <a href="home.html#youtube">YouTube</a>
+            <a href="blog.html">Blog</a>
+        </nav>
+        <button class="mobile-menu-btn" id="mobile-toggle">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"></path></svg>
+        </button>
+    </header>
+
+    <!-- Mobile Menu -->
+    <div class="mobile-menu" id="mobile-menu">
+        <a href="home.html#home">Home</a>
+        <a href="home.html#projects">Projects</a>
+        <a href="home.html#youtube">YouTube</a>
+        <a href="blog.html" style="color: var(--accent-color); font-weight: bold;">Blog</a>
+    </div>
+
+    <main class="container" style="padding-top: 10rem; min-height: 80vh;">
+        <h1 class="section-title reveal" style="text-align: left; margin-bottom: 2rem;">Latest Articles</h1>
+        <div id="blog-list" class="projects-grid reveal">
+            <p style="text-align: center; width: 100%; color: var(--text-muted);">Loading posts...</p>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 Refined. Built with precision and strict privacy standards.</p>
+        </div>
+    </footer>
+
+    <script src="blog.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', loadBlogList);
+    </script>
+</body>
+</html>

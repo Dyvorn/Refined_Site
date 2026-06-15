@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Refined | Creator & Developer</title>
+    <meta name="description" content="The official website of the Refined YouTube channel. Explore projects, videos, and the latest blog posts.">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <script src="config.js"></script>
+    <script>
+        // Protection check
+        const isEarlyAccess = sessionStorage.getItem('early_access') === 'true';
+        if (!isEarlyAccess && new Date().getTime() < new Date(CONFIG.LAUNCH_DATE).getTime()) {
+            window.location.replace('index.html');
+        }
+    </script>
+
+    <!-- Scroll Progress Bar -->
+    <div id="progressBarContainer">
+        <div id="progressBarFill"></div>
+    </div>
+
+    <!-- Header -->
+    <header id="main-header">
+        <div class="logo"><a href="home.html">Refined</a></div>
+        <nav class="nav-links">
+            <a href="home.html#home">Home</a>
+            <a href="home.html#projects">Projects</a>
+            <a href="home.html#youtube">YouTube</a>
+            <a href="blog.html">Blog</a>
+            <a href="#contact" class="btn-nav">Contact</a>
+        </nav>
+        <button class="mobile-menu-btn" id="mobile-toggle">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"></path></svg>
+        </button>
+    </header>
+
+    <!-- Mobile Menu -->
+    <div class="mobile-menu" id="mobile-menu">
+        <a href="home.html#home">Home</a>
+        <a href="home.html#projects">Projects</a>
+        <a href="home.html#youtube">YouTube</a>
+        <a href="blog.html">Blog</a>
+        <a href="#contact" style="color: var(--accent-color); font-weight: bold;">Contact</a>
+    </div>
+
+    <main>
+        <!-- Hero Section -->
+        <section id="home" class="hero">
+            <div class="container reveal">
+                <h1>Elevate Your <br><span class="highlight">Digital Craft</span></h1>
+                <p style="margin-left: auto; margin-right: auto;">Welcome to Refined. Dive into my latest projects, watch my newest videos, and read about my coding journey.</p>
+                <div class="hero-buttons">
+                    <a href="#projects" class="btn btn-primary">View Projects</a>
+                    <a href="blog.html" class="btn btn-outline">Read the Blog</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Projects Section -->
+        <section id="projects">
+            <div class="container">
+                <h2 class="section-title reveal">Featured Projects</h2>
+                <div class="projects-grid">
+                    <div class="project-card hover-lift reveal">
+                        <div class="icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg></div>
+                        <h3>Project Alpha</h3>
+                        <p>A high-performance analytics dashboard built with modern web technologies. Focuses on speed and data visualization.</p>
+                        <a href="#" style="color: var(--accent-color); font-weight: 700;">Explore →</a>
+                    </div>
+                    <div class="project-card hover-lift reveal" style="transition-delay: 100ms;">
+                        <div class="icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg></div>
+                        <h3>Refined Tools</h3>
+                        <p>A suite of utilities designed to boost developer productivity and streamline workflows effortlessly.</p>
+                        <a href="#" style="color: var(--accent-color); font-weight: 700;">Explore →</a>
+                    </div>
+                    <div class="project-card hover-lift reveal" style="transition-delay: 200ms;">
+                        <div class="icon"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg></div>
+                        <h3>Open Source Bot</h3>
+                        <p>An automated assistant for managing community interactions securely and efficiently.</p>
+                        <a href="#" style="color: var(--accent-color); font-weight: 700;">Explore →</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- YouTube Section -->
+        <section id="youtube">
+            <div class="container">
+                <h2 class="section-title reveal">YouTube</h2>
+                <div class="youtube-container reveal">
+                    <div class="sub-count-wrapper">
+                        <h3>Live Subscribers</h3>
+                        <div class="sub-count" id="sub-count">--</div>
+                        <p style="color: var(--text-muted);">Join the growing Refined community. Hit subscribe to stay updated with the latest content!</p>
+                        <br>
+                        <a href="https://youtube.com/channel/UCGe5VOk80siQe0r2OfQQWPw" target="_blank" class="btn btn-outline" style="padding: 0.5rem 1.5rem;">Subscribe Now</a>
+                    </div>
+                    <div class="latest-video-wrapper hover-lift" id="latest-video-container">
+                        <p style="text-align: center; margin-top: 25%; color: var(--text-muted);">Loading Latest Video...</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Contact Section -->
+        <section id="contact" style="background: var(--bg-color);">
+            <div class="container reveal" style="text-align: center;">
+                <h2 class="section-title" style="margin-bottom: 2rem;">Let's Work Together</h2>
+                <p style="max-width: 600px; margin: 0 auto 3rem auto; color: var(--text-muted);">Have a project in mind or want to collaborate? Feel free to reach out and let's build something amazing.</p>
+                <a href="mailto:contact@refined.com" class="btn btn-primary" style="font-size: 1.25rem;">Get in Touch</a>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 Refined. Built with precision and strict privacy standards.</p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="script.js"></script>
+</body>
+</html>
