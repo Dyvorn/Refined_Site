@@ -101,16 +101,21 @@ async function fetchYouTubeData() {
 
             if (playlistData.items && playlistData.items.length > 0) {
                 const videoId = playlistData.items[0].snippet.resourceId.videoId;
+                const title = playlistData.items[0].snippet.title;
+                const thumbnails = playlistData.items[0].snippet.thumbnails;
+                const thumbnailUrl = thumbnails.maxres ? thumbnails.maxres.url : thumbnails.high.url;
+
                 videoContainer.innerHTML = `
-                    <iframe 
-                        width="100%" 
-                        height="100%" 
-                        src="https://www.youtube-nocookie.com/embed/${videoId}" 
-                        title="YouTube video player" 
-                        frameborder="0" 
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                        allowfullscreen>
-                    </iframe>`;
+                    <a href="https://www.youtube.com/watch?v=${videoId}" target="_blank" rel="noopener noreferrer" style="display: block; width: 100%; height: 100%; position: relative; text-decoration: none; overflow: hidden; border-radius: 12px;">
+                        <img src="${thumbnailUrl}" alt="${title}" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                        <div style="position: absolute; inset: 0; background: rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; pointer-events: none;">
+                            <div style="background: rgba(0,0,0,0.6); padding: 1rem; border-radius: 50%; backdrop-filter: blur(4px);">
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="var(--accent-color)">
+                                    <path d="M8 5v14l11-7z"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </a>`;
             } else {
                 if (playlistData.error) console.error("YouTube Playlist API Error:", playlistData.error);
                 videoContainer.innerHTML = '<p style="text-align: center; margin-top: 25%; color: var(--text-muted);">No videos found.</p>';
