@@ -4,5 +4,35 @@
         "title": "Welcome to Refined Blog",
         "date": "2026-06-15",
         "summary": "This is my first post on the new site."
+    },
+    {
+        "id": "css-tricks",
+        "title": "Modern CSS Tricks for 2026",
+        "date": "2026-06-10",
+        "summary": "Explore the latest CSS features including native scroll snapping, container queries, and subgrid to elevate your web layouts."
+    },
+    {
+        "id": "js-performance",
+        "title": "Maximizing JavaScript Performance",
+        "date": "2026-06-05",
+        "summary": "A deep dive into optimizing your web applications. Learn how to leverage web workers, minimize reflows, and write highly efficient JS."
+    },
+    {
+        "id": "design-systems",
+        "title": "Building Scalable Design Systems",
+        "date": "2026-05-28",
+        "summary": "Consistency is key. Discover the core principles of creating robust design tokens and component libraries that scale."
+    },
+    {
+        "id": "ai-coding",
+        "title": "The Future of AI Assisted Coding",
+        "date": "2026-05-15",
+        "summary": "How AI tools are reshaping developer workflows, automating boilerplate, and pushing the boundaries of what small teams can achieve."
+    },
+    {
+        "id": "accessible-web",
+        "title": "Web Accessibility Matters",
+        "date": "2026-05-02",
+        "summary": "Creating inclusive digital experiences isn't just a requirement—it's good design. Tips for auditing and improving your website's a11y."
     }
 ]

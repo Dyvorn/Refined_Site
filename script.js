@@ -35,8 +35,23 @@ function initUI() {
     const mobileMenu = document.getElementById('mobile-menu');
 
     if (mobileToggle && mobileMenu) {
+        const svgPath = mobileToggle.querySelector('path');
+        const hamburgerPath = "M3 12h18M3 6h18M3 18h18";
+        const closePath = "M18 6L6 18M6 6l12 12";
+
+        const updateIcon = () => {
+            if (svgPath) {
+                if (mobileMenu.classList.contains('active')) {
+                    svgPath.setAttribute('d', closePath);
+                } else {
+                    svgPath.setAttribute('d', hamburgerPath);
+                }
+            }
+        };
+
         mobileToggle.addEventListener('click', () => {
             mobileMenu.classList.toggle('active');
+            updateIcon();
         });
         
         // Close menu when clicking a link
@@ -44,6 +59,7 @@ function initUI() {
         menuLinks.forEach(link => {
             link.addEventListener('click', () => {
                 mobileMenu.classList.remove('active');
+                updateIcon();
             });
         });
     }
@@ -77,7 +93,7 @@ async function fetchYouTubeData() {
 
     if (!apiKey || apiKey === 'YOUR_YOUTUBE_API_KEY') {
         subCountEl.textContent = "N/A";
-        videoContainer.innerHTML = '<p style="text-align: center; margin-top: 25%; color: var(--text-muted);">Please configure your YouTube API Key in config.js.</p>';
+        videoContainer.innerHTML = '<p class="text-center text-muted" style="margin-top: 25%;">Please configure your YouTube API Key in config.js.</p>';
         return;
     }
 
@@ -103,10 +119,10 @@ async function fetchYouTubeData() {
                 const videoId = playlistData.items[0].snippet.resourceId.videoId;
                 const title = playlistData.items[0].snippet.title;
                 const thumbnails = playlistData.items[0].snippet.thumbnails;
-                const thumbnailUrl = thumbnails.maxres ? thumbnails.maxres.url : thumbnails.high.url;
+                const thumbnailUrl = thumbnails.maxres?.url || thumbnails.high?.url || thumbnails.medium?.url || thumbnails.default?.url || '';
 
                 videoContainer.innerHTML = `
-                    <a href="https://www.youtube.com/watch?v=${videoId}" target="_blank" rel="noopener noreferrer" style="display: block; width: 100%; height: 100%; position: relative; text-decoration: none; overflow: hidden; border-radius: 12px;">
+                    <a href="https://www.youtube.com/watch?v=${videoId}" target="_blank" rel="noopener noreferrer" style="display: block; position: absolute; inset: 0; width: 100%; height: 100%; text-decoration: none; overflow: hidden; border-radius: 12px;">
                         <img src="${thumbnailUrl}" alt="${title}" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
                         <div style="position: absolute; inset: 0; background: rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; pointer-events: none;">
                             <div style="background: rgba(0,0,0,0.6); padding: 1rem; border-radius: 50%; backdrop-filter: blur(4px);">
@@ -118,18 +134,18 @@ async function fetchYouTubeData() {
                     </a>`;
             } else {
                 if (playlistData.error) console.error("YouTube Playlist API Error:", playlistData.error);
-                videoContainer.innerHTML = '<p style="text-align: center; margin-top: 25%; color: var(--text-muted);">No videos found.</p>';
+                videoContainer.innerHTML = '<p class="text-center text-muted" style="margin-top: 25%;">No videos found.</p>';
             }
         } else {
             if (channelData.error) console.error("YouTube Channel API Error:", channelData.error);
             subCountEl.textContent = "Error";
-            videoContainer.innerHTML = '<p style="text-align: center; margin-top: 25%; color: var(--text-muted);">Failed to load channel data.</p>';
+            videoContainer.innerHTML = '<p class="text-center text-muted" style="margin-top: 25%;">Failed to load channel data.</p>';
         }
 
     } catch (error) {
         console.error('Error fetching YouTube data:', error);
         subCountEl.textContent = "Error";
-        videoContainer.innerHTML = '<p style="text-align: center; margin-top: 25%; color: var(--text-muted);">Failed to connect to YouTube.</p>';
+        videoContainer.innerHTML = '<p class="text-center text-muted" style="margin-top: 25%;">Failed to connect to YouTube.</p>';
     }
 }
 
