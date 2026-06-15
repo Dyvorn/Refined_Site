@@ -11,7 +11,7 @@
     <script src="config.js"></script>
     <script>
         // Protection check
-        const isEarlyAccess = sessionStorage.getItem('early_access') === 'true';
+        const isEarlyAccess = localStorage.getItem('early_access') === 'true';
         if (!isEarlyAccess && new Date().getTime() < new Date(CONFIG.LAUNCH_DATE).getTime()) {
             window.location.replace('index.html');
         }
