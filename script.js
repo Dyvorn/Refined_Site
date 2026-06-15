@@ -82,43 +82,49 @@ async function fetchYouTubeData() {
     }
 
     try {
-        // Fetch Subscriber Count
-        const channelUrl = `https://www.googleapis.com/youtube/v3/channels?part=statistics&id=${channelId}&key=${apiKey}`;
+        // Fetch Subscriber Count and Uploads Playlist ID
+        const channelUrl = `https://www.googleapis.com/youtube/v3/channels?part=statistics,contentDetails&id=${channelId}&key=${apiKey}`;
         const channelResponse = await fetch(channelUrl);
         const channelData = await channelResponse.json();
 
         if (channelData.items && channelData.items.length > 0) {
-            const subs = channelData.items[0].statistics.subscriberCount;
+            const channelInfo = channelData.items[0];
+            const subs = channelInfo.statistics.subscriberCount;
             animateValue(subCountEl, 0, parseInt(subs), 2000);
+            
+            const uploadsPlaylistId = channelInfo.contentDetails.relatedPlaylists.uploads;
+
+            // Fetch Latest Video from the Uploads Playlist
+            const playlistUrl = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${uploadsPlaylistId}&maxResults=1&key=${apiKey}`;
+            const playlistResponse = await fetch(playlistUrl);
+            const playlistData = await playlistResponse.json();
+
+            if (playlistData.items && playlistData.items.length > 0) {
+                const videoId = playlistData.items[0].snippet.resourceId.videoId;
+                videoContainer.innerHTML = `
+                    <iframe 
+                        width="100%" 
+                        height="100%" 
+                        src="https://www.youtube-nocookie.com/embed/${videoId}" 
+                        title="YouTube video player" 
+                        frameborder="0" 
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                        allowfullscreen>
+                    </iframe>`;
+            } else {
+                if (playlistData.error) console.error("YouTube Playlist API Error:", playlistData.error);
+                videoContainer.innerHTML = '<p style="text-align: center; margin-top: 25%; color: var(--text-muted);">No videos found.</p>';
+            }
         } else {
+            if (channelData.error) console.error("YouTube Channel API Error:", channelData.error);
             subCountEl.textContent = "Error";
-        }
-
-        // Fetch Latest Video
-        const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${channelId}&maxResults=1&order=date&type=video&key=${apiKey}`;
-        const searchResponse = await fetch(searchUrl);
-        const searchData = await searchResponse.json();
-
-        if (searchData.items && searchData.items.length > 0) {
-            const videoId = searchData.items[0].id.videoId;
-            videoContainer.innerHTML = `
-                <iframe 
-                    width="100%" 
-                    height="100%" 
-                    src="https://www.youtube-nocookie.com/embed/${videoId}" 
-                    title="YouTube video player" 
-                    frameborder="0" 
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                    allowfullscreen>
-                </iframe>`;
-        } else {
-            videoContainer.innerHTML = '<p style="text-align: center; margin-top: 25%; color: var(--text-muted);">No videos found.</p>';
+            videoContainer.innerHTML = '<p style="text-align: center; margin-top: 25%; color: var(--text-muted);">Failed to load channel data.</p>';
         }
 
     } catch (error) {
         console.error('Error fetching YouTube data:', error);
         subCountEl.textContent = "Error";
-        videoContainer.innerHTML = '<p style="text-align: center; margin-top: 25%; color: var(--text-muted);">Failed to load video.</p>';
+        videoContainer.innerHTML = '<p style="text-align: center; margin-top: 25%; color: var(--text-muted);">Failed to connect to YouTube.</p>';
     }
 }
 

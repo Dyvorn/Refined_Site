@@ -53,7 +53,7 @@ function initCountdown() {
 
         const checkPassword = () => {
             if (passInput.value === CONFIG.EARLY_ACCESS_PASSWORD) {
-                sessionStorage.setItem('early_access', 'true');
+                localStorage.setItem('early_access', 'true');
                 window.location.replace('home.html');
             } else {
                 passInput.style.borderColor = 'red';

@@ -1,0 +1,11 @@
+# System Files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor / IDE
+.vscode/
+.idea/
+
+# Environment / Config (Warning: ignoring config.js will break GitHub Pages if it's hosted directly)
+config.js
