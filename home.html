@@ -12,7 +12,14 @@
     <script>
         // Protection check
         const isEarlyAccess = localStorage.getItem('early_access') === 'true';
-        if (!isEarlyAccess && new Date().getTime() < new Date(CONFIG.LAUNCH_DATE).getTime()) {
+        let isLocked = false;
+        try {
+            isLocked = new Date().getTime() < new Date(CONFIG.LAUNCH_DATE).getTime();
+        } catch(e) {
+            isLocked = true;
+        }
+        if (!isEarlyAccess && isLocked) {
+            document.documentElement.style.display = 'none';
             window.location.replace('index.html');
         }
     </script>

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirecting...</title>
+</head>
+<body>
+    <script src="/config.js"></script>
+    <script>
+        const isEarlyAccess = localStorage.getItem('early_access') === 'true';
+        let isLocked = false;
+        try {
+            if (typeof CONFIG !== 'undefined') {
+                isLocked = new Date().getTime() < new Date(CONFIG.LAUNCH_DATE).getTime();
+            } else {
+                isLocked = true;
+            }
+        } catch(e) {
+            isLocked = true;
+        }
+
+        if (!isEarlyAccess && isLocked) {
+            window.location.replace('/');
+        } else {
+            window.location.replace('/home.html');
+        }
+    </script>
+</body>
+</html>
