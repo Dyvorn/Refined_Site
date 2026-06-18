@@ -21,6 +21,7 @@
             // Helper function to handle 404 redirect logic
             const doRedirect = (locked) => {
                 if (!isEarlyAccess && locked) {
+                    document.documentElement.innerHTML = ''; document.documentElement.style.background = 'black';
                     window.location.replace('/');
                 } else {
                     window.location.replace('/home.html');

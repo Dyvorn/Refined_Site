@@ -22,7 +22,7 @@
             let isLocallyLocked = launchTime && localTime < launchTime;
             
             if (!isEarlyAccess && (isLocallyLocked || !launchTime)) {
-                document.documentElement.innerHTML = '<head><title>Locked</title></head><body style="background:#000;"></body>';
+                document.documentElement.innerHTML = ''; document.documentElement.style.background = 'black';
                 window.location.replace('index.html');
                 return;
             }
@@ -35,7 +35,7 @@
                     if (serverDateStr) {
                         let serverTime = new Date(serverDateStr).getTime();
                         if (serverTime < launchTime) {
-                            document.documentElement.innerHTML = '<head><title>Locked</title></head><body style="background:#000;"></body>';
+                            document.documentElement.innerHTML = ''; document.documentElement.style.background = 'black';
                             window.location.replace('index.html');
                         }
                     }
