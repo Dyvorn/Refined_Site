@@ -12,8 +12,22 @@ function initCountdown() {
     const minutesEl = document.getElementById('cd-minutes');
     const secondsEl = document.getElementById('cd-seconds');
 
+    let timeOffset = 0;
+
+    // Fetch the true server time to prevent system clock bypasses
+    fetch(window.location.href, { method: 'HEAD', cache: 'no-store' })
+        .then(response => {
+            const serverDateStr = response.headers.get('date');
+            if (serverDateStr) {
+                const serverTime = new Date(serverDateStr).getTime();
+                const localTime = new Date().getTime();
+                timeOffset = serverTime - localTime;
+            }
+        }).catch(() => {});
+
     function updateTimer() {
-        const now = new Date().getTime();
+        // Apply the offset so 'now' is always the true time
+        const now = new Date().getTime() + timeOffset;
         const distance = targetDate.getTime() - now;
 
         if (distance < 0) {

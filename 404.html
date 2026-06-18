@@ -8,23 +8,47 @@
 <body>
     <script src="/config.js"></script>
     <script>
-        const isEarlyAccess = localStorage.getItem('early_access') === 'true';
-        let isLocked = false;
-        try {
-            if (typeof CONFIG !== 'undefined') {
-                isLocked = new Date().getTime() < new Date(CONFIG.LAUNCH_DATE).getTime();
-            } else {
-                isLocked = true;
-            }
-        } catch(e) {
-            isLocked = true;
-        }
+        (async function() {
+            let isEarlyAccess = false;
+            try { isEarlyAccess = localStorage.getItem('early_access') === 'true'; } catch(e) {}
+            
+            let launchTime = 0;
+            try { if (typeof CONFIG !== 'undefined') launchTime = new Date(CONFIG.LAUNCH_DATE).getTime(); } catch(e) {}
+            
+            let localTime = new Date().getTime();
+            let isLocallyLocked = launchTime && localTime < launchTime;
+            
+            // Helper function to handle 404 redirect logic
+            const doRedirect = (locked) => {
+                if (!isEarlyAccess && locked) {
+                    window.location.replace('/');
+                } else {
+                    window.location.replace('/home.html');
+                }
+            };
 
-        if (!isEarlyAccess && isLocked) {
-            window.location.replace('/');
-        } else {
-            window.location.replace('/home.html');
-        }
+            if (!isEarlyAccess && (isLocallyLocked || !launchTime)) {
+                doRedirect(true);
+                return;
+            }
+
+            if (!isEarlyAccess && launchTime) {
+                try {
+                    let response = await fetch(window.location.href, { method: 'HEAD', cache: 'no-store' });
+                    let serverDateStr = response.headers.get('date');
+                    if (serverDateStr) {
+                        let serverTime = new Date(serverDateStr).getTime();
+                        if (serverTime < launchTime) {
+                            doRedirect(true);
+                            return;
+                        }
+                    }
+                } catch(e) {}
+            }
+            
+            // If they reach here, they are unlocked
+            doRedirect(false);
+        })();
     </script>
 </body>
 </html>

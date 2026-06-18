@@ -10,18 +10,38 @@
 <body>
     <script src="config.js"></script>
     <script>
-        // Protection check
-        const isEarlyAccess = localStorage.getItem('early_access') === 'true';
-        let isLocked = false;
-        try {
-            isLocked = new Date().getTime() < new Date(CONFIG.LAUNCH_DATE).getTime();
-        } catch(e) {
-            isLocked = true;
-        }
-        if (!isEarlyAccess && isLocked) {
-            document.documentElement.style.display = 'none';
-            window.location.replace('index.html');
-        }
+        (async function() {
+            // Protection check
+            let isEarlyAccess = false;
+            try { isEarlyAccess = localStorage.getItem('early_access') === 'true'; } catch(e) {}
+            
+            let launchTime = 0;
+            try { launchTime = new Date(CONFIG.LAUNCH_DATE).getTime(); } catch(e) {}
+            
+            let localTime = new Date().getTime();
+            let isLocallyLocked = launchTime && localTime < launchTime;
+            
+            if (!isEarlyAccess && (isLocallyLocked || !launchTime)) {
+                document.documentElement.innerHTML = '<head><title>Locked</title></head><body style="background:#000;"></body>';
+                window.location.replace('index.html');
+                return;
+            }
+
+            // Asynchronous server time check to catch system clock bypass
+            if (!isEarlyAccess && launchTime) {
+                try {
+                    let response = await fetch(window.location.href, { method: 'HEAD', cache: 'no-store' });
+                    let serverDateStr = response.headers.get('date');
+                    if (serverDateStr) {
+                        let serverTime = new Date(serverDateStr).getTime();
+                        if (serverTime < launchTime) {
+                            document.documentElement.innerHTML = '<head><title>Locked</title></head><body style="background:#000;"></body>';
+                            window.location.replace('index.html');
+                        }
+                    }
+                } catch(e) {}
+            }
+        })();
     </script>
 
     <!-- Scroll Progress Bar -->
@@ -109,6 +129,15 @@
                         <p class="text-center text-muted pulse-text" style="margin-top: 25%;">Loading Latest Video...</p>
                     </div>
                 </div>
+            </div>
+        </section>
+        
+        <!-- Blog Section -->
+        <section id="blog-preview">
+            <div class="container reveal" style="text-align: center;">
+                <h2 class="section-title">Latest Thoughts</h2>
+                <p style="max-width: 600px; margin: 0 auto 3rem auto; color: var(--text-muted);">Check out my recent articles on web development, design, and more.</p>
+                <a href="blog.html" class="btn btn-outline" style="font-size: 1.1rem; padding: 0.75rem 2rem;">Read the Blog</a>
             </div>
         </section>
         
