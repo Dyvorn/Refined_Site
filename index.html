@@ -1,10 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Coming Soon | Refined</title>
     <meta name="description" content="The official website of the Refined YouTube channel is coming soon.">
+
+
+
     <link rel="stylesheet" href="style.css">
     <style>
         /* Force the overlay styling to take up the whole body and not be position fixed */
@@ -15,12 +19,14 @@
             min-height: 100vh;
             background: var(--bg-color);
         }
+
         .countdown-overlay {
             position: relative;
             height: auto;
         }
     </style>
 </head>
+
 <body>
     <div id="countdown-overlay" class="countdown-overlay">
         <div class="countdown-content">
@@ -45,12 +51,15 @@
                     <span class="time-label">Seconds</span>
                 </div>
             </div>
-            
+
             <div style="margin-top: 2rem; font-size: 0.9rem;">
-                <a href="#" id="early-access-toggle" style="color: var(--text-muted); text-decoration: underline;">Early Access</a>
+                <a href="#" id="early-access-toggle" style="color: var(--text-muted); text-decoration: underline;">Early
+                    Access</a>
                 <div id="early-access-form" style="display: none; margin-top: 1rem;">
-                    <input type="password" id="early-access-password" placeholder="Password" style="background: rgba(0,0,0,0.3); border: 1px solid var(--card-border); color: white; padding: 0.5rem 1rem; border-radius: 8px; outline: none;">
-                    <button id="early-access-submit" style="background: var(--accent-color); color: var(--bg-color); border: none; padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer; font-weight: bold; margin-left: 0.5rem;">Enter</button>
+                    <input type="password" id="early-access-password" placeholder="Password"
+                        style="background: rgba(0,0,0,0.3); border: 1px solid var(--card-border); color: white; padding: 0.5rem 1rem; border-radius: 8px; outline: none;">
+                    <button id="early-access-submit"
+                        style="background: var(--accent-color); color: var(--bg-color); border: none; padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer; font-weight: bold; margin-left: 0.5rem;">Enter</button>
                 </div>
             </div>
         </div>
@@ -59,4 +68,5 @@
     <script src="config.js"></script>
     <script src="countdown.js"></script>
 </body>
+
 </html>

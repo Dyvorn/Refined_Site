@@ -2,6 +2,8 @@
 document.addEventListener('DOMContentLoaded', () => {
     initUI();
     fetchYouTubeData();
+    initTicTacToe();
+    initMinigames();
 });
 
 function initUI() {
@@ -123,7 +125,7 @@ async function fetchYouTubeData() {
 
                 videoContainer.innerHTML = `
                     <a href="https://www.youtube.com/watch?v=${videoId}" target="_blank" rel="noopener noreferrer" style="display: block; position: absolute; inset: 0; width: 100%; height: 100%; text-decoration: none; overflow: hidden; border-radius: 12px;">
-                        <img src="${thumbnailUrl}" alt="${title}" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                        <img src="${thumbnailUrl}" alt="${title}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
                         <div style="position: absolute; inset: 0; background: rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; pointer-events: none;">
                             <div style="background: rgba(0,0,0,0.6); padding: 1rem; border-radius: 50%; backdrop-filter: blur(4px);">
                                 <svg width="32" height="32" viewBox="0 0 24 24" fill="var(--accent-color)">
@@ -161,4 +163,297 @@ function animateValue(obj, start, end, duration) {
         }
     };
     window.requestAnimationFrame(step);
+}
+
+function initTicTacToe() {
+    const statusDisplay = document.getElementById('statusDisplay');
+    const cells = document.querySelectorAll('.cell');
+    const restartBtn = document.getElementById('restartBtn');
+
+    if (!statusDisplay || !cells.length || !restartBtn) return; // Only run if on a page with the minigame
+
+    let gameActive = true;
+    let currentPlayer = "X";
+    let gameState = ["", "", "", "", "", "", "", "", ""];
+
+    const winningMessage = () => `Player ${currentPlayer} has won!`;
+    const drawMessage = () => `Game ended in a draw!`;
+    const currentPlayerTurn = () => `Player ${currentPlayer}'s turn`;
+
+    statusDisplay.innerHTML = currentPlayerTurn();
+
+    const winningConditions = [
+        [0, 1, 2],
+        [3, 4, 5],
+        [6, 7, 8],
+        [0, 3, 6],
+        [1, 4, 7],
+        [2, 5, 8],
+        [0, 4, 8],
+        [2, 4, 6]
+    ];
+
+    function handleCellPlayed(clickedCell, clickedCellIndex) {
+        gameState[clickedCellIndex] = currentPlayer;
+        clickedCell.innerHTML = currentPlayer;
+        clickedCell.classList.add(currentPlayer.toLowerCase());
+        clickedCell.style.transform = 'scale(0.9)';
+        setTimeout(() => { clickedCell.style.transform = 'scale(1)'; }, 100);
+    }
+
+    function handlePlayerChange() {
+        currentPlayer = currentPlayer === "X" ? "O" : "X";
+        statusDisplay.innerHTML = currentPlayerTurn();
+    }
+
+    function handleResultValidation() {
+        let roundWon = false;
+        for (let i = 0; i <= 7; i++) {
+            const winCondition = winningConditions[i];
+            let a = gameState[winCondition[0]];
+            let b = gameState[winCondition[1]];
+            let c = gameState[winCondition[2]];
+            if (a === '' || b === '' || c === '') {
+                continue;
+            }
+            if (a === b && b === c) {
+                roundWon = true;
+                break;
+            }
+        }
+
+        if (roundWon) {
+            statusDisplay.innerHTML = winningMessage();
+            gameActive = false;
+            return;
+        }
+
+        let roundDraw = !gameState.includes("");
+        if (roundDraw) {
+            statusDisplay.innerHTML = drawMessage();
+            gameActive = false;
+            return;
+        }
+
+        handlePlayerChange();
+    }
+
+    function handleCellClick(clickedCellEvent) {
+        const clickedCell = clickedCellEvent.target;
+        const clickedCellIndex = parseInt(clickedCell.getAttribute('data-cell-index'));
+
+        if (gameState[clickedCellIndex] !== "" || !gameActive) {
+            return;
+        }
+
+        handleCellPlayed(clickedCell, clickedCellIndex);
+        handleResultValidation();
+    }
+
+    function handleRestartGame() {
+        gameActive = true;
+        currentPlayer = "X";
+        gameState = ["", "", "", "", "", "", "", "", ""];
+        statusDisplay.innerHTML = currentPlayerTurn();
+        cells.forEach(cell => {
+            cell.innerHTML = "";
+            cell.classList.remove('x', 'o');
+        });
+    }
+
+    cells.forEach(cell => cell.addEventListener('click', handleCellClick));
+    restartBtn.addEventListener('click', handleRestartGame);
+}
+
+function initMinigames() {
+    // Tab switching logic
+    const tabs = document.querySelectorAll('.game-tab');
+    const containers = document.querySelectorAll('.game-container');
+
+    if (!tabs.length || !containers.length) return;
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            tabs.forEach(t => t.classList.remove('active'));
+            containers.forEach(c => {
+                c.classList.remove('active');
+                c.style.display = 'none';
+            });
+
+            tab.classList.add('active');
+            const targetId = tab.getAttribute('data-target');
+            const targetContainer = document.getElementById(targetId);
+            if (targetContainer) {
+                targetContainer.classList.add('active');
+                targetContainer.style.display = 'block';
+            }
+        });
+    });
+
+    initMemoryMatch();
+    initReactionTimer();
+}
+
+function initMemoryMatch() {
+    const memoryBoard = document.getElementById('memoryBoard');
+    const memoryStatus = document.getElementById('memoryStatus');
+    const restartBtn = document.getElementById('restartMemoryBtn');
+    
+    if (!memoryBoard || !memoryStatus || !restartBtn) return;
+
+    const emojis = ['🚀', '💻', '☕', '🎮', '💡', '🔥', '🚀', '💻', '☕', '🎮', '💡', '🔥'];
+    let cards = [];
+    let flippedCards = [];
+    let matchedPairs = 0;
+    let moves = 0;
+    let lockBoard = false;
+
+    function shuffle(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+    }
+
+    function createBoard() {
+        memoryBoard.innerHTML = '';
+        shuffle(emojis);
+        cards = [];
+        flippedCards = [];
+        matchedPairs = 0;
+        moves = 0;
+        lockBoard = false;
+        updateStatus();
+
+        emojis.forEach((emoji, index) => {
+            const card = document.createElement('div');
+            card.classList.add('memory-card');
+            card.dataset.index = index;
+            card.dataset.emoji = emoji;
+
+            card.innerHTML = `
+                <div class="front">?</div>
+                <div class="back">${emoji}</div>
+            `;
+
+            card.addEventListener('click', flipCard);
+            memoryBoard.appendChild(card);
+            cards.push(card);
+        });
+    }
+
+    function flipCard() {
+        if (lockBoard) return;
+        if (this.classList.contains('flipped') || this.classList.contains('matched')) return;
+
+        this.classList.add('flipped');
+        flippedCards.push(this);
+
+        if (flippedCards.length === 2) {
+            moves++;
+            updateStatus();
+            checkForMatch();
+        }
+    }
+
+    function checkForMatch() {
+        let isMatch = flippedCards[0].dataset.emoji === flippedCards[1].dataset.emoji;
+
+        if (isMatch) {
+            disableCards();
+        } else {
+            unflipCards();
+        }
+    }
+
+    function disableCards() {
+        flippedCards[0].classList.add('matched');
+        flippedCards[1].classList.add('matched');
+        matchedPairs++;
+        updateStatus();
+        flippedCards = [];
+
+        if (matchedPairs === 6) {
+            memoryStatus.innerHTML = `You won in ${moves} moves!`;
+        }
+    }
+
+    function unflipCards() {
+        lockBoard = true;
+        setTimeout(() => {
+            flippedCards[0].classList.remove('flipped');
+            flippedCards[1].classList.remove('flipped');
+            flippedCards = [];
+            lockBoard = false;
+        }, 1000);
+    }
+
+    function updateStatus() {
+        if (matchedPairs < 6) {
+            memoryStatus.innerHTML = `Moves: ${moves} | Matches: ${matchedPairs}/6`;
+        }
+    }
+
+    restartBtn.addEventListener('click', createBoard);
+    createBoard();
+}
+
+function initReactionTimer() {
+    const reactionBox = document.getElementById('reactionBox');
+    const reactionStatus = document.getElementById('reactionStatus');
+    const restartBtn = document.getElementById('restartReactionBtn');
+
+    if (!reactionBox || !reactionStatus || !restartBtn) return;
+
+    let state = 'waiting'; // waiting, ready, go, finished
+    let startTime;
+    let timeoutId;
+
+    function resetGame() {
+        state = 'waiting';
+        reactionBox.className = 'reaction-box';
+        reactionBox.innerHTML = 'Click to Start';
+        reactionStatus.innerHTML = 'Reaction Timer';
+        restartBtn.style.display = 'none';
+        clearTimeout(timeoutId);
+    }
+
+    function startGame() {
+        state = 'ready';
+        reactionBox.className = 'reaction-box';
+        reactionBox.innerHTML = 'Wait for green...';
+        
+        const delay = Math.floor(Math.random() * 3000) + 1500; // 1.5s to 4.5s
+        
+        timeoutId = setTimeout(() => {
+            if (state === 'ready') {
+                state = 'go';
+                reactionBox.className = 'reaction-box green';
+                reactionBox.innerHTML = 'CLICK NOW!';
+                startTime = Date.now();
+            }
+        }, delay);
+    }
+
+    reactionBox.addEventListener('click', () => {
+        if (state === 'waiting') {
+            startGame();
+        } else if (state === 'ready') {
+            clearTimeout(timeoutId);
+            state = 'finished';
+            reactionBox.className = 'reaction-box blue';
+            reactionBox.innerHTML = 'Too early!';
+            restartBtn.style.display = 'inline-block';
+        } else if (state === 'go') {
+            const reactionTime = Date.now() - startTime;
+            state = 'finished';
+            reactionBox.className = 'reaction-box blue';
+            reactionBox.innerHTML = `${reactionTime} ms`;
+            reactionStatus.innerHTML = 'Great job!';
+            restartBtn.style.display = 'inline-block';
+        }
+    });
+
+    restartBtn.addEventListener('click', resetGame);
+    resetGame();
 }
