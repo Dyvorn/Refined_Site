@@ -10,14 +10,14 @@
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://refined.com/">
     <meta property="og:title" content="Refined | Creator & Developer">
-    <meta property="og:description" content="The official website of the Refined YouTube channel. Explore projects, videos, and the latest blog posts.">
+    <meta property="og:description" content="The official website of the Refined YouTube channel. Explore projects, tech, gear, scripting, and the latest blog posts.">
     <meta property="og:image" content="https://refined.com/assets/og-image.jpg">
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="https://refined.com/">
     <meta property="twitter:title" content="Refined | Creator & Developer">
-    <meta property="twitter:description" content="The official website of the Refined YouTube channel. Explore projects, videos, and the latest blog posts.">
+    <meta property="twitter:description" content="The official website of the Refined YouTube channel. Explore projects, tech, gear, scripting, and the latest blog posts.">
     <meta property="twitter:image" content="https://refined.com/assets/og-image.jpg">
 
     <link rel="stylesheet" href="style.css">
@@ -158,6 +158,8 @@
                     <button class="game-tab active" data-target="tictactoe-game">Tic-Tac-Toe</button>
                     <button class="game-tab" data-target="memory-game">Memory Match</button>
                     <button class="game-tab" data-target="reaction-game">Reaction Timer</button>
+                    <button class="game-tab" data-target="rps-game">Rock Paper Scissors</button>
+                    <button class="game-tab" data-target="guess-game">Number Guesser</button>
                 </div>
 
                 <div class="games-wrapper">
@@ -199,6 +201,35 @@
                             <button id="restartReactionBtn" class="btn btn-outline" style="margin-top: 2rem; display: none;">Play Again</button>
                         </div>
                     </div>
+
+                    <!-- Rock Paper Scissors -->
+                    <div id="rps-game" class="game-container" style="display: none;">
+                        <div class="tic-tac-toe-container">
+                            <div id="rpsStatus" class="game-status">Make your choice!</div>
+                            <div class="rps-choices" style="display: flex; gap: 1rem; margin-bottom: 2rem;">
+                                <button class="btn btn-outline rps-btn" data-choice="rock" style="font-size: 2rem; padding: 1rem;">🪨</button>
+                                <button class="btn btn-outline rps-btn" data-choice="paper" style="font-size: 2rem; padding: 1rem;">📄</button>
+                                <button class="btn btn-outline rps-btn" data-choice="scissors" style="font-size: 2rem; padding: 1rem;">✂️</button>
+                            </div>
+                            <div id="rpsResult" style="font-size: 1.5rem; font-weight: bold; min-height: 2rem;"></div>
+                            <div id="rpsScore" style="margin-top: 1rem; color: var(--text-muted);">Wins: 0 | Losses: 0 | Ties: 0</div>
+                            <button id="restartRpsBtn" class="btn btn-outline" style="margin-top: 2rem;">Reset Score</button>
+                        </div>
+                    </div>
+
+                    <!-- Number Guesser -->
+                    <div id="guess-game" class="game-container" style="display: none;">
+                        <div class="tic-tac-toe-container">
+                            <div id="guessStatus" class="game-status">Guess a number (1-100)</div>
+                            <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                                <input type="number" id="guessInput" min="1" max="100" style="padding: 0.5rem 1rem; border-radius: 8px; border: 1px solid var(--card-border); background: var(--bg-alt); color: white; font-size: 1.2rem; width: 100px; text-align: center;">
+                                <button id="guessSubmit" class="btn btn-primary">Guess</button>
+                            </div>
+                            <div id="guessHint" style="font-size: 1.2rem; margin-bottom: 1rem; min-height: 1.5rem; color: var(--accent-color);"></div>
+                            <div id="guessCount" style="color: var(--text-muted);">Attempts: 0</div>
+                            <button id="restartGuessBtn" class="btn btn-outline" style="margin-top: 2rem;">Play Again</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
@@ -207,7 +238,7 @@
         <section id="blog-preview" style="background: var(--bg-alt);">
             <div class="container reveal" style="text-align: center;">
                 <h2 class="section-title">Latest Thoughts</h2>
-                <p style="max-width: 600px; margin: 0 auto 3rem auto; color: var(--text-muted);">Check out my recent articles on web development, design, and more.</p>
+                <p style="max-width: 600px; margin: 0 auto 3rem auto; color: var(--text-muted);">Check out my recent articles on tech, general scripting, gear, and upcoming projects.</p>
                 <a href="blog.html" class="btn btn-outline" style="font-size: 1.1rem; padding: 0.75rem 2rem;">Read the Blog</a>
             </div>
         </section>

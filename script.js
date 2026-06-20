@@ -292,6 +292,8 @@ function initMinigames() {
 
     initMemoryMatch();
     initReactionTimer();
+    initRockPaperScissors();
+    initNumberGuesser();
 }
 
 function initMemoryMatch() {
@@ -455,5 +457,126 @@ function initReactionTimer() {
     });
 
     restartBtn.addEventListener('click', resetGame);
+    resetGame();
+}
+
+function initRockPaperScissors() {
+    const rpsBtns = document.querySelectorAll('.rps-btn');
+    const rpsResult = document.getElementById('rpsResult');
+    const rpsScore = document.getElementById('rpsScore');
+    const restartRpsBtn = document.getElementById('restartRpsBtn');
+
+    if (!rpsBtns.length || !rpsResult || !rpsScore || !restartRpsBtn) return;
+
+    let wins = 0;
+    let losses = 0;
+    let ties = 0;
+    const choices = ['rock', 'paper', 'scissors'];
+    const emojis = { rock: '🪨', paper: '📄', scissors: '✂️' };
+
+    function updateScore() {
+        rpsScore.innerHTML = `Wins: ${wins} | Losses: ${losses} | Ties: ${ties}`;
+    }
+
+    function playRound(playerChoice) {
+        const computerChoice = choices[Math.floor(Math.random() * choices.length)];
+        let outcome = '';
+
+        if (playerChoice === computerChoice) {
+            outcome = "It's a Tie!";
+            ties++;
+            rpsResult.style.color = 'var(--text-color)';
+        } else if (
+            (playerChoice === 'rock' && computerChoice === 'scissors') ||
+            (playerChoice === 'paper' && computerChoice === 'rock') ||
+            (playerChoice === 'scissors' && computerChoice === 'paper')
+        ) {
+            outcome = 'You Win!';
+            wins++;
+            rpsResult.style.color = '#10b981'; // Green
+        } else {
+            outcome = 'You Lose!';
+            losses++;
+            rpsResult.style.color = '#ef4444'; // Red
+        }
+
+        rpsResult.innerHTML = `${emojis[playerChoice]} vs ${emojis[computerChoice]} <br> ${outcome}`;
+        updateScore();
+    }
+
+    rpsBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            playRound(btn.getAttribute('data-choice'));
+        });
+    });
+
+    restartRpsBtn.addEventListener('click', () => {
+        wins = 0;
+        losses = 0;
+        ties = 0;
+        rpsResult.innerHTML = '';
+        updateScore();
+    });
+}
+
+function initNumberGuesser() {
+    const guessInput = document.getElementById('guessInput');
+    const guessSubmit = document.getElementById('guessSubmit');
+    const guessHint = document.getElementById('guessHint');
+    const guessCount = document.getElementById('guessCount');
+    const restartGuessBtn = document.getElementById('restartGuessBtn');
+
+    if (!guessInput || !guessSubmit || !guessHint || !guessCount || !restartGuessBtn) return;
+
+    let targetNumber = Math.floor(Math.random() * 100) + 1;
+    let attempts = 0;
+    let isGameOver = false;
+
+    function resetGame() {
+        targetNumber = Math.floor(Math.random() * 100) + 1;
+        attempts = 0;
+        isGameOver = false;
+        guessInput.value = '';
+        guessInput.disabled = false;
+        guessSubmit.disabled = false;
+        guessHint.innerHTML = '';
+        guessHint.style.color = 'var(--accent-color)';
+        guessCount.innerHTML = `Attempts: ${attempts}`;
+    }
+
+    function makeGuess() {
+        if (isGameOver) return;
+        
+        const guess = parseInt(guessInput.value);
+        if (isNaN(guess) || guess < 1 || guess > 100) {
+            guessHint.innerHTML = 'Please enter a number between 1 and 100.';
+            return;
+        }
+
+        attempts++;
+        guessCount.innerHTML = `Attempts: ${attempts}`;
+
+        if (guess === targetNumber) {
+            guessHint.innerHTML = `Correct! It was ${targetNumber}.`;
+            guessHint.style.color = '#10b981';
+            isGameOver = true;
+            guessInput.disabled = true;
+            guessSubmit.disabled = true;
+        } else if (guess < targetNumber) {
+            guessHint.innerHTML = 'Too low!';
+        } else {
+            guessHint.innerHTML = 'Too high!';
+        }
+        
+        guessInput.value = '';
+        guessInput.focus();
+    }
+
+    guessSubmit.addEventListener('click', makeGuess);
+    guessInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') makeGuess();
+    });
+
+    restartGuessBtn.addEventListener('click', resetGame);
     resetGame();
 }
