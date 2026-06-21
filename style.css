@@ -318,7 +318,7 @@ section:nth-child(even) {
 /* Projects & Blog Grid */
 .projects-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
     gap: 2.5rem;
 }
 
@@ -984,6 +984,16 @@ footer {
     .game-board {
         gap: 8px;
         padding: 8px;
+    }
+
+    .tic-tac-toe-container {
+        padding: 1.5rem;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .blog-snap-card {
+        padding: 2rem;
     }
 
     .cell {
