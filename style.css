@@ -611,11 +611,12 @@ footer {
 }
 
 @media (max-width: 768px) {
-    .countdown-timer { gap: 0.75rem; }
-    .time-box { min-width: 60px; }
-    .time-number { font-size: 2.25rem; }
-    .countdown-title { font-size: 2rem; }
-    .countdown-content { padding: 2rem 1rem; width: 95%; max-width: 400px; }
+    .countdown-timer { gap: 0.5rem; }
+    .time-box { min-width: 0; padding: 0.75rem 0.5rem; }
+    .time-number { font-size: 1.75rem; }
+    .time-label { font-size: 0.7rem; letter-spacing: 1px; }
+    .countdown-title { font-size: 1.8rem; }
+    .countdown-content { padding: 2rem 1rem; width: 95%; max-width: 100%; }
 }
 
 /* Utilities */
