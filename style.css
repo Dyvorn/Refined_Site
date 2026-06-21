@@ -28,6 +28,7 @@
 html {
     scroll-behavior: smooth;
     scroll-padding-top: 5rem;
+    overflow-x: hidden;
 }
 
 body {
@@ -505,6 +506,9 @@ footer {
     }
     .sub-count-wrapper {
         text-align: center;
+    }
+    .sub-count {
+        font-size: 3.5rem;
     }
     .nav-links {
         display: none;
@@ -984,6 +988,17 @@ footer {
     .game-board {
         gap: 8px;
         padding: 8px;
+    }
+
+    .memory-board {
+        gap: 8px;
+        padding: 8px;
+    }
+
+    .memory-card {
+        width: 55px;
+        height: 55px;
+        font-size: 1.5rem;
     }
 
     .tic-tac-toe-container {
