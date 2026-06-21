@@ -65,40 +65,7 @@
 </head>
 <body>
     <script src="config.js"></script>
-    <script>
-        (async function() {
-            // Protection check
-            let isEarlyAccess = false;
-            try { isEarlyAccess = localStorage.getItem('early_access') === 'true'; } catch(e) {}
-            
-            let launchTime = 0;
-            try { launchTime = new Date(CONFIG.LAUNCH_DATE).getTime(); } catch(e) {}
-            
-            let localTime = new Date().getTime();
-            let isLocallyLocked = launchTime && localTime < launchTime;
-            
-            if (!isEarlyAccess && (isLocallyLocked || !launchTime)) {
-                document.documentElement.innerHTML = ''; document.documentElement.style.background = 'black';
-                window.location.replace('index.html');
-                return;
-            }
 
-            // Asynchronous server time check to catch system clock bypass
-            if (!isEarlyAccess && launchTime) {
-                try {
-                    let response = await fetch(window.location.href, { method: 'HEAD', cache: 'no-store' });
-                    let serverDateStr = response.headers.get('date');
-                    if (serverDateStr) {
-                        let serverTime = new Date(serverDateStr).getTime();
-                        if (serverTime < launchTime) {
-                            document.documentElement.innerHTML = ''; document.documentElement.style.background = 'black';
-                            window.location.replace('index.html');
-                        }
-                    }
-                } catch(e) {}
-            }
-        })();
-    </script>
     <!-- Scroll Progress Bar -->
     <div id="progressBarContainer">
         <div id="progressBarFill"></div>
@@ -106,13 +73,13 @@
 
     <!-- Header -->
     <header id="main-header">
-        <div class="logo"><a href="home.html">Refined</a></div>
+        <div class="logo"><a href="index.html">Refined</a></div>
         <nav class="nav-links">
-            <a href="home.html#home">Home</a>
-            <a href="home.html#projects">Projects</a>
-            <a href="home.html#youtube">YouTube</a>
+            <a href="index.html#home">Home</a>
+            <a href="index.html#projects">Projects</a>
+            <a href="index.html#youtube">YouTube</a>
             <a href="blog.html">Blog</a>
-            <a href="home.html#contact" class="btn-nav">Contact</a>
+            <a href="index.html#contact" class="btn-nav">Contact</a>
         </nav>
         <button class="mobile-menu-btn" id="mobile-toggle">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"></path></svg>
@@ -121,11 +88,11 @@
 
     <!-- Mobile Menu -->
     <div class="mobile-menu" id="mobile-menu">
-        <a href="home.html#home">Home</a>
-        <a href="home.html#projects">Projects</a>
-        <a href="home.html#youtube">YouTube</a>
-        <a href="blog.html" class="text-accent font-bold">Blog</a>
-        <a href="home.html#contact" class="text-accent font-bold">Contact</a>
+        <a href="index.html#home">Home</a>
+        <a href="index.html#projects">Projects</a>
+        <a href="index.html#youtube">YouTube</a>
+        <a href="blog.html">Blog</a>
+        <a href="index.html#contact" class="text-accent font-bold">Contact</a>
     </div>
 
     <main class="container" style="padding-top: 10rem; min-height: 80vh;">

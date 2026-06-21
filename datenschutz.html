@@ -14,40 +14,7 @@ main a { color: var(--accent-color); }
 </head>
 <body>
     <script src="config.js"></script>
-    <script>
-        (async function() {
-            // Protection check
-            let isEarlyAccess = false;
-            try { isEarlyAccess = localStorage.getItem('early_access') === 'true'; } catch(e) {}
-            
-            let launchTime = 0;
-            try { launchTime = new Date(CONFIG.LAUNCH_DATE).getTime(); } catch(e) {}
-            
-            let localTime = new Date().getTime();
-            let isLocallyLocked = launchTime && localTime < launchTime;
-            
-            if (!isEarlyAccess && (isLocallyLocked || !launchTime)) {
-                document.documentElement.innerHTML = ''; document.documentElement.style.background = 'black';
-                window.location.replace('index.html');
-                return;
-            }
 
-            // Asynchronous server time check to catch system clock bypass
-            if (!isEarlyAccess && launchTime) {
-                try {
-                    let response = await fetch(window.location.href, { method: 'HEAD', cache: 'no-store' });
-                    let serverDateStr = response.headers.get('date');
-                    if (serverDateStr) {
-                        let serverTime = new Date(serverDateStr).getTime();
-                        if (serverTime < launchTime) {
-                            document.documentElement.innerHTML = ''; document.documentElement.style.background = 'black';
-                            window.location.replace('index.html');
-                        }
-                    }
-                } catch(e) {}
-            }
-        })();
-    </script>
     <!-- Scroll Progress Bar -->
     <div id="progressBarContainer">
         <div id="progressBarFill"></div>
@@ -55,11 +22,11 @@ main a { color: var(--accent-color); }
 
     <!-- Header -->
     <header id="main-header">
-        <div class="logo"><a href="home.html">Refined</a></div>
+        <div class="logo"><a href="index.html">Refined</a></div>
         <nav class="nav-links">
-            <a href="home.html#home">Home</a>
-            <a href="home.html#projects">Projects</a>
-            <a href="home.html#youtube">YouTube</a>
+            <a href="index.html#home">Home</a>
+            <a href="index.html#projects">Projects</a>
+            <a href="index.html#youtube">YouTube</a>
             <a href="blog.html">Blog</a>
         </nav>
         <button class="mobile-menu-btn" id="mobile-toggle">
@@ -69,138 +36,40 @@ main a { color: var(--accent-color); }
 
     <!-- Mobile Menu -->
     <div class="mobile-menu" id="mobile-menu">
-        <a href="home.html#home">Home</a>
-        <a href="home.html#projects">Projects</a>
-        <a href="home.html#youtube">YouTube</a>
+        <a href="index.html#home">Home</a>
+        <a href="index.html#projects">Projects</a>
+        <a href="index.html#youtube">YouTube</a>
         <a href="blog.html" style="color: var(--accent-color); font-weight: bold;">Blog</a>
     </div>
 
     <main class="container" style="padding-top: 10rem; padding-bottom: 5rem; min-height: 80vh; max-width: 800px;">
-        <div >
-            <h1 >Datenschutz&shy;erkl&#228;rung</h1>
-            <p >Stand: Mai 2026</p>
+        <h1>Datenschutzerklärung</h1>
+        <p>Stand: Mai 2026</p>
 
+        <section>
+            <h2>1. Datenschutz auf einen Blick</h2>
+            <p>Der Schutz Ihrer Daten ist uns wichtig. Wir verarbeiten personenbezogene Daten ausschließlich im Rahmen der gesetzlichen Vorschriften (DSGVO, BDSG).</p>
+        </section>
 
-            <div >
+        <section>
+            <h2>2. Hosting (Cloudflare)</h2>
+            <p>Unsere Website wird über <strong>Cloudflare</strong> bereitgestellt. Cloudflare verarbeitet als CDN und Sicherheitsdienst technische Verbindungsdaten (z. B. IP-Adressen) zur Bereitstellung der Website (Art. 6 Abs. 1 lit. f DSGVO).</p>
+        </section>
 
-                <!-- 1 -->
-                <section >
-                    <h2 >1. Datenschutz auf einen Blick</h2>
-                    <p>Der Schutz Ihrer personenbezogenen Daten ist uns ein wichtiges Anliegen. Wir verarbeiten Ihre Daten ausschlie&#223;lich im Rahmen der gesetzlichen Vorschriften, insbesondere der Datenschutz-Grundverordnung (DSGVO), des Bundesdatenschutzgesetzes (BDSG) sowie des Telekommunikation-Digitale-Dienste-Datenschutz-Gesetzes (TDDDG).</p>
-                    <p >Diese Datenschutzerkl&#228;rung informiert Sie dar&#252;ber, welche Daten wir erheben, wie wir sie nutzen und welche Rechte Sie uns gegen&#252;ber haben. Unsere Kontaktdaten finden Sie im <a href="impressum.html" >Impressum</a>.</p>
-                </section>
+        <section>
+            <h2>3. Kontakt und Formulare</h2>
+            <p>Wenn Sie uns über das Kontaktformular (Web3Forms) oder per E-Mail kontaktieren, werden Ihre Angaben (Name, E-Mail-Adresse, Nachricht) ausschließlich zur Bearbeitung der Anfrage gespeichert und nach Abschluss gelöscht (Art. 6 Abs. 1 lit. b bzw. lit. f DSGVO).</p>
+        </section>
 
-                <!-- 2 -->
-                <section >
-                    <h2 >2. Hosting &amp; Infrastruktur</h2>
+        <section>
+            <h2>4. Keine Cookies & Kein Tracking</h2>
+            <p>Wir verwenden auf dieser Website <strong>keine</strong> Analyse- oder Tracking-Cookies (wie Google Analytics). Es findet keine Nachverfolgung Ihres Nutzungsverhaltens statt.</p>
+        </section>
 
-                    <p>Unsere Website wird vollst&#228;ndig &#252;ber <strong>Cloudflare, Inc.</strong> (101 Townsend St., San Francisco, CA 94107, USA) bereitgestellt. Cloudflare fungiert als unser Hosting-, CDN- und DNS-Anbieter und &#252;bernimmt Sicherheitsfunktionen wie DDoS-Schutz. Dabei k&#246;nnen technische Verbindungsdaten &#8211; darunter IP-Adressen der Besucher &#8211; durch Cloudflare verarbeitet werden.</p>
-                    <p >Bei jedem Seitenaufruf k&#246;nnen durch Cloudflare automatisch Verbindungsdaten erfasst werden, darunter IP-Adresse, Datum und Uhrzeit des Zugriffs, aufgerufene URL, &#252;bertragene Datenmenge sowie Browser-Typ und Betriebssystem. Diese Daten werden nicht mit anderen Datenquellen zusammengef&#252;hrt.</p>
-                    <p >Wir haben mit Cloudflare einen Auftragsverarbeitungsvertrag (AVV) gem&#228;&#223; Art. 28 DSGVO einschlie&#223;lich EU-Standardvertragsklauseln (SCC) nach Art. 46 DSGVO f&#252;r die Daten&#252;bermittlung in die USA abgeschlossen. Weitere Informationen: <a href="https://www.cloudflare.com/de-de/privacypolicy/" target="_blank" rel="noopener noreferrer" >cloudflare.com/de-de/privacypolicy</a></p>
-                    <p ><strong>Rechtsgrundlage:</strong> Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse an Sicherheit, Verf&#252;gbarkeit und Leistungsf&#228;higkeit der Website).</p>
-                </section>
-
-                <!-- 3 -->
-                <section >
-                    <h2 >3. Datenerfassung auf unserer Website</h2>
-
-                    <h3 >3.1 Automatisch erfasste Daten</h3>
-                    <p>Beim Aufrufen unserer Website werden automatisch technische Verbindungsdaten durch Cloudflare (siehe &#167; 2) verarbeitet. Eine Zusammenf&#252;hrung dieser Daten mit anderen Datenquellen findet nicht statt.</p>
-
-                    <h3 >3.2 Kontaktformular (Web3Forms)</h3>
-                    <p>Wenn Sie uns &#252;ber das Kontaktformular eine Anfrage senden, nutzen wir den Dienst <strong>Web3Forms</strong> (web3forms.com) zur &#220;bermittlung Ihrer Eingaben. Die von Ihnen eingegebenen Daten (z.&#8239;B. Name, E-Mail-Adresse, Nachricht) werden an die Server von Web3Forms &#252;bertragen, dort verarbeitet und anschlie&#223;end per E-Mail an uns weitergeleitet.</p>
-                    <p >Web3Forms erfasst zus&#228;tzlich technische Verbindungsdaten wie IP-Adresse, Browser-Typ, Domain der aufrufenden Website sowie Datum und Uhrzeit des Zugriffs. Diese Daten werden nicht mit pers&#246;nlichen Identifikationsmerkmalen verkn&#252;pft. <strong>Web3Forms speichert Formulareintr&#228;ge nicht dauerhaft</strong> &#8211; die Daten werden ausschlie&#223;lich zum Zweck der E-Mail-Zustellung verarbeitet und danach gel&#246;scht. Logs werden regelm&#228;&#223;ig bereinigt.</p>
-                    <p >Wir l&#246;schen die bei uns eingegangenen Anfragen nach vollst&#228;ndiger Bearbeitung, sp&#228;testens nach <strong>3 Monaten</strong>. Die &#220;bermittlung erfolgt ausschlie&#223;lich &#252;ber eine verschl&#252;sselte HTTPS-Verbindung. Weitere Informationen: <a href="https://web3forms.com/privacy" target="_blank" rel="noopener noreferrer" >web3forms.com/privacy</a></p>
-                    <p ><strong>Rechtsgrundlage:</strong> Art. 6 Abs. 1 lit. b DSGVO (Anbahnung eines Vertragsverh&#228;ltnisses) bzw. Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse an der Bearbeitung Ihrer Anfrage).</p>
-
-                    <h3 >3.3 E-Mail-Kontakt</h3>
-                    <p>Wenn Sie uns per E-Mail kontaktieren, werden die &#252;bermittelten Daten (Name, E-Mail-Adresse, Nachrichteninhalt) zur Bearbeitung gespeichert. Eine Weitergabe an Dritte erfolgt nicht. Die Daten werden nach vollst&#228;ndiger Bearbeitung und Ablauf etwaiger Aufbewahrungsfristen gel&#246;scht.</p>
-                    <p ><strong>Rechtsgrundlage:</strong> Art. 6 Abs. 1 lit. b oder lit. f DSGVO.</p>
-                </section>
-
-                <!-- 4 -->
-                <section >
-                    <h2 >4. Cookies</h2>
-                    <p>Unsere Website verwendet ausschlie&#223;lich technisch notwendige Cookies, die f&#252;r den einwandfreien Betrieb erforderlich sind. Diese speichern keine personenbezogenen Daten und werden nicht f&#252;r Tracking- oder Werbezwecke verwendet.</p>
-                    <p ><strong>Wir verwenden keine Analyse-, Marketing- oder Tracking-Cookies von Drittanbietern.</strong> Technisch notwendige Cookies erfordern nach &#167; 25 Abs. 2 TDDDG keine Einwilligung. Sollten wir k&#252;nftig optionale Cookies einsetzen, werden wir vorab Ihre Einwilligung &#252;ber einen Cookie-Banner einholen.</p>
-                </section>
-
-                <!-- 5 -->
-                <section >
-                    <h2 >5. Keine Analyse- oder Tracking-Tools</h2>
-                    <p>Wir setzen <strong>keine</strong> Analyse-Dienste wie Google Analytics, Matomo oder &#228;hnliche Tools ein, die das Nutzungsverhalten auf unserer Website auswerten. Es findet kein Tracking Ihrer Person oder Ihres Verhaltens statt.</p>
-                </section>
-
-                <!-- 6 -->
-                <section >
-                    <h2 >6. Externe Inhalte &amp; Drittdienste</h2>
-
-                    <h3 >6.1 Google Fonts</h3>
-                    <p>Die auf dieser Website verwendeten Schriftarten werden <strong>lokal auf unserem Server gehostet</strong> und nicht &#252;ber die Server von Google abgerufen. Es findet keine Verbindung zu Google-Servern statt und es werden keine Daten &#252;bertragen.</p>
-
-                    <h3 >6.2 Social-Media-Links</h3>
-                    <p>Unsere Website enth&#228;lt Links zu Social-Media-Plattformen (z.&#8239;B. Instagram, TikTok). Diese f&#252;hren zu externen Seiten. Eine Weitergabe Ihrer Daten an die Plattformen findet erst beim aktiven Klick auf den Link statt &#8211; nicht bereits beim Laden der Seite. Beim Besuch der verlinkten Seiten gelten die jeweiligen Datenschutzbestimmungen der Plattformbetreiber.</p>
-
-                    <h3 >6.3 Kontakt via WhatsApp</h3>
-                    <p>Auf unserer Website bieten wir die M&#246;glichkeit, uns &#252;ber den Messenger-Dienst WhatsApp zu kontaktieren. Anbieter ist die WhatsApp Ireland Limited (4 Grand Canal Square, Grand Canal Harbour, Dublin 2, Irland). Wenn Sie uns eine Anfrage per WhatsApp senden, &#252;bermitteln Sie uns automatisch Ihre Mobilfunknummer und die von Ihnen eingegebene Nachricht.</p>
-                    <p >Eine Daten&#252;bermittlung an WhatsApp erfolgt erst, wenn Sie aktiv auf den WhatsApp-Button klicken. In diesem Fall gelten die Datenschutzrichtlinien von WhatsApp. Wir l&#246;schen die Konversationen, sobald Ihre Anfrage abschlie&#223;end bearbeitet wurde und keine gesetzlichen Aufbewahrungspflichten bestehen.</p>
-                    <p ><strong>Rechtsgrundlage:</strong> Art. 6 Abs. 1 lit. b DSGVO (Vertragsanbahnung) oder Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse an einer schnellen Kommunikation).</p>
-                </section>
-
-                <!-- 7 -->
-                <section >
-                    <h2 >7. Projektbezogene Datenverarbeitung</h2>
-                    <p>Im Rahmen unserer Dienstleistungen (Softwareentwicklung, Content Creation, Projektzusammenarbeit) verarbeiten wir Kundendaten, die f&#252;r die Durchf&#252;hrung des jeweiligen Auftrags erforderlich sind (z.&#8239;B. Name, E-Mail-Adresse, Unternehmensdaten, bereitgestellte Medien). Diese Daten werden ausschlie&#223;lich zum Zweck der Auftragsabwicklung genutzt, nicht an unbeteiligte Dritte weitergegeben und nach vollst&#228;ndiger Abwicklung sowie Ablauf gesetzlicher Aufbewahrungsfristen gel&#246;scht.</p>
-                    <p ><strong>Rechtsgrundlage:</strong> Art. 6 Abs. 1 lit. b DSGVO (Vertragsabwicklung).</p>
-                </section>
-
-                <!-- 8 -->
-                <section >
-                    <h2 >8. Weitergabe von Daten an Dritte</h2>
-                    <p>Eine Weitergabe Ihrer personenbezogenen Daten an Dritte erfolgt nur, wenn Sie ausdr&#252;cklich eingewilligt haben (Art. 6 Abs. 1 lit. a DSGVO), dies zur Vertragsabwicklung erforderlich ist (lit. b), eine gesetzliche Verpflichtung besteht (lit. c) oder die Weitergabe zur Wahrung berechtigter Interessen notwendig ist (lit. f). Auftragsverarbeiter erhalten Daten nur im Rahmen eines AVV gem&#228;&#223; Art. 28 DSGVO.</p>
-                </section>
-
-                <!-- 9 -->
-                <section >
-                    <h2 >9. Ihre Rechte als betroffene Person</h2>
-                    <p>Sie haben gegen&#252;ber uns folgende Rechte hinsichtlich Ihrer personenbezogenen Daten:</p>
-                    <ul >
-                        <li ><span >&#10003;</span><span><strong>Auskunftsrecht</strong> (Art. 15 DSGVO): Auskunft &#252;ber die von uns verarbeiteten Daten.</span></li>
-                        <li ><span >&#10003;</span><span><strong>Berichtigungsrecht</strong> (Art. 16 DSGVO): Berichtigung unrichtiger Daten.</span></li>
-                        <li ><span >&#10003;</span><span><strong>L&#246;schungsrecht</strong> (Art. 17 DSGVO): L&#246;schung Ihrer Daten, sofern keine Aufbewahrungspflicht entgegensteht.</span></li>
-                        <li ><span >&#10003;</span><span><strong>Einschr&#228;nkung der Verarbeitung</strong> (Art. 18 DSGVO).</span></li>
-                        <li ><span >&#10003;</span><span><strong>Daten&#252;bertragbarkeit</strong> (Art. 20 DSGVO): Ihre Daten in maschinenlesbarem Format erhalten.</span></li>
-                        <li ><span >&#10003;</span><span><strong>Widerspruchsrecht</strong> (Art. 21 DSGVO): Widerspruch gegen Verarbeitung auf Basis berechtigter Interessen.</span></li>
-                        <li ><span >&#10003;</span><span><strong>Widerruf einer Einwilligung</strong> (Art. 7 Abs. 3 DSGVO): Jederzeit mit Wirkung f&#252;r die Zukunft.</span></li>
-                    </ul>
-                    <p >Zur Aus&#252;bung Ihrer Rechte wenden Sie sich bitte an die im <a href="impressum.html" >Impressum</a> genannten Kontaktdaten.</p>
-                </section>
-
-                <!-- 10 -->
-                <section >
-                    <h2 >10. Beschwerderecht bei der Aufsichtsbeh&#246;rde</h2>
-                    <p>Sie haben das Recht, sich bei der zust&#228;ndigen Datenschutz-Aufsichtsbeh&#246;rde zu beschweren. Die f&#252;r Baden-W&#252;rttemberg zust&#228;ndige Beh&#246;rde ist:</p>
-                    <div >
-                        <p >Der Landesbeauftragte f&#252;r den Datenschutz und die Informationsfreiheit Baden-W&#252;rttemberg</p>
-                        <p>Postfach 10 29 32, 70025 Stuttgart</p>
-                        <p><a href="https://www.baden-wuerttemberg.datenschutz.de/" target="_blank" rel="noopener noreferrer" >baden-wuerttemberg.datenschutz.de</a></p>
-                    </div>
-                </section>
-
-                <!-- 11 -->
-                <section >
-                    <h2 >11. Datensicherheit</h2>
-                    <p>Unsere Website nutzt SSL/TLS-Verschl&#252;sselung f&#252;r die sichere &#220;bertragung aller Daten. Eine verschl&#252;sselte Verbindung erkennen Sie am <strong>https://</strong> in der Adresszeile Ihres Browsers. Wir treffen technische und organisatorische Ma&#223;nahmen, um Ihre Daten gegen Manipulation, Verlust, Zerst&#246;rung und unberechtigten Zugriff zu sch&#252;tzen.</p>
-                </section>
-
-                <!-- 12 -->
-                <section >
-                    <h2 >12. Aktualit&#228;t dieser Erkl&#228;rung</h2>
-                    <p>Diese Datenschutzerkl&#228;rung hat den Stand <strong>Mai 2026</strong>. Durch die Weiterentwicklung unserer Website oder ge&#228;nderte gesetzliche Vorgaben kann es notwendig werden, diese Erkl&#228;rung zu aktualisieren. Die jeweils aktuelle Version ist stets unter dieser URL abrufbar.</p>
-                </section>
-
-            </div>
-        </div>
+        <section>
+            <h2>5. Ihre Rechte</h2>
+            <p>Sie haben das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung sowie Datenübertragbarkeit Ihrer gespeicherten personenbezogenen Daten. Wenden Sie sich hierzu an die Kontaktdaten im <a href="impressum.html">Impressum</a>.</p>
+        </section>
     </main>
 
     <footer>

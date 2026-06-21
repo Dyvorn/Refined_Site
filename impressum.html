@@ -14,40 +14,7 @@ main a { color: var(--accent-color); }
 </head>
 <body>
     <script src="config.js"></script>
-    <script>
-        (async function() {
-            // Protection check
-            let isEarlyAccess = false;
-            try { isEarlyAccess = localStorage.getItem('early_access') === 'true'; } catch(e) {}
-            
-            let launchTime = 0;
-            try { launchTime = new Date(CONFIG.LAUNCH_DATE).getTime(); } catch(e) {}
-            
-            let localTime = new Date().getTime();
-            let isLocallyLocked = launchTime && localTime < launchTime;
-            
-            if (!isEarlyAccess && (isLocallyLocked || !launchTime)) {
-                document.documentElement.innerHTML = ''; document.documentElement.style.background = 'black';
-                window.location.replace('index.html');
-                return;
-            }
 
-            // Asynchronous server time check to catch system clock bypass
-            if (!isEarlyAccess && launchTime) {
-                try {
-                    let response = await fetch(window.location.href, { method: 'HEAD', cache: 'no-store' });
-                    let serverDateStr = response.headers.get('date');
-                    if (serverDateStr) {
-                        let serverTime = new Date(serverDateStr).getTime();
-                        if (serverTime < launchTime) {
-                            document.documentElement.innerHTML = ''; document.documentElement.style.background = 'black';
-                            window.location.replace('index.html');
-                        }
-                    }
-                } catch(e) {}
-            }
-        })();
-    </script>
     <!-- Scroll Progress Bar -->
     <div id="progressBarContainer">
         <div id="progressBarFill"></div>
@@ -55,11 +22,11 @@ main a { color: var(--accent-color); }
 
     <!-- Header -->
     <header id="main-header">
-        <div class="logo"><a href="home.html">Refined</a></div>
+        <div class="logo"><a href="index.html">Refined</a></div>
         <nav class="nav-links">
-            <a href="home.html#home">Home</a>
-            <a href="home.html#projects">Projects</a>
-            <a href="home.html#youtube">YouTube</a>
+            <a href="index.html#home">Home</a>
+            <a href="index.html#projects">Projects</a>
+            <a href="index.html#youtube">YouTube</a>
             <a href="blog.html">Blog</a>
         </nav>
         <button class="mobile-menu-btn" id="mobile-toggle">
@@ -69,57 +36,39 @@ main a { color: var(--accent-color); }
 
     <!-- Mobile Menu -->
     <div class="mobile-menu" id="mobile-menu">
-        <a href="home.html#home">Home</a>
-        <a href="home.html#projects">Projects</a>
-        <a href="home.html#youtube">YouTube</a>
+        <a href="index.html#home">Home</a>
+        <a href="index.html#projects">Projects</a>
+        <a href="index.html#youtube">YouTube</a>
         <a href="blog.html" style="color: var(--accent-color); font-weight: bold;">Blog</a>
     </div>
 
     <main class="container" style="padding-top: 10rem; padding-bottom: 5rem; min-height: 80vh; max-width: 800px;">
-        <div >
-            <h1 >Impressum</h1>
-            <p >Stand: Mai 2026</p>
-            
-            <div >
-                <section >
-                    <h2 >Angaben gemäß § 5 DDG</h2>
-                    <p>Lennard Finn Penzler<br>
-                    c/o impressum-ohne-adresse.de<br>
-                    Wernher-von-Braun-Str. 5-7<br>
-                    69214 Eppelheim<br>
-                    Deutschland</p>
-                    <p ><strong>Vertreten durch:</strong><br>
-                    Lennard Finn Penzler</p>
-                </section>
+        <h1>Impressum</h1>
+        <p>Stand: Mai 2026</p>
+        
+        <section>
+            <h2>Angaben gemäß § 5 DDG</h2>
+            <p>
+                Lennard Finn Penzler<br>
+                c/o impressum-ohne-adresse.de<br>
+                Wernher-von-Braun-Str. 5-7<br>
+                69214 Eppelheim<br>
+                Deutschland
+            </p>
+        </section>
 
-                <section >
-                    <h2 >Kontakt</h2>
-                    <p>Telefon: <br>
-                    E-Mail: <span >
-                        <a href="mailto:contact@refined.com" >contact@refined.com</a>
-                        <button onclick="copyToClipboard('contact@refined.com', this)" title="E-Mail kopieren" >
-                            <svg  fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
-                        </button>
-                    </span></p>
-                </section>
+        <section>
+            <h2>Kontakt</h2>
+            <p>E-Mail: <a href="mailto:contact@refined.com">contact@refined.com</a></p>
+        </section>
 
-                <section >
-                    <h2 >Redaktionell verantwortlich gemäß § 18 Abs. 2 MStV</h2>
-                    <p>Lennard Finn Penzler<br>
-                    (Anschrift wie oben)</p>
-                </section>
-
-                <section >
-                    <h2 >EU-Streitschlichtung</h2>
-                    <p>Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung (OS) bereit: <a href="https://ec.europa.eu/consumers/odr/" target="_blank" rel="noopener noreferrer" >https://ec.europa.eu/consumers/odr/</a>. Unsere E-Mail-Adresse finden Sie oben im Impressum.</p>
-                </section>
-
-                <section >
-                    <h2 >Verbraucherstreitbeilegung/ Universalschlichtungsstelle</h2>
-                    <p>Wir sind nicht bereit oder verpflichtet, an Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen.</p>
-                </section>
-            </div>
-        </div>
+        <section>
+            <h2>Redaktionell verantwortlich gemäß § 18 Abs. 2 MStV</h2>
+            <p>
+                Lennard Finn Penzler<br>
+                (Anschrift wie oben)
+            </p>
+        </section>
     </main>
 
     <footer>
