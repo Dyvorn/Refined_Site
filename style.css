@@ -177,9 +177,16 @@ header.scrolled {
 
 /* Container */
 .container {
+    width: 100%;
     max-width: 1280px;
     margin: 0 auto;
     padding: 0 5%;
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 0 1rem;
+    }
 }
 
 /* Sections */
