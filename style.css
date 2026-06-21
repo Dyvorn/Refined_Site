@@ -236,6 +236,10 @@ section:nth-child(even) {
     color: var(--accent-color);
 }
 
+.mobile-break {
+    display: none;
+}
+
 
 .hero p {
     font-size: 1.25rem;
@@ -951,16 +955,21 @@ footer {
         margin-bottom: 2rem;
     }
 
+    .mobile-break {
+        display: block;
+    }
+
     .hero-buttons {
         display: flex;
         flex-direction: column;
         gap: 1rem;
         align-items: center;
+        width: 100%;
     }
 
     .hero-buttons .btn {
         width: 100%;
-        max-width: 300px;
+        max-width: 100%;
         text-align: center;
     }
 
