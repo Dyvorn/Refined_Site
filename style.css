@@ -611,7 +611,16 @@ footer {
     .time-number { font-size: 1.75rem; }
     .time-label { font-size: 0.7rem; letter-spacing: 1px; }
     .countdown-title { font-size: 1.8rem; }
-    .countdown-content { padding: 2rem 1rem; width: 95%; max-width: 100%; }
+    .countdown-content { 
+        padding: 2rem 1rem; 
+        width: 95%; 
+        max-width: 100%; 
+        min-height: 85vh; 
+        display: flex; 
+        flex-direction: column; 
+        justify-content: center;
+        gap: 1.5rem;
+    }
 }
 
 /* Utilities */
