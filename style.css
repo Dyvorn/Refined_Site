@@ -226,23 +226,19 @@ section:nth-child(even) {
 }
 
 .hero h1 {
-    font-size: 5vw;
+    font-size: clamp(3rem, 8vw, 5.5rem);
     font-weight: 800;
     line-height: 1.1;
     margin-bottom: 1.5rem;
     letter-spacing: -2px;
 }
 
-@media (min-width: 1200px) {
-    .hero h1 { font-size: 5.5rem; }
+.hero h1 span.highlight {
+    color: var(--accent-color);
 }
 
 @media (max-width: 768px) {
-    .hero h1 { font-size: 3.5rem; }
-}
-
-.hero h1 span.highlight {
-    color: var(--accent-color);
+    .hero { min-height: 85vh; padding-top: 6rem; }
 }
 
 .hero p {
