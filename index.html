@@ -8,17 +8,17 @@
     
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://refined.com/">
+    <meta property="og:url" content="https://lennardpenzler.com/">
     <meta property="og:title" content="Refined | Creator & Developer">
     <meta property="og:description" content="The official website of the Refined YouTube channel. Explore projects, tech, gear, scripting, and the latest blog posts.">
-    <meta property="og:image" content="https://refined.com/assets/og-image.jpg">
+    <meta property="og:image" content="https://lennardpenzler.com/assets/og-image.jpg">
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="https://refined.com/">
+    <meta property="twitter:url" content="https://lennardpenzler.com/">
     <meta property="twitter:title" content="Refined | Creator & Developer">
     <meta property="twitter:description" content="The official website of the Refined YouTube channel. Explore projects, tech, gear, scripting, and the latest blog posts.">
-    <meta property="twitter:image" content="https://refined.com/assets/og-image.jpg">
+    <meta property="twitter:image" content="https://lennardpenzler.com/assets/og-image.jpg">
 
     <link rel="stylesheet" href="style.css?v=9">
 </head>
@@ -215,7 +215,7 @@
                 <p style="max-width: 600px; margin: 0 auto 3rem auto; color: var(--text-muted);">Check out my recent articles on tech, general scripting, gear, and upcoming projects.</p>
                 
                 <div class="post-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 2rem; margin-bottom: 3rem; text-align: left;">
-                    <article class="post-card hover-lift" style="background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 2rem; backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);">
+                    <article class="post-card hover-lift">
                         <p style="color: var(--accent-color); font-size: 0.9rem; font-weight: 600; margin-bottom: 0.5rem;">June 21, 2026</p>
                         <h3 style="font-size: 1.5rem; margin-bottom: 1rem;"><a href="post.html?id=building-refined" style="text-decoration: none;">Building the Refined Website</a></h3>
                         <p class="text-muted" style="margin-bottom: 1.5rem;">A look behind the scenes at how this minimalist, responsive site was crafted using vanilla HTML, CSS, and JS.</p>
@@ -234,7 +234,7 @@
                 <p style="max-width: 600px; margin: 0 auto 2rem auto; color: var(--text-muted);">Have a project in mind or want to collaborate? Feel free to reach out and let's build something amazing.</p>
                 
                 <div style="display: flex; justify-content: center; gap: 1.5rem; flex-wrap: wrap; margin-bottom: 3rem;">
-                    <a href="mailto:contact@refined.com" class="btn btn-primary" style="font-size: 1.25rem;">Get in Touch</a>
+                    <a href="javascript:void(0)" onclick="navigator.clipboard.writeText('refined.mov@gmail.com'); const orig = this.innerText; this.innerText = 'Copied!'; setTimeout(() => this.innerText = orig, 2000);" class="btn btn-primary" style="font-size: 1.25rem;">Get in Touch</a>
                     <a href="https://buymeacoffee.com/refined" target="_blank" rel="noopener noreferrer" class="btn btn-outline" style="font-size: 1.25rem; display: inline-flex; align-items: center; gap: 0.5rem; border-color: #FFDD00; color: #FFDD00;" onmouseover="this.style.background='rgba(255, 221, 0, 0.1)'" onmouseout="this.style.background='transparent'">
                         <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 0 1 0 8h-1M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
                         Buy Me a Coffee
@@ -272,6 +272,8 @@
     </a>
 
     <!-- Scripts -->
-    <script src="script.js"></script>
+    <script src="ui.js"></script>
+    <script src="youtube.js"></script>
+    <script src="minigames.js"></script>
 </body>
 </html>
