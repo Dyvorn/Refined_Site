@@ -44,6 +44,12 @@ body {
     color: var(--bg-color);
 }
 
+:focus-visible {
+    outline: 2px solid var(--accent-color);
+    outline-offset: 4px;
+    border-radius: 4px;
+}
+
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
     width: 10px;
@@ -393,6 +399,50 @@ section:nth-child(even) {
 .project-card .icon svg {
     width: 24px;
     height: 24px;
+}
+
+/* Legal Content Card */
+.legal-content {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 24px;
+    padding: 3rem 4rem;
+    margin: 2rem auto;
+    max-width: 800px;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    line-height: 1.8;
+}
+.legal-content h1 {
+    font-size: 3rem;
+    margin-bottom: 2rem;
+    color: var(--text-color);
+}
+.legal-content h2 {
+    font-size: 1.5rem;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    color: var(--accent-color);
+}
+.legal-content p {
+    margin-bottom: 1rem;
+    color: var(--text-muted);
+}
+.legal-content a {
+    color: var(--accent-color);
+    text-decoration: underline;
+}
+.legal-content a:hover {
+    color: var(--accent-hover);
+}
+
+@media (max-width: 768px) {
+    .legal-content {
+        padding: 2rem 1.5rem;
+    }
+    .legal-content h1 {
+        font-size: 2.2rem;
+    }
 }
 
 /* 3D Wheel Blog Container */
