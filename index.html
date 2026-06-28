@@ -3,6 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- Mobile Redirect Script -->
+    <script>
+        (function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const platformParam = urlParams.get('platform');
+            if (platformParam) {
+                sessionStorage.setItem('preferredPlatform', platformParam);
+            }
+            const preferredPlatform = sessionStorage.getItem('preferredPlatform');
+            const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || window.innerWidth <= 768;
+            if (isMobile && preferredPlatform !== 'desktop') {
+                window.location.href = './mobile/index.html' + window.location.search;
+            }
+        })();
+    </script>
     <title>Refined | Creator & Developer</title>
     <meta name="description" content="The official website of the Refined YouTube channel. Explore projects, videos, and the latest blog posts.">
     
@@ -261,6 +276,7 @@
             <div style="display: flex; gap: 1.5rem; font-size: 0.9rem;">
                 <a href="impressum.html" style="color: var(--text-muted); text-decoration: none;">Impressum</a>
                 <a href="datenschutz.html" style="color: var(--text-muted); text-decoration: none;">Datenschutz</a>
+                <a href="mobile/index.html?platform=mobile" style="color: var(--text-muted); text-decoration: none;">Switch to Mobile Version</a>
             </div>
         </div>
     </footer>
