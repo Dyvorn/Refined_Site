@@ -1,0 +1,9 @@
+User-agent: *
+Disallow: /blog.html
+Disallow: /post.html
+Disallow: /impressum.html
+Disallow: /datenschutz.html
+Disallow: /blog/
+Allow: /
+
+Sitemap: https://lennardpenzler.com/sitemap.xml
