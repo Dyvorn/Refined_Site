@@ -1,87 +1,172 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#0a0a0a">
-    <link rel="icon" type="image/svg+xml" href="favicon.svg">
-    <title>Impressum | Refined</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <meta name="theme-color" content="#06080c">
+  <meta name="robots" content="noindex, follow">
+  <meta name="description" content="Impressum und gesetzliche Anbieterkennzeichnung gemäß § 5 DDG und § 18 Abs. 2 MStV für VYRN.">
+
+  <title>Impressum | VYRN</title>
+
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="stylesheet" href="css/style.css?v=3.0">
 </head>
-<body>
-    <script src="config.js"></script>
+<body class="legal-wrapper">
 
-    <!-- Scroll Progress Bar -->
-    <div id="progressBarContainer">
-        <div id="progressBarFill"></div>
+  <!-- Minimal Professional Sticky Header -->
+  <header class="legal-nav-header">
+    <div class="legal-nav-container">
+      <a href="index.html" class="legal-brand-link" aria-label="Zur Startseite">VYRN</a>
+      <a href="index.html" class="legal-back-link">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <line x1="19" y1="12" x2="5" y2="12"></line>
+          <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+        <span>Zurück zur Startseite</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- Legal Document Container -->
+  <main class="legal-document-container">
+    
+    <div class="legal-doc-header">
+      <h1 class="legal-doc-title">Impressum</h1>
+      <div class="legal-doc-meta">
+        <span>Angaben gemäß § 5 Digitale-Dienste-Gesetz (DDG)</span>
+        <span>Stand: September 2026</span>
+      </div>
     </div>
 
-    <!-- Header -->
-    <header id="main-header">
-        <div class="logo"><a href="index.html">Refined</a></div>
-        <nav class="nav-links">
-            <a href="index.html#home">Home</a>
-            <a href="index.html#projects">Projects</a>
-            <a href="index.html#youtube">YouTube</a>
-            <a href="blog.html">Blog</a>
-        </nav>
-        <button class="mobile-menu-btn" id="mobile-toggle">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"></path></svg>
-        </button>
-    </header>
+    <!-- Minimal Table of Contents -->
+    <nav class="legal-toc" aria-label="Inhaltsverzeichnis">
+      <div class="legal-toc-heading">Übersicht</div>
+      <div class="legal-toc-list">
+        <a href="#angaben-ddg">1. Angaben gemäß § 5 DDG</a>
+        <a href="#kontakt">2. Kontakt</a>
+        <a href="#redaktion">3. Redaktionelle Verantwortung gemäß § 18 Abs. 2 MStV</a>
+        <a href="#social-media">4. Geltungsbereich für Social Media</a>
+        <a href="#streitbeilegung">5. Verbraucherstreitbeilegung</a>
+        <a href="#haftung-inhalte">6. Haftung für Inhalte</a>
+        <a href="#haftung-links">7. Haftung für Links</a>
+        <a href="#urheberrecht">8. Urheberrecht</a>
+      </div>
+    </nav>
 
-    <!-- Mobile Menu -->
-    <div class="mobile-menu" id="mobile-menu">
-        <a href="index.html#home">Home</a>
-        <a href="index.html#projects">Projects</a>
-        <a href="index.html#youtube">YouTube</a>
-        <a href="blog.html" style="color: var(--accent-color); font-weight: bold;">Blog</a>
+    <!-- 1. Angaben gemäß § 5 DDG -->
+    <section class="legal-section" id="angaben-ddg">
+      <h2 class="legal-section-title">1. Angaben gemäß § 5 DDG</h2>
+      <p class="legal-text">Diensteanbieter dieser Website und verbundener Online-Profile ist:</p>
+      
+      <div class="legal-address-card">
+        <strong>Lennard Finn Penzler</strong><br>
+        c/o impressum-ohne-adresse.de<br>
+        Wernher-von-Braun-Str. 5-7<br>
+        69214 Eppelheim<br>
+        Deutschland
+      </div>
+
+      <p class="legal-text">
+        <em>Hinweis zur Anschrift:</em> Die vorstehende Anschrift ist eine rechtsgültige, ladungsfähige Zustelladresse über einen bevollmächtigten Zustelldienst (c/o impressum-ohne-adresse.de). Eingehende Schriftstücke werden dort entgegengenommen und unverzüglich weitergeleitet.
+      </p>
+    </section>
+
+    <!-- 2. Kontakt -->
+    <section class="legal-section" id="kontakt">
+      <h2 class="legal-section-title">2. Kontakt</h2>
+      <p class="legal-text">
+        <strong>E-Mail:</strong> <a href="mailto:refined.mov@gmail.com">refined.mov@gmail.com</a>
+      </p>
+      <p class="legal-text">
+        Anfragen bezüglich Tutorials, Kooperationen, Lizenzen oder rechtlicher Belange richten Sie bitte direkt per E-Mail an die oben genannte Adresse.
+      </p>
+    </section>
+
+    <!-- 3. Redaktionelle Verantwortung -->
+    <section class="legal-section" id="redaktion">
+      <h2 class="legal-section-title">3. Redaktionell verantwortlich gemäß § 18 Abs. 2 MStV</h2>
+      <p class="legal-text">
+        Verantwortlich für journalistisch-redaktionelle Inhalte, Tutorials und Videoformate im Sinne des § 18 Abs. 2 Medienstaatsvertrag (MStV):
+      </p>
+      <div class="legal-address-card">
+        <strong>Lennard Finn Penzler</strong><br>
+        c/o impressum-ohne-adresse.de<br>
+        Wernher-von-Braun-Str. 5-7<br>
+        69214 Eppelheim, Deutschland
+      </div>
+    </section>
+
+    <!-- 4. Social Media -->
+    <section class="legal-section" id="social-media">
+      <h2 class="legal-section-title">4. Geltungsbereich für Onlinepräsenzen &amp; Social Media</h2>
+      <p class="legal-text">
+        Dieses Impressum gilt auch für folgende Telemedien, Social-Media-Kanäle und Community-Plattformen:
+      </p>
+      <ul class="legal-list">
+        <li><strong>YouTube:</strong> Kanal @VYRN / refined.mov</li>
+        <li><strong>Discord:</strong> VYRN Community Server</li>
+        <li><strong>Buy Me a Coffee:</strong> VYRN Creator Hub</li>
+        <li><strong>GitHub:</strong> VYRN Open-Source Repositories</li>
+      </ul>
+    </section>
+
+    <!-- 5. Verbraucherstreitbeilegung -->
+    <section class="legal-section" id="streitbeilegung">
+      <h2 class="legal-section-title">5. Verbraucherstreitbeilegung &amp; EU-Streitschlichtung</h2>
+      <p class="legal-text">
+        Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung (OS) bereit, die Sie unter <a href="https://ec.europa.eu/consumers/odr/" target="_blank" rel="noopener noreferrer">https://ec.europa.eu/consumers/odr/</a> finden. Unsere E-Mail-Adresse finden Sie oben unter Kontakt.
+      </p>
+      <p class="legal-text">
+        Wir sind nicht bereit oder verpflichtet, an Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle im Sinne des Verbraucherstreitbeilegungsgesetzes (VSBG) teilzunehmen.
+      </p>
+    </section>
+
+    <!-- 6. Haftung für Inhalte -->
+    <section class="legal-section" id="haftung-inhalte">
+      <h2 class="legal-section-title">6. Haftung für Inhalte</h2>
+      <p class="legal-text">
+        Als Diensteanbieter sind wir gemäß § 7 Abs. 1 DDG für eigene Inhalte auf diesen Seiten nach den allgemeinen Gesetzen verantwortlich. Nach §§ 8 bis 10 DDG sind wir als Diensteanbieter jedoch nicht verpflichtet, übermittelte oder gespeicherte fremde Informationen zu überwachen oder nach Umständen zu forschen, die auf eine rechtswidrige Tätigkeit hinweisen.
+      </p>
+      <p class="legal-text">
+        Verpflichtungen zur Entfernung oder Sperrung der Nutzung von Informationen nach den allgemeinen Gesetzen bleiben hiervon unberührt. Eine diesbezügliche Haftung ist jedoch erst ab dem Zeitpunkt der Kenntnis einer konkreten Rechtsverletzung möglich. Bei Bekanntwerden von entsprechenden Rechtsverletzungen werden wir diese Inhalte unverzüglich entfernen.
+      </p>
+    </section>
+
+    <!-- 7. Haftung für Links -->
+    <section class="legal-section" id="haftung-links">
+      <h2 class="legal-section-title">7. Haftung für Links</h2>
+      <p class="legal-text">
+        Unser Angebot enthält Links zu externen Websites Dritter, auf deren Inhalte wir keinen Einfluss haben. Deshalb können wir für diese fremden Inhalte auch keine Gewähr übernehmen. Für die Inhalte der verlinkten Seiten ist stets der jeweilige Anbieter oder Betreiber der Seiten verantwortlich.
+      </p>
+      <p class="legal-text">
+        Die verlinkten Seiten wurden zum Zeitpunkt der Verlinkung auf mögliche Rechtsverstöße überprüft. Rechtswidrige Inhalte waren zum Zeitpunkt der Verlinkung nicht erkennbar. Eine permanente inhaltliche Kontrolle der verlinkten Seiten ist jedoch ohne konkrete Anhaltspunkte einer Rechtsverletzung nicht zumutbar. Bei Bekanntwerden von Rechtsverletzungen werden wir derartige Links unverzüglich entfernen.
+      </p>
+    </section>
+
+    <!-- 8. Urheberrecht -->
+    <section class="legal-section" id="urheberrecht">
+      <h2 class="legal-section-title">8. Urheberrecht</h2>
+      <p class="legal-text">
+        Die durch den Seitenbetreiber erstellten Inhalte, Quellcodes, Video-Tutorials, Sound-Dateien und Werke auf diesen Seiten unterliegen dem deutschen Urheberrecht (UrhG). Die Vervielfältigung, Bearbeitung, Verbreitung und jede Art der Verwertung außerhalb der Grenzen des Urheberrechtes bedürfen der vorherigen schriftlichen Zustimmung des jeweiligen Autors bzw. Erstellers.
+      </p>
+      <p class="legal-text">
+        Downloads und Kopien dieser Seite sind nur für den privaten, nicht kommerziellen Gebrauch gestattet. Soweit die Inhalte auf dieser Seite nicht vom Betreiber erstellt wurden, werden die Urheberrechte Dritter beachtet. Insbesondere werden Inhalte Dritter als solche gekennzeichnet. Sollten Sie trotzdem auf eine Urheberrechtsverletzung aufmerksam werden, bitten wir um einen entsprechenden Hinweis. Bei Bekanntwerden von Rechtsverletzungen werden wir derartige Inhalte unverzüglich entfernen.
+      </p>
+    </section>
+
+  </main>
+
+  <!-- Clean Minimal Footer -->
+  <footer class="legal-footer">
+    <div class="legal-footer-container">
+      <span>© 2026 VYRN</span>
+      <div class="legal-footer-links">
+        <a href="impressum.html" class="is-active">Impressum</a>
+        <a href="datenschutz.html">Datenschutzerklärung</a>
+      </div>
     </div>
+  </footer>
 
-    <main class="container" style="padding-top: 10rem; padding-bottom: 5rem; min-height: 80vh;">
-        <div class="legal-content">
-            <h1>Impressum</h1>
-            <p>Stand: Mai 2026</p>
-            
-            <section>
-                <h2>Angaben gemäß § 5 DDG</h2>
-                <p>
-                    Lennard Finn Penzler<br>
-                    c/o impressum-ohne-adresse.de<br>
-                    Wernher-von-Braun-Str. 5-7<br>
-                    69214 Eppelheim<br>
-                    Deutschland
-                </p>
-            </section>
-
-            <section>
-                <h2>Kontakt</h2>
-                <p>E-Mail: <a href="mailto:refined.mov@gmail.com">refined.mov@gmail.com</a></p>
-            </section>
-
-            <section>
-                <h2>Redaktionell verantwortlich gemäß § 18 Abs. 2 MStV</h2>
-                <p>
-                    Lennard Finn Penzler<br>
-                    (Anschrift wie oben)
-                </p>
-            </section>
-        </div>
-    </main>
-
-    <footer>
-        <div class="container" style="display: flex; flex-direction: column; align-items: center; gap: 1rem;">
-            <p>&copy; 2026 Refined. Built with precision and strict privacy standards.</p>
-            <div style="display: flex; gap: 1.5rem; font-size: 0.9rem;">
-                <a href="impressum.html" style="color: var(--text-muted); text-decoration: none;">Impressum</a>
-                <a href="datenschutz.html" style="color: var(--text-muted); text-decoration: none;">Datenschutz</a>
-            </div>
-        </div>
-    </footer>
-
-    <script src="blog.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', loadBlogList);
-    </script>
 </body>
 </html>
