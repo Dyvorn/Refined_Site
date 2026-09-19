@@ -773,6 +773,7 @@ function initHeroRefractionStage() {
   if (!pills.length) return;
 
   stage.addEventListener('mousemove', (e) => {
+    if (window.innerWidth <= 640) return; // Preserve mobile framing on small viewports
     const rect = stage.getBoundingClientRect();
     const relX = (e.clientX - (rect.left + rect.width / 2)) / (rect.width / 2);
     const relY = (e.clientY - (rect.top + rect.height / 2)) / (rect.height / 2);
@@ -784,8 +785,17 @@ function initHeroRefractionStage() {
   });
 
   stage.addEventListener('mouseleave', () => {
+    if (window.innerWidth <= 640) return;
     pills.forEach((pill) => {
       pill.style.transform = '';
     });
   });
+
+  window.addEventListener('resize', () => {
+    if (window.innerWidth <= 640) {
+      pills.forEach((pill) => {
+        pill.style.transform = '';
+      });
+    }
+  }, { passive: true });
 }
