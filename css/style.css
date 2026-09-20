@@ -298,13 +298,13 @@ button {
 
 @keyframes navFilterBloom {
   0% {
-    filter: drop-shadow(0 0 0 rgba(0, 240, 255, 0));
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5), 0 0 0 rgba(0, 240, 255, 0);
   }
   45% {
-    filter: drop-shadow(0 0 20px rgba(0, 240, 255, 0.55)) brightness(1.12);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5), 0 0 22px rgba(0, 240, 255, 0.5);
   }
   100% {
-    filter: drop-shadow(0 0 0 rgba(0, 240, 255, 0));
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5), 0 0 0 rgba(0, 240, 255, 0);
   }
 }
 
@@ -690,9 +690,9 @@ section {
 }
 
 @keyframes flamePulse {
-  0% { transform: translate(-50%, -50%) scale(0.95); opacity: 0.85; }
-  50% { transform: translate(-52%, -48%) scale(1.08); opacity: 1; }
-  100% { transform: translate(-48%, -52%) scale(1.02); opacity: 0.9; }
+  0% { transform: translate3d(-50%, -50%, 0) scale(0.96); }
+  50% { transform: translate3d(-51%, -49%, 0) scale(1.05); }
+  100% { transform: translate3d(-49%, -51%, 0) scale(1.01); }
 }
 
 .hero-eyebrow {
@@ -769,9 +769,7 @@ section {
   display: block;
   opacity: 0;
   transition: opacity 600ms cubic-bezier(0.16, 1, 0.3, 1);
-  filter: drop-shadow(0 0 25px rgba(255, 31, 82, 0.45))
-          drop-shadow(0 0 55px rgba(0, 234, 255, 0.35))
-          drop-shadow(0 0 85px rgba(255, 214, 0, 0.3));
+  filter: drop-shadow(0 0 35px rgba(0, 234, 255, 0.35));
 }
 
 .hero-title-stage.has-webgl-vyrn .hero-vyrn-canvas {
@@ -798,10 +796,7 @@ section {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   animation: avatarColorShift 12s ease-in-out infinite alternate;
-  filter: url(#vyrn-organic-wave)
-          drop-shadow(0 0 25px rgba(255, 59, 105, 0.45))
-          drop-shadow(0 0 55px rgba(0, 240, 255, 0.35))
-          drop-shadow(0 0 85px rgba(245, 158, 11, 0.3));
+  filter: url(#vyrn-organic-wave) drop-shadow(0 0 35px rgba(0, 234, 255, 0.35));
   user-select: none;
   margin: 0;
   transition: opacity 600ms cubic-bezier(0.16, 1, 0.3, 1);
@@ -1541,6 +1536,36 @@ section {
 }
 
 @media (max-width: 768px) {
+  /* Performance: Disable heavy composite layers, SVG noise, and drop-shadows on mobile */
+  .ambient-noise {
+    display: none;
+  }
+
+  .hero-vyrn-canvas {
+    filter: none;
+  }
+
+  .hero-title-giant {
+    filter: none;
+  }
+
+  .hero-flame-halo {
+    filter: blur(35px);
+    animation: none;
+    opacity: 0.65;
+    width: 90vw;
+    height: 280px;
+  }
+
+  .sparkle {
+    display: none;
+  }
+
+  .glass-nav-pill.nav-morphing,
+  .glass-nav-pill.nav-morphing::after {
+    animation: none;
+  }
+
   .nav-cluster {
     display: none;
   }

@@ -49,9 +49,7 @@ const DEFAULT_PROJECTS = [
 ];
 
 document.addEventListener('DOMContentLoaded', () => {
-  initScrollProgress();
-  initHeaderScroll();
-  initBackToTop();
+  initUnifiedScroll();
   initMobileNav();
   initVideoPlayer();
   fetchLatestYouTubeVideo();
@@ -61,87 +59,70 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 /**
- * 1. Viewport Reading Progress Indicator
+ * 1. Unified requestAnimationFrame-Throttled Scroll Controller
+ * Eliminates layout thrashing, forced synchronous reflows, and scroll stutter:
+ * - Viewport reading progress indicator
+ * - Floating glass nav pill scrolled state
+ * - Back-to-top trigger visibility
  */
-function initScrollProgress() {
+function initUnifiedScroll() {
   const progressBar = document.getElementById('scroll-progress');
-  if (!progressBar) return;
-
-  const updateProgress = () => {
-    const scrollTop = window.scrollY || document.documentElement.scrollTop;
-    const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
-    
-    if (scrollHeight <= 0) {
-      progressBar.style.width = '0%';
-      return;
-    }
-
-    const progress = Math.min(100, Math.max(0, (scrollTop / scrollHeight) * 100));
-    progressBar.style.width = `${progress}%`;
-  };
-
-  window.addEventListener('scroll', updateProgress, { passive: true });
-  window.addEventListener('resize', updateProgress, { passive: true });
-  updateProgress();
-}
-
-/**
- * 2. Dynamic Morphing Glass Header on Scroll
- */
-function initHeaderScroll() {
   const navPill = document.getElementById('nav-pill');
-  if (!navPill) return;
+  const backToTopBtn = document.getElementById('back-to-top');
 
   let isScrolled = false;
-  let morphTimer = null;
+  let ticking = false;
 
-  const handleHeaderScroll = () => {
-    const scrolled = (window.scrollY || document.documentElement.scrollTop) > 50;
-    if (scrolled !== isScrolled) {
-      isScrolled = scrolled;
-      navPill.classList.toggle('is-scrolled', isScrolled);
+  const updateScroll = () => {
+    const scrollTop = window.scrollY || document.documentElement.scrollTop;
+    const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
 
-      // Trigger optical filter morph bloom transition
-      navPill.classList.remove('nav-morphing');
-      void navPill.offsetWidth; // Trigger reflow for animation restart
-      navPill.classList.add('nav-morphing');
+    // A. Reading progress bar
+    if (progressBar && scrollHeight > 0) {
+      const progress = Math.min(100, Math.max(0, (scrollTop / scrollHeight) * 100));
+      progressBar.style.width = `${progress}%`;
+    }
 
-      clearTimeout(morphTimer);
-      morphTimer = setTimeout(() => {
-        navPill.classList.remove('nav-morphing');
-      }, 450);
+    // B. Header scrolled state (smooth class toggle, zero synchronous reflow)
+    if (navPill) {
+      const scrolled = scrollTop > 40;
+      if (scrolled !== isScrolled) {
+        isScrolled = scrolled;
+        navPill.classList.toggle('is-scrolled', isScrolled);
+      }
+    }
+
+    // C. Back to top button visibility
+    if (backToTopBtn) {
+      if (scrollTop > 300) {
+        backToTopBtn.classList.add('is-visible');
+      } else {
+        backToTopBtn.classList.remove('is-visible');
+      }
+    }
+
+    ticking = false;
+  };
+
+  const onScroll = () => {
+    if (!ticking) {
+      requestAnimationFrame(updateScroll);
+      ticking = true;
     }
   };
 
-  window.addEventListener('scroll', handleHeaderScroll, { passive: true });
-  handleHeaderScroll();
-}
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', onScroll, { passive: true });
+  updateScroll();
 
-/**
- * 2. Minimalist Back to Top Trigger
- */
-function initBackToTop() {
-  const backToTopBtn = document.getElementById('back-to-top');
-  if (!backToTopBtn) return;
-
-  const toggleButtonVisibility = () => {
-    const scrolled = window.scrollY || document.documentElement.scrollTop;
-    if (scrolled > 300) {
-      backToTopBtn.classList.add('is-visible');
-    } else {
-      backToTopBtn.classList.remove('is-visible');
-    }
-  };
-
-  backToTopBtn.addEventListener('click', () => {
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth'
+  if (backToTopBtn) {
+    backToTopBtn.addEventListener('click', () => {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
     });
-  });
-
-  window.addEventListener('scroll', toggleButtonVisibility, { passive: true });
-  toggleButtonVisibility();
+  }
 }
 
 /**
@@ -341,7 +322,7 @@ function initProjectsLiquidGlass() {
   const setCanvasSize = () => {
     const rect = block.getBoundingClientRect();
     const isMobile = window.innerWidth <= 768 || ('ontouchstart' in window);
-    const dpr = isMobile ? Math.min(window.devicePixelRatio || 1, 1.0) : Math.min(window.devicePixelRatio || 1, 2);
+    const dpr = isMobile ? 0.85 : Math.min(window.devicePixelRatio || 1, 2);
     canvas.width = Math.max(1, Math.floor(rect.width * dpr));
     canvas.height = Math.max(1, Math.floor(rect.height * dpr));
   };
@@ -515,8 +496,8 @@ function initProjectsLiquidGlass() {
     targetMouseVel = [0.0, 0.0];
   }, { passive: true });
 
-  // 7. Render Loop with Visibility Optimization
-  let isVisible = true;
+  // 7. Render Loop with Lazy Visibility Initialization (Zero overhead while above the fold)
+  let isVisible = false;
   let animFrameId = null;
   const startTime = performance.now();
 
@@ -554,13 +535,15 @@ function initProjectsLiquidGlass() {
     animFrameId = requestAnimationFrame(render);
   };
 
-  // 8. IntersectionObserver to pause when out of viewport
+  // 8. IntersectionObserver to only render when scrolled near projects block
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       isVisible = entry.isIntersecting;
       if (isVisible && !document.hidden) {
         cancelAnimationFrame(animFrameId);
         animFrameId = requestAnimationFrame(render);
+      } else {
+        cancelAnimationFrame(animFrameId);
       }
     });
   }, { threshold: 0.05 });
@@ -586,8 +569,6 @@ function initProjectsLiquidGlass() {
     }
   };
   window.addEventListener('resize', handleResize, { passive: true });
-
-  animFrameId = requestAnimationFrame(render);
 }
 
 /**
@@ -664,6 +645,7 @@ function initHeroWatercolorText() {
     resolution: gl.getUniformLocation(program, 'iResolution'),
     time: gl.getUniformLocation(program, 'iTime'),
     textMask: gl.getUniformLocation(program, 'uTextMask'),
+    isMobile: gl.getUniformLocation(program, 'uIsMobile'),
   };
 
   // 4. Offscreen Text Mask Texture
@@ -676,7 +658,7 @@ function initHeroWatercolorText() {
     if (rect.width <= 10 || rect.height <= 10) return;
 
     const isMobile = window.innerWidth <= 768 || ('ontouchstart' in window);
-    const dpr = isMobile ? Math.min(window.devicePixelRatio || 1, 1.25) : Math.min(window.devicePixelRatio || 1, 2);
+    const dpr = isMobile ? 1.0 : Math.min(window.devicePixelRatio || 1, 2);
     const pixelWidth = Math.round(rect.width * dpr);
     const pixelHeight = Math.round(rect.height * dpr);
 
@@ -745,6 +727,8 @@ function initHeroWatercolorText() {
     gl.clearColor(0.0, 0.0, 0.0, 0.0);
     gl.clear(gl.COLOR_BUFFER_BIT);
 
+    const isMobileDevice = window.innerWidth <= 768 || ('ontouchstart' in window);
+    gl.uniform1f(uniforms.isMobile, isMobileDevice ? 1.0 : 0.0);
     gl.uniform3f(uniforms.resolution, canvas.width, canvas.height, 1.0);
     gl.uniform1f(uniforms.time, currentTime);
 
@@ -763,6 +747,8 @@ function initHeroWatercolorText() {
       if (isVisible && !document.hidden) {
         cancelAnimationFrame(animFrameId);
         animFrameId = requestAnimationFrame(render);
+      } else {
+        cancelAnimationFrame(animFrameId);
       }
     });
   }, { threshold: 0.05 });
