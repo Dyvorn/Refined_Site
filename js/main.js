@@ -337,10 +337,11 @@ function initProjectsLiquidGlass() {
     return;
   }
 
-  // 1. Sizing: Match block dimensions with DPR cap
+  // 1. Sizing: Match block dimensions with mobile-optimized DPR cap
   const setCanvasSize = () => {
     const rect = block.getBoundingClientRect();
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const isMobile = window.innerWidth <= 768 || ('ontouchstart' in window);
+    const dpr = isMobile ? Math.min(window.devicePixelRatio || 1, 1.0) : Math.min(window.devicePixelRatio || 1, 2);
     canvas.width = Math.max(1, Math.floor(rect.width * dpr));
     canvas.height = Math.max(1, Math.floor(rect.height * dpr));
   };
@@ -402,6 +403,7 @@ function initProjectsLiquidGlass() {
     mouse: gl.getUniformLocation(program, 'iMouse'),
     mouseVel: gl.getUniformLocation(program, 'iMouseVel'),
     texture: gl.getUniformLocation(program, 'iChannel0'),
+    isMobile: gl.getUniformLocation(program, 'uIsMobile'),
   };
 
   // 5. Procedural High-Dynamic-Range Texture Generation (Pink, Cyan, Amber spectral lighting)
@@ -511,7 +513,7 @@ function initProjectsLiquidGlass() {
   block.addEventListener('touchend', () => {
     isHovered = false;
     targetMouseVel = [0.0, 0.0];
-  });
+  }, { passive: true });
 
   // 7. Render Loop with Visibility Optimization
   let isVisible = true;
@@ -519,7 +521,7 @@ function initProjectsLiquidGlass() {
   const startTime = performance.now();
 
   const render = () => {
-    if (!isVisible) return;
+    if (!isVisible || document.hidden) return;
 
     const currentTime = (performance.now() - startTime) / 1000;
 
@@ -537,6 +539,8 @@ function initProjectsLiquidGlass() {
     gl.viewport(0, 0, canvas.width, canvas.height);
     gl.clear(gl.COLOR_BUFFER_BIT);
 
+    const isMobileDevice = window.innerWidth <= 768 || ('ontouchstart' in window);
+    gl.uniform1f(uniforms.isMobile, isMobileDevice ? 1.0 : 0.0);
     gl.uniform3f(uniforms.resolution, canvas.width, canvas.height, 1.0);
     gl.uniform1f(uniforms.time, currentTime);
     gl.uniform4f(uniforms.mouse, currentMouse[0], currentMouse[1], 0, 0);
@@ -554,13 +558,23 @@ function initProjectsLiquidGlass() {
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       isVisible = entry.isIntersecting;
-      if (isVisible) {
+      if (isVisible && !document.hidden) {
         cancelAnimationFrame(animFrameId);
         animFrameId = requestAnimationFrame(render);
       }
     });
   }, { threshold: 0.05 });
   observer.observe(block);
+
+  // Pause render loop when page or screen is hidden/locked
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      cancelAnimationFrame(animFrameId);
+    } else if (isVisible) {
+      cancelAnimationFrame(animFrameId);
+      animFrameId = requestAnimationFrame(render);
+    }
+  });
 
   // 9. Resize Handling
   const handleResize = () => {
@@ -661,7 +675,8 @@ function initHeroWatercolorText() {
     const rect = textElem.getBoundingClientRect();
     if (rect.width <= 10 || rect.height <= 10) return;
 
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const isMobile = window.innerWidth <= 768 || ('ontouchstart' in window);
+    const dpr = isMobile ? Math.min(window.devicePixelRatio || 1, 1.25) : Math.min(window.devicePixelRatio || 1, 2);
     const pixelWidth = Math.round(rect.width * dpr);
     const pixelHeight = Math.round(rect.height * dpr);
 
@@ -722,7 +737,7 @@ function initHeroWatercolorText() {
   const startTime = performance.now();
 
   const render = () => {
-    if (!isVisible) return;
+    if (!isVisible || document.hidden) return;
 
     const currentTime = (performance.now() - startTime) / 1000;
 
@@ -745,13 +760,23 @@ function initHeroWatercolorText() {
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       isVisible = entry.isIntersecting;
-      if (isVisible) {
+      if (isVisible && !document.hidden) {
         cancelAnimationFrame(animFrameId);
         animFrameId = requestAnimationFrame(render);
       }
     });
   }, { threshold: 0.05 });
   observer.observe(canvas);
+
+  // Pause render loop when page or screen is hidden/locked
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      cancelAnimationFrame(animFrameId);
+    } else if (isVisible) {
+      cancelAnimationFrame(animFrameId);
+      animFrameId = requestAnimationFrame(render);
+    }
+  });
 
   // 7. Responsive Resizing
   window.addEventListener('resize', () => {
