@@ -206,17 +206,19 @@ button {
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
 }
 
-/* --- Viewport Scroll Progress Bar --- */
+/* --- Viewport Scroll Progress Bar (Hardware-Accelerated ScaleX) --- */
 #scroll-progress {
   position: fixed;
   top: 0;
   left: 0;
-  width: 0%;
+  width: 100%;
   height: 2.5px;
   background: linear-gradient(90deg, var(--text-secondary), var(--text-pure));
   z-index: 2000;
   pointer-events: none;
-  transition: width 60ms linear;
+  transform-origin: 0 50%;
+  transform: scaleX(0);
+  will-change: transform;
 }
 
 /* --- Container Matrix --- */
@@ -989,6 +991,7 @@ section {
   justify-content: center;
 }
 
+
 /* ==========================================================================
    Featured Video Section: Clean 2-Column Creator Showcase
    ========================================================================== */
@@ -1163,6 +1166,82 @@ section {
 }
 
 /* ==========================================================================
+   Call to Action Section: Direct Creator Support (Lighter Dark Accent)
+   ========================================================================== */
+.cta-support-section {
+  position: relative;
+  background-color: #141824; /* Distinctly lighter dark tone */
+  background-image: radial-gradient(circle at 50% 50%, rgba(245, 158, 11, 0.04) 0%, transparent 65%);
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  padding: clamp(1.6rem, 3.2vw, 2.35rem) 0;
+  overflow: hidden;
+}
+
+.cta-support-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.cta-support-bar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(1rem, 2.2vw, 1.6rem);
+  padding: 0.55rem 1.4rem 0.55rem 1.65rem;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-full);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 
+    inset 1px 1px 0 rgba(255, 255, 255, 0.14),
+    0 8px 24px rgba(0, 0, 0, 0.35);
+  transition: border-color var(--transition-smooth), box-shadow var(--transition-smooth);
+}
+
+.cta-support-bar:hover {
+  border-color: rgba(255, 221, 0, 0.35);
+  box-shadow: 
+    inset 1px 1px 0 rgba(255, 255, 255, 0.2),
+    0 12px 30px rgba(0, 0, 0, 0.45),
+    0 0 24px rgba(255, 221, 0, 0.08);
+}
+
+.cta-support-label {
+  font-family: var(--font-display);
+  font-size: clamp(0.98rem, 1.25vw, 1.12rem);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text-pure);
+  white-space: nowrap;
+}
+
+.cta-bmc-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  border-radius: 9999px;
+  transition: transform var(--transition-fast), filter var(--transition-fast), box-shadow var(--transition-fast);
+  touch-action: manipulation;
+}
+
+.cta-bmc-btn:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.06);
+  box-shadow: 0 8px 22px rgba(255, 221, 0, 0.32);
+}
+
+.cta-bmc-btn img {
+  height: 44px;
+  width: auto;
+  border-radius: 9999px;
+  display: block;
+}
+
+/* ==========================================================================
    Projects Section: Interactive WebGL Liquid Glass Block
    ========================================================================== */
 .projects-empty-block {
@@ -1244,6 +1323,11 @@ section {
 /* ==========================================================================
    Community & Support: Two Cool Liquid Glass Pills
    ========================================================================== */
+.community-section {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 600px;
+}
+
 .community-pills-row {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1374,6 +1458,8 @@ section {
    Clean Editorial Footer
    ========================================================================== */
 .site-footer {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 400px;
   padding: clamp(4rem, 6vw, 6.5rem) 0 3rem;
   background-color: var(--bg-deep);
   border-top: 1px solid var(--border-subtle);
@@ -1407,6 +1493,7 @@ section {
   display: flex;
   align-items: center;
   gap: clamp(1.25rem, 2.5vw, 2.5rem);
+  flex-wrap: wrap;
 }
 
 .footer-social-link {
@@ -1771,6 +1858,25 @@ section {
     font-size: 0.92rem;
   }
 
+  /* CTA Support Bar Mobile Adaptations */
+  .cta-support-bar {
+    width: 100%;
+    max-width: 360px;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem;
+    border-radius: var(--radius-lg);
+  }
+
+  .cta-support-label {
+    text-align: center;
+  }
+
+  .cta-bmc-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
   /* Projects Section: Proportional tactile empty block */
   .projects-empty-block {
     min-height: 280px;
@@ -1821,6 +1927,7 @@ section {
     padding: 0.85rem 1.5rem;
     font-size: 0.98rem;
   }
+
 
   .video-actions {
     flex-direction: column;

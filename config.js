@@ -6,6 +6,8 @@
 const CONFIG = {
     YOUTUBE_API_KEY: 'AIzaSyA24XmA6nfPzwCzny2RcB9_WkC4o1o_HKk',
     YOUTUBE_CHANNEL_ID: 'UCGe5VOk80siQe0r2OfQQWPw',
+    YOUTUBE_URL: 'https://www.youtube.com/@VYRNvisuals/',
+    BUYMEACOFFEE_URL: 'https://buymeacoffee.com/vyrn',
 
     // Modular Project List (Edit, add, or remove projects here)
     // Disciplines: 'audio' (Pink), 'video' (Cyan), 'code' (Amber), 'all' (Pink + Cyan + Amber: Physical DIY / Engineering)

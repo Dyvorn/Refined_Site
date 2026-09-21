@@ -1,5 +1,4 @@
 User-agent: *
-Disallow: /blog.html
 Disallow: /post.html
 Disallow: /impressum.html
 Disallow: /datenschutz.html

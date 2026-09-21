@@ -77,10 +77,10 @@ function initUnifiedScroll() {
     const scrollTop = window.scrollY || document.documentElement.scrollTop;
     const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
 
-    // A. Reading progress bar
+    // A. Reading progress bar (Hardware-accelerated scaleX, zero layout reflow)
     if (progressBar && scrollHeight > 0) {
-      const progress = Math.min(100, Math.max(0, (scrollTop / scrollHeight) * 100));
-      progressBar.style.width = `${progress}%`;
+      const progress = Math.min(1, Math.max(0, scrollTop / scrollHeight));
+      progressBar.style.transform = `scaleX(${progress})`;
     }
 
     // B. Header scrolled state (smooth class toggle, zero synchronous reflow)
@@ -318,11 +318,18 @@ function initProjectsLiquidGlass() {
     return;
   }
 
-  // 1. Sizing: Match block dimensions with mobile-optimized DPR cap
+  // 1. Sizing: Match block dimensions with mobile-optimized DPR cap & dimension check
+  let lastBlockWidth = 0;
+  let lastBlockHeight = 0;
+
   const setCanvasSize = () => {
     const rect = block.getBoundingClientRect();
+    if (Math.abs(rect.width - lastBlockWidth) < 2 && Math.abs(rect.height - lastBlockHeight) < 2) return;
+    lastBlockWidth = rect.width;
+    lastBlockHeight = rect.height;
+
     const isMobile = window.innerWidth <= 768 || ('ontouchstart' in window);
-    const dpr = isMobile ? 0.85 : Math.min(window.devicePixelRatio || 1, 2);
+    const dpr = isMobile ? 0.75 : Math.min(window.devicePixelRatio || 1, 1.75);
     canvas.width = Math.max(1, Math.floor(rect.width * dpr));
     canvas.height = Math.max(1, Math.floor(rect.height * dpr));
   };
@@ -559,7 +566,8 @@ function initProjectsLiquidGlass() {
     }
   });
 
-  // 9. Resize Handling
+  // 9. Debounced Resize Handling (prevents mobile address-bar scroll stutter)
+  let resizeTimer = null;
   const handleResize = () => {
     setCanvasSize();
     if (!isHovered) {
@@ -568,7 +576,10 @@ function initProjectsLiquidGlass() {
       lastRawMouse = [canvas.width * 0.5, canvas.height * 0.5];
     }
   };
-  window.addEventListener('resize', handleResize, { passive: true });
+  window.addEventListener('resize', () => {
+    if (resizeTimer) clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(handleResize, 120);
+  }, { passive: true });
 }
 
 /**
@@ -653,12 +664,19 @@ function initHeroWatercolorText() {
   const maskCanvas = document.createElement('canvas');
   const maskCtx = maskCanvas.getContext('2d');
 
+  let lastMaskWidth = 0;
+  let lastMaskHeight = 0;
+
   const updateTextMask = () => {
     const rect = textElem.getBoundingClientRect();
     if (rect.width <= 10 || rect.height <= 10) return;
 
+    if (Math.abs(rect.width - lastMaskWidth) < 2 && Math.abs(rect.height - lastMaskHeight) < 2) return;
+    lastMaskWidth = rect.width;
+    lastMaskHeight = rect.height;
+
     const isMobile = window.innerWidth <= 768 || ('ontouchstart' in window);
-    const dpr = isMobile ? 1.0 : Math.min(window.devicePixelRatio || 1, 2);
+    const dpr = isMobile ? 1.0 : Math.min(window.devicePixelRatio || 1, 1.75);
     const pixelWidth = Math.round(rect.width * dpr);
     const pixelHeight = Math.round(rect.height * dpr);
 
@@ -764,9 +782,11 @@ function initHeroWatercolorText() {
     }
   });
 
-  // 7. Responsive Resizing
+  // 7. Debounced Responsive Resizing
+  let heroResizeTimer = null;
   window.addEventListener('resize', () => {
-    updateTextMask();
+    if (heroResizeTimer) clearTimeout(heroResizeTimer);
+    heroResizeTimer = setTimeout(updateTextMask, 120);
   }, { passive: true });
 
   animFrameId = requestAnimationFrame(render);
