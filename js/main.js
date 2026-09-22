@@ -444,9 +444,17 @@ function initProjectsLiquidGlass() {
     return;
   }
 
-  // 1. Sizing: Match block dimensions with mobile-optimized DPR cap & dimension check
+  // 1. Sizing: Match block dimensions with hardware-aware DPR cap (Capped at 1.0 to eliminate 4x pixel overhead)
   let lastBlockWidth = 0;
   let lastBlockHeight = 0;
+
+  const isLowPowerDevice = (typeof navigator !== 'undefined' && (
+    (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4) ||
+    (navigator.deviceMemory && navigator.deviceMemory <= 4) ||
+    ('ontouchstart' in window) ||
+    window.innerWidth <= 768
+  ));
+  const activeDpr = isLowPowerDevice ? 0.75 : Math.min(window.devicePixelRatio || 1, 1.0);
 
   const setCanvasSize = () => {
     const rect = block.getBoundingClientRect();
@@ -454,10 +462,8 @@ function initProjectsLiquidGlass() {
     lastBlockWidth = rect.width;
     lastBlockHeight = rect.height;
 
-    const isMobile = window.innerWidth <= 768 || ('ontouchstart' in window);
-    const dpr = isMobile ? 0.75 : Math.min(window.devicePixelRatio || 1, 1.75);
-    canvas.width = Math.max(1, Math.floor(rect.width * dpr));
-    canvas.height = Math.max(1, Math.floor(rect.height * dpr));
+    canvas.width = Math.max(1, Math.floor(rect.width * activeDpr));
+    canvas.height = Math.max(1, Math.floor(rect.height * activeDpr));
   };
   setCanvasSize();
 
@@ -582,19 +588,23 @@ function initProjectsLiquidGlass() {
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
-  // 6. Smooth Viscous Mouse & Fluid Velocity Tracking
+  // 6. Smooth Viscous Mouse & Fluid Velocity Tracking (Cached Geometry to avoid layout thrashing)
   let targetMouse = [canvas.width * 0.5, canvas.height * 0.5];
   let currentMouse = [canvas.width * 0.5, canvas.height * 0.5];
   let lastRawMouse = [canvas.width * 0.5, canvas.height * 0.5];
   let targetMouseVel = [0.0, 0.0];
   let currentMouseVel = [0.0, 0.0];
   let isHovered = false;
+  let cachedBlockRect = null;
+
+  const updateBlockRect = () => {
+    cachedBlockRect = block.getBoundingClientRect();
+  };
 
   const updateMouse = (clientX, clientY) => {
-    const rect = block.getBoundingClientRect();
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    const mx = (clientX - rect.left) * dpr;
-    const my = (rect.height - (clientY - rect.top)) * dpr;
+    if (!cachedBlockRect) updateBlockRect();
+    const mx = (clientX - cachedBlockRect.left) * activeDpr;
+    const my = (cachedBlockRect.height - (clientY - cachedBlockRect.top)) * activeDpr;
 
     // Calculate normalized velocity impulse
     const vx = (mx - lastRawMouse[0]) / Math.max(canvas.width, 1);
@@ -608,16 +618,18 @@ function initProjectsLiquidGlass() {
     isHovered = true;
   };
 
+  block.addEventListener('mouseenter', updateBlockRect, { passive: true });
   block.addEventListener('mousemove', (e) => {
     updateMouse(e.clientX, e.clientY);
-  });
+  }, { passive: true });
 
   block.addEventListener('mouseleave', () => {
     isHovered = false;
     targetMouseVel = [0.0, 0.0];
-  });
+  }, { passive: true });
 
   // Touch support
+  block.addEventListener('touchstart', updateBlockRect, { passive: true });
   block.addEventListener('touchmove', (e) => {
     if (!e.touches.length) return;
     const touch = e.touches[0];
@@ -629,15 +641,23 @@ function initProjectsLiquidGlass() {
     targetMouseVel = [0.0, 0.0];
   }, { passive: true });
 
-  // 7. Render Loop with Lazy Visibility Initialization (Zero overhead while above the fold)
+  // 7. Render Loop with Frame Pacing (~60fps cap to save power on high-refresh 144Hz/240Hz screens)
   let isVisible = false;
   let animFrameId = null;
   const startTime = performance.now();
+  let lastFrameTime = 0;
+  const TARGET_FRAME_MS = 16.0;
 
-  const render = () => {
+  const render = (timestamp) => {
     if (!isVisible || document.hidden) return;
 
-    const currentTime = (performance.now() - startTime) / 1000;
+    if (timestamp && lastFrameTime && (timestamp - lastFrameTime < TARGET_FRAME_MS - 1.5)) {
+      animFrameId = requestAnimationFrame(render);
+      return;
+    }
+    lastFrameTime = timestamp || performance.now();
+
+    const currentTime = (lastFrameTime - startTime) / 1000;
 
     // Smooth inertia interpolation toward cursor
     const lerpFactor = isHovered ? 0.09 : 0.03;
@@ -697,6 +717,7 @@ function initProjectsLiquidGlass() {
   // 9. Debounced Resize Handling (prevents mobile address-bar scroll stutter)
   let resizeTimer = null;
   const handleResize = () => {
+    updateBlockRect();
     setCanvasSize();
     if (!isHovered) {
       targetMouse = [canvas.width * 0.5, canvas.height * 0.5];
@@ -803,8 +824,13 @@ function initHeroWatercolorText() {
     lastMaskWidth = rect.width;
     lastMaskHeight = rect.height;
 
-    const isMobile = window.innerWidth <= 768 || ('ontouchstart' in window);
-    const dpr = isMobile ? 1.0 : Math.min(window.devicePixelRatio || 1, 1.75);
+    const isLowPower = (typeof navigator !== 'undefined' && (
+      (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4) ||
+      (navigator.deviceMemory && navigator.deviceMemory <= 4) ||
+      ('ontouchstart' in window) ||
+      window.innerWidth <= 768
+    ));
+    const dpr = isLowPower ? 0.8 : Math.min(window.devicePixelRatio || 1, 1.0);
     const pixelWidth = Math.round(rect.width * dpr);
     const pixelHeight = Math.round(rect.height * dpr);
 
@@ -859,15 +885,23 @@ function initHeroWatercolorText() {
   updateTextMask();
   requestAnimationFrame(updateTextMask);
 
-  // 5. Render Loop (Strictly Autonomous, No Mouse Uniforms or Event Listeners)
+  // 5. Render Loop with Frame Pacing (~60fps cap to save power on high-refresh screens)
   let isVisible = true;
   let animFrameId = null;
   const startTime = performance.now();
+  let lastHeroFrameTime = 0;
+  const TARGET_FRAME_MS = 16.0;
 
-  const render = () => {
+  const render = (timestamp) => {
     if (!isVisible || document.hidden) return;
 
-    const currentTime = (performance.now() - startTime) / 1000;
+    if (timestamp && lastHeroFrameTime && (timestamp - lastHeroFrameTime < TARGET_FRAME_MS - 1.5)) {
+      animFrameId = requestAnimationFrame(render);
+      return;
+    }
+    lastHeroFrameTime = timestamp || performance.now();
+
+    const currentTime = (lastHeroFrameTime - startTime) / 1000;
 
     gl.viewport(0, 0, canvas.width, canvas.height);
     gl.clearColor(0.0, 0.0, 0.0, 0.0);
@@ -923,8 +957,8 @@ function initHeroWatercolorText() {
 }
 
 /**
- * 7. Hero Glass Pills Ambient Mouse Parallax
- * Adds subtle ambient mouse parallax so the glass pill badges glide gently across the letters.
+ * 7. Hero Glass Pills Ambient Mouse Parallax (RAF Throttled with Cached Geometry)
+ * Prevents synchronous reflows while gliding pills smoothly over the letterforms.
  */
 function initHeroRefractionStage() {
   const stage = document.getElementById('hero-stage');
@@ -933,26 +967,47 @@ function initHeroRefractionStage() {
   const pills = stage.querySelectorAll('.hero-glass-pill');
   if (!pills.length) return;
 
-  stage.addEventListener('mousemove', (e) => {
-    if (window.innerWidth <= 640) return; // Preserve mobile framing on small viewports
-    const rect = stage.getBoundingClientRect();
-    const relX = (e.clientX - (rect.left + rect.width / 2)) / (rect.width / 2);
-    const relY = (e.clientY - (rect.top + rect.height / 2)) / (rect.height / 2);
+  let stageRect = null;
+  const updateRect = () => {
+    stageRect = stage.getBoundingClientRect();
+  };
+  updateRect();
 
+  let targetX = 0;
+  let targetY = 0;
+  let ticking = false;
+
+  const updatePills = () => {
     pills.forEach((pill, idx) => {
       const factor = (idx % 2 === 0 ? 1 : -1) * (idx + 1) * 4;
-      pill.style.transform = `translate(${relX * factor}px, ${relY * factor}px)`;
+      pill.style.transform = `translate3d(${targetX * factor}px, ${targetY * factor}px, 0)`;
     });
-  });
+    ticking = false;
+  };
+
+  stage.addEventListener('mouseenter', updateRect, { passive: true });
+
+  stage.addEventListener('mousemove', (e) => {
+    if (window.innerWidth <= 640) return;
+    if (!stageRect) updateRect();
+    targetX = (e.clientX - (stageRect.left + stageRect.width / 2)) / (stageRect.width / 2);
+    targetY = (e.clientY - (stageRect.top + stageRect.height / 2)) / (stageRect.height / 2);
+
+    if (!ticking) {
+      requestAnimationFrame(updatePills);
+      ticking = true;
+    }
+  }, { passive: true });
 
   stage.addEventListener('mouseleave', () => {
     if (window.innerWidth <= 640) return;
     pills.forEach((pill) => {
       pill.style.transform = '';
     });
-  });
+  }, { passive: true });
 
   window.addEventListener('resize', () => {
+    updateRect();
     if (window.innerWidth <= 640) {
       pills.forEach((pill) => {
         pill.style.transform = '';

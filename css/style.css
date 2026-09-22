@@ -226,7 +226,10 @@ button {
   position: absolute;
   inset: 0;
   opacity: 0.02;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 128 128' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='1' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  pointer-events: none;
+  contain: strict;
+  transform: translateZ(0);
 }
 
 /* --- Viewport Scroll Progress Bar (Hardware-Accelerated ScaleX) --- */
@@ -248,22 +251,19 @@ button {
 .container {
   width: 100%;
   max-width: var(--container-max);
-  margin-left: auto;
-  margin-right: auto;
-  padding-left: var(--page-padding);
-  padding-right: var(--page-padding);
+  margin: 0 auto;
+  padding: 0 var(--page-padding);
 }
 
 /* ==========================================================================
-   Tactile Liquid Glass Top Nav & Dynamic Morphing Header
-   - Unscrolled (top of page): Full-width modern editorial header
-   - Scrolled (down page): Collapses into a centered Dynamic Island capsule
+   Liquid Glass Navigation Pill (High Performance Hardware Layer)
    ========================================================================== */
 .glass-nav-pill {
   position: fixed;
   top: 0;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translateX(-50%) translateZ(0);
+  backface-visibility: hidden;
   z-index: 1000;
   display: flex;
   align-items: center;
@@ -286,8 +286,7 @@ button {
     border-radius 420ms cubic-bezier(0.16, 1, 0.3, 1),
     background-color 420ms cubic-bezier(0.16, 1, 0.3, 1),
     border-color 420ms cubic-bezier(0.16, 1, 0.3, 1),
-    box-shadow 420ms cubic-bezier(0.16, 1, 0.3, 1),
-    backdrop-filter 420ms cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow 420ms cubic-bezier(0.16, 1, 0.3, 1);
   overflow: visible;
 }
 
@@ -804,6 +803,8 @@ section {
 .hero-title-stage.has-webgl-vyrn .hero-title-giant {
   opacity: 0;
   pointer-events: none;
+  animation: none;
+  filter: none;
 }
 
 /* Monumental VYRN Title with Letter-Level Smooth Organic Wave Distortion & Luminous Multi-Spectrum Glow */
@@ -1018,6 +1019,11 @@ section {
 /* ==========================================================================
    Featured Video Section: Clean 2-Column Creator Showcase
    ========================================================================== */
+.video-section {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 650px;
+}
+
 .video-showcase-grid {
   display: grid;
   grid-template-columns: 1fr 1.35fr;
@@ -1193,6 +1199,8 @@ section {
    ========================================================================== */
 .cta-support-section {
   position: relative;
+  content-visibility: auto;
+  contain-intrinsic-size: 0 150px;
   background-color: #141824; /* Distinctly lighter dark tone */
   background-image: radial-gradient(circle at 50% 50%, rgba(245, 158, 11, 0.04) 0%, transparent 65%);
   border-top: 1px solid rgba(255, 255, 255, 0.07);
@@ -2570,6 +2578,8 @@ section {
    Direct Contact & Inquiries Section
    ========================================================================== */
 .contact-section {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 750px;
   padding: clamp(4rem, 8vh, 7rem) 0;
   position: relative;
 }
