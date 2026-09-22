@@ -7,11 +7,22 @@
  * - Privacy-enhanced video embed trigger
  * - Modular data-driven project card renderer
  * - Minimalist back-to-top trigger
+/**
+ * Clean URL Handler:
+ * Strips ugly trailing file extensions (e.g., /index.html) from the browser address bar
+ * ensuring clean, professional, canonical URLs (e.g. lennardpenzler.com/)
  */
+(function initCleanUrls() {
+  if (typeof window === 'undefined' || !window.location) return;
+  const path = window.location.pathname;
+  if (path.endsWith('/index.html') || path === '/index.html') {
+    const cleanPath = path.replace(/\/index\.html$/, '') || '/';
+    window.history.replaceState(null, '', cleanPath + window.location.search + window.location.hash);
+  }
+})();
 
 /**
  * Fallback Projects Data (Used if config.js is missing or CONFIG.PROJECTS is empty)
- * Strictly populated with uppercase placeholder tokens.
  */
 const DEFAULT_PROJECTS = [
   {
