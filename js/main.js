@@ -15,35 +15,43 @@
  */
 const DEFAULT_PROJECTS = [
   {
-    title: "[PROJECT TITLE 01]",
-    category: "AUDIO",
-    discipline: "audio",
-    year: "[2026]",
-    description: "[Brief one-sentence description or summary of the audio production project.]",
-    link: "#"
-  },
-  {
-    title: "[PROJECT TITLE 02]",
-    category: "VIDEO",
+    title: "DaVinci Resolve Fusion Macro Suite",
+    category: "VIDEO VFX // WORKFLOW",
     discipline: "video",
-    year: "[2026]",
-    description: "[Brief one-sentence description or summary of the video production or tutorial project.]",
+    status: "IN DEVELOPMENT",
+    year: "2026",
+    description: "High-efficiency 3D motion graphic templates, automatic Magic Mask compositing nodes, and kinetic text tools.",
+    tags: ["Fusion VFX", "DaVinci Resolve", "Presets"],
+    link: "#video"
+  },
+  {
+    title: "Modular Synthesis & Spatial Audio Lab",
+    category: "AUDIO ENGINEERING",
+    discipline: "audio",
+    status: "IN DEVELOPMENT",
+    year: "2026",
+    description: "Custom atmospheric sound design beds, cinematic sub-bass impacts, and spatial audio mastering experiments.",
+    tags: ["Sound Design", "Synthesizers", "Mastering"],
     link: "#"
   },
   {
-    title: "[PROJECT TITLE 03]",
-    category: "CODE",
+    title: "Creative Technologist Script Engine",
+    category: "CREATIVE CODE",
     discipline: "code",
-    year: "[2026]",
-    description: "[Brief one-sentence description or summary of the creative software or script tool.]",
+    status: "IN DEVELOPMENT",
+    year: "2026",
+    description: "Lightweight automation utilities, WebGL real-time distortion shaders, and video metadata extraction tools.",
+    tags: ["GLSL Shaders", "JavaScript", "Automation"],
     link: "#"
   },
   {
-    title: "[PROJECT TITLE 04]",
+    title: "Tactile Studio Console & Hardware Rig",
     category: "DIY // ENGINEERING",
     discipline: "all",
-    year: "[2026]",
-    description: "[Brief one-sentence description or summary of the physical build / hardware engineering project.]",
+    status: "IN PROGRESS",
+    year: "2026",
+    description: "Custom macro controller hardware build with motorized faders and physical dials tailored for video timeline cutting.",
+    tags: ["Hardware DIY", "Microcontrollers", "Ergonomics"],
     link: "#"
   }
 ];
@@ -54,9 +62,14 @@ document.addEventListener('DOMContentLoaded', () => {
   initVideoPlayer();
   fetchLatestYouTubeVideo();
   initProjectsLiquidGlass();
+  initProjectsGrid();
+  initAudioShowcase();
+  initDiscordWaitlist();
+  initContactForm();
   initHeroWatercolorText();
   initHeroRefractionStage();
 });
+
 
 /**
  * 1. Unified requestAnimationFrame-Throttled Scroll Controller
@@ -235,6 +248,11 @@ async function fetchLatestYouTubeVideo() {
     if (subCountEl) {
       animateValue(subCountEl, 0, 51, 1600, '+');
     }
+    if (typeof CONFIG !== 'undefined' && CONFIG.LATEST_VIDEO) {
+      if (videoTitle && CONFIG.LATEST_VIDEO.title) videoTitle.textContent = CONFIG.LATEST_VIDEO.title;
+      if (videoLink && CONFIG.LATEST_VIDEO.url) videoLink.href = CONFIG.LATEST_VIDEO.url;
+      if (videoWrapper && CONFIG.LATEST_VIDEO.id) videoWrapper.setAttribute('data-video-id', CONFIG.LATEST_VIDEO.id);
+    }
   };
 
   if (typeof CONFIG === 'undefined' || !CONFIG.YOUTUBE_API_KEY || !CONFIG.YOUTUBE_CHANNEL_ID) {
@@ -300,6 +318,238 @@ async function fetchLatestYouTubeVideo() {
 /**
  * 6. Dynamic Project Cards Rendering (from config.js or DEFAULT_PROJECTS)
  */
+function initProjectsGrid() {
+  const grid = document.getElementById('projects-grid');
+  if (!grid) return;
+
+  const projects = (typeof CONFIG !== 'undefined' && Array.isArray(CONFIG.PROJECTS) && CONFIG.PROJECTS.length > 0)
+    ? CONFIG.PROJECTS
+    : DEFAULT_PROJECTS;
+
+  grid.innerHTML = projects.map(proj => {
+    let dotClass = 'dot-cyan';
+    if (proj.discipline === 'audio') dotClass = 'dot-pink';
+    else if (proj.discipline === 'code') dotClass = 'dot-amber';
+    else if (proj.discipline === 'all') dotClass = 'dot-pink';
+
+    const tagsHtml = Array.isArray(proj.tags)
+      ? proj.tags.map(tag => `<span class="project-tag">${tag}</span>`).join('')
+      : '';
+
+    const statusBadge = proj.status 
+      ? `<span class="project-status-badge status--in-dev">${proj.status}</span>`
+      : `<span class="project-status-badge">UPCOMING</span>`;
+
+    return `
+      <article class="project-card" data-discipline="${proj.discipline || 'all'}">
+        <div>
+          <div class="project-card-header">
+            <span class="discipline-badge badge-${proj.discipline || 'video'}">
+              <span class="color-dot ${dotClass}"></span>
+              <span>${proj.category || 'PROJECT'}</span>
+            </span>
+            ${statusBadge}
+          </div>
+          <h3 class="project-title">${proj.title}</h3>
+          <p class="project-desc">${proj.description}</p>
+          ${tagsHtml ? `<div class="project-tags">${tagsHtml}</div>` : ''}
+        </div>
+        <div class="project-footer">
+          <span class="project-year">${proj.year || '2026'}</span>
+          <a href="${proj.link || '#'}" class="pill-btn pill-btn--glass pill-btn--sm" aria-label="View ${proj.title}">
+            <span>Details</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <line x1="7" y1="17" x2="17" y2="7"></line>
+              <polyline points="7 7 17 7 17 17"></polyline>
+            </svg>
+          </a>
+        </div>
+      </article>
+    `;
+  }).join('');
+}
+
+/**
+ * 7. Interactive Audio Engineering / Sound Design Showcase Player
+ */
+function initAudioShowcase() {
+  const playBtn = document.getElementById('audio-play-btn');
+  const playIcon = document.getElementById('audio-play-icon');
+  const waveform = document.getElementById('waveform-visual');
+  const timeEl = document.getElementById('audio-curr-time');
+
+  if (!playBtn || !waveform) return;
+
+  // Generate 32 waveform bars with organic rhythmic heights
+  const heights = [
+    25, 40, 65, 80, 50, 70, 95, 85, 60, 45, 75, 90, 100, 75, 55, 40,
+    60, 85, 90, 70, 45, 80, 95, 65, 50, 40, 70, 85, 60, 45, 30, 20
+  ];
+  waveform.innerHTML = heights.map((h, i) => `
+    <div class="waveform-bar" id="wf-bar-${i}" style="height: ${h * 0.4}%;"></div>
+  `).join('');
+
+  let isPlaying = false;
+  let timer = null;
+  let seconds = 0;
+  let audioCtx = null;
+  let osc = null;
+  let gainNode = null;
+
+  const updateWaveform = () => {
+    const bars = waveform.querySelectorAll('.waveform-bar');
+    bars.forEach((bar, idx) => {
+      if (isPlaying) {
+        const rand = 0.3 + 0.7 * Math.sin((Date.now() / 150) + idx * 0.4);
+        bar.style.height = `${Math.max(15, Math.min(100, heights[idx] * rand))}%`;
+        bar.classList.toggle('is-active', idx <= Math.floor((seconds / 45) * 32));
+      } else {
+        bar.style.height = `${heights[idx] * 0.35}%`;
+        bar.classList.remove('is-active');
+      }
+    });
+  };
+
+  const toggleAudio = () => {
+    isPlaying = !isPlaying;
+
+    if (isPlaying) {
+      playBtn.setAttribute('aria-label', 'Pause audio preview');
+      playIcon.innerHTML = `
+        <rect x="6" y="4" width="4" height="16"></rect>
+        <rect x="14" y="4" width="4" height="16"></rect>
+      `;
+
+      // Tactile Web Audio synth drone for authentic sound design demo
+      try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (AudioContext) {
+          audioCtx = new AudioContext();
+          osc = audioCtx.createOscillator();
+          gainNode = audioCtx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(55, audioCtx.currentTime);
+          gainNode.gain.setValueAtTime(0.08, audioCtx.currentTime);
+          osc.connect(gainNode);
+          gainNode.connect(audioCtx.destination);
+          osc.start();
+        }
+      } catch (e) {}
+
+      timer = setInterval(() => {
+        seconds++;
+        if (seconds > 45) {
+          toggleAudio();
+          seconds = 0;
+        }
+        if (timeEl) {
+          const m = Math.floor(seconds / 60);
+          const s = (seconds % 60).toString().padStart(2, '0');
+          timeEl.textContent = `${m}:${s}`;
+        }
+        updateWaveform();
+      }, 1000);
+
+      const animInterval = setInterval(() => {
+        if (!isPlaying) {
+          clearInterval(animInterval);
+          return;
+        }
+        updateWaveform();
+      }, 120);
+
+    } else {
+      playBtn.setAttribute('aria-label', 'Play audio preview');
+      playIcon.innerHTML = `<polygon points="8 5 19 12 8 19 8 5"></polygon>`;
+      if (timer) clearInterval(timer);
+      if (audioCtx) {
+        try {
+          gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.3);
+          setTimeout(() => { audioCtx.close(); }, 350);
+        } catch(e) {}
+      }
+      updateWaveform();
+    }
+  };
+
+  playBtn.addEventListener('click', toggleAudio);
+}
+
+/**
+ * 8. Discord Community Waitlist Email Subscription
+ */
+function initDiscordWaitlist() {
+  const form = document.getElementById('discord-waitlist-form');
+  const input = document.getElementById('waitlist-email');
+  const status = document.getElementById('waitlist-status');
+
+  if (!form || !input || !status) return;
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const email = input.value.trim();
+    if (!email) return;
+
+    // Save locally
+    try {
+      const existing = JSON.parse(localStorage.getItem('vyrn_discord_waitlist') || '[]');
+      if (!existing.includes(email)) {
+        existing.push(email);
+        localStorage.setItem('vyrn_discord_waitlist', JSON.stringify(existing));
+      }
+    } catch(err) {}
+
+    input.value = '';
+    status.classList.add('is-visible');
+    setTimeout(() => {
+      status.classList.remove('is-visible');
+    }, 6000);
+  });
+}
+
+/**
+ * 9. Direct Contact & Collaboration Form Handling
+ */
+function initContactForm() {
+  const form = document.getElementById('contact-form');
+  const status = document.getElementById('contact-status');
+
+  if (!form || !status) return;
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const name = document.getElementById('contact-name')?.value.trim();
+    const email = document.getElementById('contact-email')?.value.trim();
+    const topic = document.getElementById('contact-topic')?.value;
+    const message = document.getElementById('contact-message')?.value.trim();
+
+    if (!name || !email || !message) return;
+
+    const endpoint = (typeof CONFIG !== 'undefined' && CONFIG.CONTACT_ENDPOINT) ? CONFIG.CONTACT_ENDPOINT : '';
+
+    if (endpoint) {
+      try {
+        await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify({ name, email, topic, message })
+        });
+      } catch (err) {}
+    } else {
+      // Fallback: Opens user's default email client
+      const recipient = (typeof CONFIG !== 'undefined' && CONFIG.CONTACT_EMAIL) ? CONFIG.CONTACT_EMAIL : 'refined.mov@gmail.com';
+      const mailtoLink = `mailto:${encodeURIComponent(recipient)}?subject=${encodeURIComponent(`[VYRN] ${topic} from ${name}`)}&body=${encodeURIComponent(`Name: ${name}\nEmail: ${email}\nTopic: ${topic}\n\nMessage:\n${message}`)}`;
+      window.location.href = mailtoLink;
+    }
+
+    form.reset();
+    status.classList.add('is-visible');
+    setTimeout(() => {
+      status.classList.remove('is-visible');
+    }, 7000);
+  });
+}
 /**
  * 6. Interactive WebGL Liquid Glass Block ("Nothing's here yet")
  * Renders an organic liquid glass distortion shader over an offscreen procedural multi-spectral texture.
@@ -539,7 +789,9 @@ function initProjectsLiquidGlass() {
     gl.uniform1i(uniforms.texture, 0);
 
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-    animFrameId = requestAnimationFrame(render);
+    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      animFrameId = requestAnimationFrame(render);
+    }
   };
 
   // 8. IntersectionObserver to only render when scrolled near projects block
@@ -755,7 +1007,9 @@ function initHeroWatercolorText() {
     gl.uniform1i(uniforms.textMask, 0);
 
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-    animFrameId = requestAnimationFrame(render);
+    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      animFrameId = requestAnimationFrame(render);
+    }
   };
 
   // 6. Pause Render Loop When Offscreen

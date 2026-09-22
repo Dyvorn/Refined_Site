@@ -1,0 +1,17 @@
+{
+  "name": "VYRN — Video Tutorials, Creative Tech & Audio Engineering",
+  "short_name": "VYRN",
+  "description": "Official creator hub for VYRN (Lennard Finn Penzler). High-end DaVinci Resolve tutorials, audio engineering, and creative tools.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#090b0e",
+  "theme_color": "#090b0e",
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

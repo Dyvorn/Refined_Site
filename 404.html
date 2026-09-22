@@ -1,57 +1,143 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#0a0a0a">
-    <link rel="icon" type="image/svg+xml" href="favicon.svg">
-    <title>Redirecting...</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#090b0e">
+  <meta name="robots" content="noindex, follow">
+  <title>404 — Signal Lost | VYRN</title>
+
+  <!-- Critical Font Preloads -->
+  <link rel="preload" href="assets/Fonts/syne-v24-latin-800.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/Fonts/inter-v20-latin-regular.woff2" as="font" type="font/woff2" crossorigin>
+
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="stylesheet" href="css/style.css?v=3.3">
+  <style>
+    .error-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      min-height: calc(100vh - 140px);
+      padding: 2rem 1.5rem;
+      position: relative;
+    }
+    .error-card {
+      background: rgba(15, 18, 24, 0.7);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius-xl);
+      padding: clamp(2.5rem, 6vw, 4.5rem) clamp(1.5rem, 5vw, 3.5rem);
+      max-width: 580px;
+      width: 100%;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+      position: relative;
+      overflow: hidden;
+    }
+    .error-card::before {
+      content: '';
+      position: absolute;
+      top: -30%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 280px;
+      height: 280px;
+      background: radial-gradient(circle, rgba(0, 240, 255, 0.18) 0%, rgba(255, 59, 105, 0.12) 50%, transparent 70%);
+      pointer-events: none;
+      filter: blur(40px);
+    }
+    .error-code {
+      font-family: var(--font-display);
+      font-size: clamp(5rem, 14vw, 8rem);
+      font-weight: 800;
+      line-height: 0.9;
+      letter-spacing: -0.05em;
+      background: linear-gradient(135deg, #ffffff 30%, rgba(255, 255, 255, 0.4) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.5rem;
+    }
+    .error-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--discipline-cyan);
+      margin-bottom: 1.25rem;
+    }
+    .error-desc {
+      color: var(--text-secondary);
+      font-size: 1rem;
+      line-height: 1.6;
+      margin-bottom: 2rem;
+      max-width: 440px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .error-actions {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+  </style>
 </head>
-<body>
-    <script src="/config.js"></script>
-    <script>
-        (async function() {
-            let isEarlyAccess = false;
-            try { isEarlyAccess = localStorage.getItem('early_access') === 'true'; } catch(e) {}
-            
-            let launchTime = 0;
-            try { if (typeof CONFIG !== 'undefined') launchTime = new Date(CONFIG.LAUNCH_DATE).getTime(); } catch(e) {}
-            
-            let localTime = new Date().getTime();
-            let isLocallyLocked = launchTime && localTime < launchTime;
-            
-            // Helper function to handle 404 redirect logic
-            const doRedirect = (locked) => {
-                if (!isEarlyAccess && locked) {
-                    document.documentElement.innerHTML = ''; document.documentElement.style.background = 'black';
-                    window.location.replace('/');
-                } else {
-                    window.location.replace('/');
-                }
-            };
+<body class="legal-wrapper">
 
-            if (!isEarlyAccess && (isLocallyLocked || !launchTime)) {
-                doRedirect(true);
-                return;
-            }
+  <!-- Minimal Header -->
+  <header class="legal-nav-header">
+    <div class="legal-nav-container">
+      <a href="index.html" class="legal-brand-link" aria-label="VYRN Home">VYRN</a>
+      <a href="index.html" class="legal-back-link">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <line x1="19" y1="12" x2="5" y2="12"></line>
+          <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+        <span>Back to Home</span>
+      </a>
+    </div>
+  </header>
 
-            if (!isEarlyAccess && launchTime) {
-                try {
-                    let response = await fetch(window.location.href, { method: 'HEAD', cache: 'no-store' });
-                    let serverDateStr = response.headers.get('date');
-                    if (serverDateStr) {
-                        let serverTime = new Date(serverDateStr).getTime();
-                        if (serverTime < launchTime) {
-                            doRedirect(true);
-                            return;
-                        }
-                    }
-                } catch(e) {}
-            }
-            
-            // If they reach here, they are unlocked
-            doRedirect(false);
-        })();
-    </script>
+  <!-- Error Presentation -->
+  <main class="error-container">
+    <div class="error-card">
+      <span class="error-tag">
+        <span class="color-dot dot-cyan"></span>
+        <span>Signal Lost // 404</span>
+      </span>
+      <h1 class="error-code">404</h1>
+      <p class="error-desc">
+        The page or asset you are searching for has been moved, renamed, or never existed in this timeline.
+      </p>
+      <div class="error-actions">
+        <a href="index.html" class="pill-btn pill-btn--solid pill-btn--lg">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+          <span>Return Home</span>
+        </a>
+      </div>
+    </div>
+  </main>
+
+  <!-- Minimal Footer -->
+  <footer class="legal-footer">
+    <div class="legal-footer-container">
+      <span>© 2026 VYRN</span>
+      <div class="legal-footer-links">
+        <a href="impressum.html">Impressum</a>
+        <a href="datenschutz.html">Datenschutzerklärung</a>
+      </div>
+    </div>
+  </footer>
+
 </body>
 </html>
+
