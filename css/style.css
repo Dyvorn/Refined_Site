@@ -1343,6 +1343,14 @@ section {
   transform: scale(1.02);
 }
 
+.empty-desc {
+  font-size: clamp(0.95rem, 1.2vw, 1.05rem);
+  color: var(--text-secondary);
+  max-width: 520px;
+  margin: 1rem auto 0;
+  line-height: 1.6;
+}
+
 /* ==========================================================================
    Community & Support: Two Cool Liquid Glass Pills
    ========================================================================== */
@@ -2445,98 +2453,6 @@ section {
 .project-year {
   font-family: var(--font-mono);
   font-size: 0.8rem;
-  color: var(--text-muted);
-}
-
-/* ==========================================================================
-   Interactive Audio Engineering / Sound Design Showcase
-   ========================================================================== */
-.audio-showcase-card {
-  margin-top: 2rem;
-  background: rgba(15, 18, 24, 0.7);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 59, 105, 0.2);
-  border-radius: var(--radius-xl);
-  padding: clamp(1.5rem, 3.5vw, 2.5rem);
-  box-shadow: 0 16px 44px rgba(0, 0, 0, 0.45), 0 0 35px rgba(255, 59, 105, 0.06);
-}
-
-.audio-showcase-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 1rem;
-  margin-bottom: 1.25rem;
-}
-
-.audio-track-info {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.audio-play-toggle {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: var(--discipline-pink);
-  color: #090b0e;
-  border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
-  cursor: pointer;
-}
-
-.audio-play-toggle:hover {
-  transform: scale(1.06);
-  box-shadow: 0 0 24px rgba(255, 59, 105, 0.55);
-}
-
-.audio-track-titles h4 {
-  font-family: var(--font-display);
-  font-size: 1.15rem;
-  font-weight: 700;
-  color: var(--text-pure);
-  margin: 0;
-}
-
-.audio-track-titles span {
-  font-family: var(--font-mono);
-  font-size: 0.78rem;
-  color: var(--text-secondary);
-}
-
-.audio-waveform-visual {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  height: 44px;
-  padding: 0 0.5rem;
-  margin: 1.25rem 0 0.75rem 0;
-}
-
-.waveform-bar {
-  flex: 1;
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 2px;
-  height: 20%;
-  transition: height 120ms ease, background 120ms ease;
-}
-
-.waveform-bar.is-active {
-  background: var(--discipline-pink);
-  box-shadow: 0 0 8px rgba(255, 59, 105, 0.4);
-}
-
-.audio-time-row {
-  display: flex;
-  justify-content: space-between;
-  font-family: var(--font-mono);
-  font-size: 0.78rem;
   color: var(--text-muted);
 }
 

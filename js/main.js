@@ -24,48 +24,7 @@
 /**
  * Fallback Projects Data (Used if config.js is missing or CONFIG.PROJECTS is empty)
  */
-const DEFAULT_PROJECTS = [
-  {
-    title: "DaVinci Resolve Fusion Macro Suite",
-    category: "VIDEO VFX // WORKFLOW",
-    discipline: "video",
-    status: "IN DEVELOPMENT",
-    year: "2026",
-    description: "High-efficiency 3D motion graphic templates, automatic Magic Mask compositing nodes, and kinetic text tools.",
-    tags: ["Fusion VFX", "DaVinci Resolve", "Presets"],
-    link: "#video"
-  },
-  {
-    title: "Modular Synthesis & Spatial Audio Lab",
-    category: "AUDIO ENGINEERING",
-    discipline: "audio",
-    status: "IN DEVELOPMENT",
-    year: "2026",
-    description: "Custom atmospheric sound design beds, cinematic sub-bass impacts, and spatial audio mastering experiments.",
-    tags: ["Sound Design", "Synthesizers", "Mastering"],
-    link: "#"
-  },
-  {
-    title: "Creative Technologist Script Engine",
-    category: "CREATIVE CODE",
-    discipline: "code",
-    status: "IN DEVELOPMENT",
-    year: "2026",
-    description: "Lightweight automation utilities, WebGL real-time distortion shaders, and video metadata extraction tools.",
-    tags: ["GLSL Shaders", "JavaScript", "Automation"],
-    link: "#"
-  },
-  {
-    title: "Tactile Studio Console & Hardware Rig",
-    category: "DIY // ENGINEERING",
-    discipline: "all",
-    status: "IN PROGRESS",
-    year: "2026",
-    description: "Custom macro controller hardware build with motorized faders and physical dials tailored for video timeline cutting.",
-    tags: ["Hardware DIY", "Microcontrollers", "Ergonomics"],
-    link: "#"
-  }
-];
+const DEFAULT_PROJECTS = [];
 
 document.addEventListener('DOMContentLoaded', () => {
   initUnifiedScroll();
@@ -74,7 +33,6 @@ document.addEventListener('DOMContentLoaded', () => {
   fetchLatestYouTubeVideo();
   initProjectsLiquidGlass();
   initProjectsGrid();
-  initAudioShowcase();
   initDiscordWaitlist();
   initContactForm();
   initHeroWatercolorText();
@@ -331,11 +289,24 @@ async function fetchLatestYouTubeVideo() {
  */
 function initProjectsGrid() {
   const grid = document.getElementById('projects-grid');
+  const emptyBlock = document.getElementById('projects-empty-block');
   if (!grid) return;
 
   const projects = (typeof CONFIG !== 'undefined' && Array.isArray(CONFIG.PROJECTS) && CONFIG.PROJECTS.length > 0)
     ? CONFIG.PROJECTS
     : DEFAULT_PROJECTS;
+
+  // When no projects are configured yet, showcase the Active Development Lab canvas
+  if (!projects || projects.length === 0) {
+    grid.innerHTML = '';
+    grid.style.display = 'none';
+    if (emptyBlock) emptyBlock.style.display = 'flex';
+    return;
+  }
+
+  // When projects exist, reveal the grid and hide the standalone empty state
+  if (emptyBlock) emptyBlock.style.display = 'none';
+  grid.style.display = 'grid';
 
   grid.innerHTML = projects.map(proj => {
     let dotClass = 'dot-cyan';
@@ -378,112 +349,6 @@ function initProjectsGrid() {
       </article>
     `;
   }).join('');
-}
-
-/**
- * 7. Interactive Audio Engineering / Sound Design Showcase Player
- */
-function initAudioShowcase() {
-  const playBtn = document.getElementById('audio-play-btn');
-  const playIcon = document.getElementById('audio-play-icon');
-  const waveform = document.getElementById('waveform-visual');
-  const timeEl = document.getElementById('audio-curr-time');
-
-  if (!playBtn || !waveform) return;
-
-  // Generate 32 waveform bars with organic rhythmic heights
-  const heights = [
-    25, 40, 65, 80, 50, 70, 95, 85, 60, 45, 75, 90, 100, 75, 55, 40,
-    60, 85, 90, 70, 45, 80, 95, 65, 50, 40, 70, 85, 60, 45, 30, 20
-  ];
-  waveform.innerHTML = heights.map((h, i) => `
-    <div class="waveform-bar" id="wf-bar-${i}" style="height: ${h * 0.4}%;"></div>
-  `).join('');
-
-  let isPlaying = false;
-  let timer = null;
-  let seconds = 0;
-  let audioCtx = null;
-  let osc = null;
-  let gainNode = null;
-
-  const updateWaveform = () => {
-    const bars = waveform.querySelectorAll('.waveform-bar');
-    bars.forEach((bar, idx) => {
-      if (isPlaying) {
-        const rand = 0.3 + 0.7 * Math.sin((Date.now() / 150) + idx * 0.4);
-        bar.style.height = `${Math.max(15, Math.min(100, heights[idx] * rand))}%`;
-        bar.classList.toggle('is-active', idx <= Math.floor((seconds / 45) * 32));
-      } else {
-        bar.style.height = `${heights[idx] * 0.35}%`;
-        bar.classList.remove('is-active');
-      }
-    });
-  };
-
-  const toggleAudio = () => {
-    isPlaying = !isPlaying;
-
-    if (isPlaying) {
-      playBtn.setAttribute('aria-label', 'Pause audio preview');
-      playIcon.innerHTML = `
-        <rect x="6" y="4" width="4" height="16"></rect>
-        <rect x="14" y="4" width="4" height="16"></rect>
-      `;
-
-      // Tactile Web Audio synth drone for authentic sound design demo
-      try {
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        if (AudioContext) {
-          audioCtx = new AudioContext();
-          osc = audioCtx.createOscillator();
-          gainNode = audioCtx.createGain();
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(55, audioCtx.currentTime);
-          gainNode.gain.setValueAtTime(0.08, audioCtx.currentTime);
-          osc.connect(gainNode);
-          gainNode.connect(audioCtx.destination);
-          osc.start();
-        }
-      } catch (e) {}
-
-      timer = setInterval(() => {
-        seconds++;
-        if (seconds > 45) {
-          toggleAudio();
-          seconds = 0;
-        }
-        if (timeEl) {
-          const m = Math.floor(seconds / 60);
-          const s = (seconds % 60).toString().padStart(2, '0');
-          timeEl.textContent = `${m}:${s}`;
-        }
-        updateWaveform();
-      }, 1000);
-
-      const animInterval = setInterval(() => {
-        if (!isPlaying) {
-          clearInterval(animInterval);
-          return;
-        }
-        updateWaveform();
-      }, 120);
-
-    } else {
-      playBtn.setAttribute('aria-label', 'Play audio preview');
-      playIcon.innerHTML = `<polygon points="8 5 19 12 8 19 8 5"></polygon>`;
-      if (timer) clearInterval(timer);
-      if (audioCtx) {
-        try {
-          gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.3);
-          setTimeout(() => { audioCtx.close(); }, 350);
-        } catch(e) {}
-      }
-      updateWaveform();
-    }
-  };
-
-  playBtn.addEventListener('click', toggleAudio);
 }
 
 /**

@@ -9,10 +9,10 @@ const CONFIG = {
     BUYMEACOFFEE_URL: 'https://buymeacoffee.com/vyrn',
     GITHUB_URL: 'https://github.com/Dyvorn', // Updated profile link
 
-    // YouTube API & Fallback Data (Privacy-first: avoids unconsented client-side tracking)
-    YOUTUBE_API_KEY: '', // Optional: Keep empty to use rock-solid privacy-first static data
+    // YouTube API & Fallback Data
+    YOUTUBE_API_KEY: 'AIzaSyA24XmA6nfPzwCzny2RcB9_WkC4o1o_HKk',
     YOUTUBE_CHANNEL_ID: 'UCGe5VOk80siQe0r2OfQQWPw',
-    FALLBACK_SUBSCRIBERS: '51+',
+    FALLBACK_SUBSCRIBERS: '5246463426456+',
     LATEST_VIDEO: {
         id: '5t1xed1vlO4',
         title: 'HOW TO PUT TEXT BEHIND YOU | Davinci Resolve Tutorial',
@@ -30,49 +30,30 @@ const CONFIG = {
     // Contact Form Endpoint (Optional: e.g. 'https://formspree.io/f/your_id' or left empty for direct mail client)
     CONTACT_ENDPOINT: '',
 
-    // Modular Project List (Active Development Showcase)
-    // Disciplines: 'audio' (Pink), 'video' (Cyan), 'code' (Amber), 'all' (Tri-Color: Physical DIY / Engineering)
+    // =========================================================================
+    // Modular Project List Template
+    // Add your project objects into the PROJECTS array below when ready.
+    //
+    // Disciplines: 
+    //   'video' (Cyan) | 'audio' (Pink) | 'code' (Amber) | 'all' (Tri-Color DIY/Engineering)
+    //
+    // Status (Optional):
+    //   'IN DEVELOPMENT' | 'IN PROGRESS' | 'COMPLETED' | 'COMING SOON'
+    //
+    // Example Project Schema:
+    // {
+    //     title: "Your Project Title",
+    //     category: "VIDEO VFX // WORKFLOW",
+    //     discipline: "video",
+    //     status: "IN DEVELOPMENT",
+    //     year: "2026",
+    //     description: "One or two sentences describing what you built, edited, or created.",
+    //     tags: ["DaVinci Resolve", "Fusion", "Preset"],
+    //     link: "https://your-link-or-repo.com" // or "#"
+    // }
+    // =========================================================================
     PROJECTS: [
-        {
-            title: "DaVinci Resolve Fusion Macro Suite",
-            category: "VIDEO VFX // WORKFLOW",
-            discipline: "video",
-            status: "IN DEVELOPMENT",
-            year: "2026",
-            description: "High-efficiency 3D motion graphic templates, automatic Magic Mask compositing nodes, and kinetic text tools.",
-            tags: ["Fusion VFX", "DaVinci Resolve", "Presets"],
-            link: "#video"
-        },
-        {
-            title: "Modular Synthesis & Spatial Audio Lab",
-            category: "AUDIO ENGINEERING",
-            discipline: "audio",
-            status: "IN DEVELOPMENT",
-            year: "2026",
-            description: "Custom atmospheric sound design beds, cinematic sub-bass impacts, and spatial audio mastering experiments.",
-            tags: ["Sound Design", "Synthesizers", "Mastering"],
-            link: "#"
-        },
-        {
-            title: "Creative Technologist Script Engine",
-            category: "CREATIVE CODE",
-            discipline: "code",
-            status: "IN DEVELOPMENT",
-            year: "2026",
-            description: "Lightweight automation utilities, WebGL real-time distortion shaders, and video metadata extraction tools.",
-            tags: ["GLSL Shaders", "JavaScript", "Automation"],
-            link: "#"
-        },
-        {
-            title: "Tactile Studio Console & Hardware Rig",
-            category: "DIY // ENGINEERING",
-            discipline: "all",
-            status: "IN PROGRESS",
-            year: "2026",
-            description: "Custom macro controller hardware build with motorized faders and physical dials tailored for video timeline cutting.",
-            tags: ["Hardware DIY", "Microcontrollers", "Ergonomics"],
-            link: "#"
-        }
+        // Currently empty. Add project objects here when ready to showcase!
     ]
 };
 
