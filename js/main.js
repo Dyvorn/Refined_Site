@@ -454,7 +454,7 @@ function initProjectsLiquidGlass() {
     ('ontouchstart' in window) ||
     window.innerWidth <= 768
   ));
-  const activeDpr = isLowPowerDevice ? 0.75 : Math.min(window.devicePixelRatio || 1, 1.0);
+  const activeDpr = isLowPowerDevice ? 0.65 : Math.min(window.devicePixelRatio || 1, 0.75);
 
   const setCanvasSize = () => {
     const rect = block.getBoundingClientRect();
@@ -830,7 +830,7 @@ function initHeroWatercolorText() {
       ('ontouchstart' in window) ||
       window.innerWidth <= 768
     ));
-    const dpr = isLowPower ? 0.8 : Math.min(window.devicePixelRatio || 1, 1.0);
+    const dpr = isLowPower ? 0.65 : Math.min(window.devicePixelRatio || 1, 0.75);
     const pixelWidth = Math.round(rect.width * dpr);
     const pixelHeight = Math.round(rect.height * dpr);
 
@@ -964,9 +964,6 @@ function initHeroRefractionStage() {
   const stage = document.getElementById('hero-stage');
   if (!stage) return;
 
-  const pills = stage.querySelectorAll('.hero-glass-pill');
-  if (!pills.length) return;
-
   let stageRect = null;
   const updateRect = () => {
     stageRect = stage.getBoundingClientRect();
@@ -978,10 +975,8 @@ function initHeroRefractionStage() {
   let ticking = false;
 
   const updatePills = () => {
-    pills.forEach((pill, idx) => {
-      const factor = (idx % 2 === 0 ? 1 : -1) * (idx + 1) * 4;
-      pill.style.transform = `translate3d(${targetX * factor}px, ${targetY * factor}px, 0)`;
-    });
+    stage.style.setProperty('--pill-mx', `${(targetX * 8).toFixed(1)}px`);
+    stage.style.setProperty('--pill-my', `${(targetY * 8).toFixed(1)}px`);
     ticking = false;
   };
 
@@ -1000,18 +995,15 @@ function initHeroRefractionStage() {
   }, { passive: true });
 
   stage.addEventListener('mouseleave', () => {
-    if (window.innerWidth <= 640) return;
-    pills.forEach((pill) => {
-      pill.style.transform = '';
-    });
+    stage.style.setProperty('--pill-mx', '0px');
+    stage.style.setProperty('--pill-my', '0px');
   }, { passive: true });
 
   window.addEventListener('resize', () => {
     updateRect();
     if (window.innerWidth <= 640) {
-      pills.forEach((pill) => {
-        pill.style.transform = '';
-      });
+      stage.style.setProperty('--pill-mx', '0px');
+      stage.style.setProperty('--pill-my', '0px');
     }
   }, { passive: true });
 }
