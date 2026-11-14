@@ -1,6 +1,6 @@
 /**
  * VYRN — Autonomous Agent Swarm Startup Sequence
- * A tactile toolbox drops in and spills 5 large stylized cursor agents
+ * A tactile toolbox drops in and spills 5 stylized character agents
  * (with hats, headphones, tracking eyes, and a waving Progress Pride Flag)
  * that build the VYRN interface in 1:1 DOM alignment and bleed watercolor ink
  * through the "VYRN" letterforms before handing off to the live page.
@@ -1418,56 +1418,31 @@
       }
     }
 
-    function traceCursorPath() {
-      ctx.beginPath();
-      ctx.moveTo(-12, -26);
-      ctx.lineTo(-16, 13);
-      ctx.lineTo(-3, 7);
-      ctx.lineTo(4, 24);
-      ctx.lineTo(11, 21);
-      ctx.lineTo(4, 4);
-      ctx.lineTo(20, 1);
-      ctx.closePath();
-    }
-
-    function drawCursorBody(accentColor, agentAlpha) {
-      ctx.save();
-      ctx.lineJoin = 'round';
-      traceCursorPath();
-
-      // Subtle outer role-colored rim halo
-      ctx.strokeStyle = accentColor;
-      ctx.lineWidth = 4.6;
-      ctx.globalAlpha = 0.42 * agentAlpha;
-      ctx.stroke();
-
-      // Sleek obsidian slate fill for maximum contrast with eyes & gear
-      ctx.globalAlpha = agentAlpha;
-      const bodyGrad = ctx.createLinearGradient(-12, -26, 16, 20);
-      bodyGrad.addColorStop(0, '#222b3e');
-      bodyGrad.addColorStop(0.55, '#111622');
-      bodyGrad.addColorStop(1, '#090d14');
-      ctx.fillStyle = bodyGrad;
+    function drawBotChassis(bodyW, bodyH, topFill, bottomFill, strokeColor, radius) {
+      const grad = ctx.createLinearGradient(0, -bodyH * 0.5, 0, bodyH * 0.5);
+      grad.addColorStop(0, topFill);
+      grad.addColorStop(1, bottomFill);
+      ctx.fillStyle = grad;
+      traceRoundedRect(ctx, -bodyW * 0.5, -bodyH * 0.5, bodyW, bodyH, radius);
       ctx.fill();
-
-      // Crisp desktop pointer border
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 2.2;
+      ctx.strokeStyle = strokeColor;
+      ctx.lineWidth = 1.6;
       ctx.stroke();
 
-      // Glossy diagonal shoulder highlight edge
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.24)';
-      ctx.lineWidth = 1;
+      // Subtle top rim specular bevel for glossy micro-contrast
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.22)';
+      ctx.lineWidth = 0.9;
       ctx.beginPath();
-      ctx.moveTo(-8.5, -20);
-      ctx.lineTo(14.5, -0.5);
+      ctx.moveTo(-bodyW * 0.5 + radius * 0.65, -bodyH * 0.5 + 1.5);
+      ctx.lineTo(bodyW * 0.5 - radius * 0.65, -bodyH * 0.5 + 1.5);
       ctx.stroke();
-      ctx.restore();
     }
 
     function drawSingleAgentCharacter(ag, agentAlpha) {
       const blink = ag.blinkTimer < 0 ? Math.sin(((-ag.blinkTimer) / 0.14) * Math.PI) : 0;
-      const scale = vw <= 480 ? 0.96 : 1.16;
+      const bodyW = 28;
+      const bodyH = 22;
+      const scale = vw <= 480 ? 1.08 : 1.32;
 
       ctx.save();
       ctx.translate(ag.x, ag.y);
@@ -1475,26 +1450,24 @@
       ctx.scale(scale, scale);
       ctx.globalAlpha = agentAlpha;
 
-      // Tail-mounted layered plasma thruster plume when steering
+      // Layered plasma hover thruster plume under bot
       if (ag.thrustersActive) {
-        const flicker = Math.sin(ag.flagPhase * 2.2) * 3;
+        const flicker = Math.sin(ag.flagPhase * 2.2) * 2.5;
         ctx.save();
-        ctx.translate(7.5, 22);
-        ctx.rotate(-0.39);
         ctx.globalCompositeOperation = 'lighter';
         ctx.fillStyle = ag.color;
-        ctx.globalAlpha = 0.48 * agentAlpha;
+        ctx.globalAlpha = 0.44 * agentAlpha;
         ctx.beginPath();
-        ctx.moveTo(-4.4, 0);
-        ctx.quadraticCurveTo(0, 14 + flicker, 4.4, 0);
+        ctx.moveTo(-6.2, bodyH * 0.5);
+        ctx.quadraticCurveTo(0, bodyH * 0.5 + 11 + flicker, 6.2, bodyH * 0.5);
         ctx.closePath();
         ctx.fill();
 
         ctx.fillStyle = '#ffffff';
-        ctx.globalAlpha = 0.78 * agentAlpha;
+        ctx.globalAlpha = 0.72 * agentAlpha;
         ctx.beginPath();
-        ctx.moveTo(-2.1, 0);
-        ctx.quadraticCurveTo(0, 7.5 + flicker * 0.5, 2.1, 0);
+        ctx.moveTo(-2.8, bodyH * 0.5);
+        ctx.quadraticCurveTo(0, bodyH * 0.5 + 6 + flicker * 0.5, 2.8, bodyH * 0.5);
         ctx.closePath();
         ctx.fill();
         ctx.restore();
@@ -1502,152 +1475,147 @@
       }
 
       if (ag.id === 'shader') {
-        // SHADER: Artist cursor carrying a large animated LGBTQIA+ Progress Pride Flag + beret
-        drawProgressPrideFlag(ctx, 14, -34, 46, 28, ag.flagPhase);
-        drawCursorBody(PALETTE.pink, agentAlpha);
-        drawTrackingEyes(ctx, -5.5, -2.5, 4.5, -2.5, ag.lookAngle - ag.tilt, blink, 4.4);
+        // SHADER: Sleek artist bot carrying a large animated LGBTQIA+ Progress Pride Flag + beret
+        drawProgressPrideFlag(ctx, 10, -28, 42, 26, ag.flagPhase);
+        drawBotChassis(bodyW, bodyH, '#1d2436', '#0e121c', PALETTE.pink, 10);
+        drawTrackingEyes(ctx, -6, -1, 6, -1, ag.lookAngle - ag.tilt, blink, 4.3);
 
-        // Sleek magenta artist beret perched jauntily on the pointer tip
+        // Sleek magenta artist beret tilted on top
         ctx.save();
-        ctx.translate(-10, -25);
-        ctx.rotate(-0.24);
+        ctx.translate(-2, -bodyH * 0.5 - 1);
+        ctx.rotate(-0.18);
         ctx.fillStyle = '#ff3b69';
         ctx.beginPath();
-        ctx.ellipse(0, 0, 14.5, 5.8, 0, 0, Math.PI * 2);
+        ctx.ellipse(0, 0, 14, 5.5, 0, 0, Math.PI * 2);
         ctx.fill();
         ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
-        ctx.lineWidth = 0.9;
+        ctx.lineWidth = 0.85;
         ctx.stroke();
+        // Top highlight arc on beret crown
         ctx.strokeStyle = 'rgba(255, 220, 232, 0.5)';
         ctx.lineWidth = 1;
         ctx.beginPath();
-        ctx.ellipse(0, -1.6, 8.2, 2.2, 0, Math.PI * 1.1, Math.PI * 1.9);
+        ctx.ellipse(0, -1.6, 8, 2.2, 0, Math.PI * 1.1, Math.PI * 1.9);
         ctx.stroke();
         ctx.fillStyle = '#ff3b69';
-        ctx.fillRect(-1.5, -7.2, 3, 4);
+        ctx.fillRect(-1.5, -7, 3, 4);
         ctx.restore();
       } else if (ag.id === 'architect') {
-        // ARCHITECT: Cyan builder cursor wearing a Yellow Construction Hard Hat
-        drawCursorBody(PALETTE.cyan, agentAlpha);
-        drawTrackingEyes(ctx, -5.5, -2.5, 4.5, -2.5, ag.lookAngle - ag.tilt, blink, 4.4);
+        // ARCHITECT: Cyan builder bot with expressive eyes + Yellow Construction Hard Hat
+        drawBotChassis(bodyW, bodyH, '#152235', '#0b111c', PALETTE.cyan, 9);
+        drawTrackingEyes(ctx, -6, 0, 6, 0, ag.lookAngle - ag.tilt, blink, 4.2);
 
+        // Yellow Hard Hat
         ctx.save();
-        ctx.translate(-10, -24);
-        ctx.rotate(-0.18);
+        ctx.translate(0, -bodyH * 0.5 + 1);
         ctx.fillStyle = '#facc15';
         ctx.strokeStyle = 'rgba(0, 0, 0, 0.45)';
         ctx.lineWidth = 0.9;
         ctx.beginPath();
-        ctx.arc(0, 0, 13.5, Math.PI, 0);
+        ctx.arc(0, 0, 13, Math.PI, 0);
         ctx.closePath();
         ctx.fill();
         ctx.stroke();
+        // Dome specular arc
         ctx.strokeStyle = '#fef9c3';
-        ctx.lineWidth = 1.25;
+        ctx.lineWidth = 1.2;
         ctx.beginPath();
-        ctx.arc(0, 0, 10.6, Math.PI * 1.15, Math.PI * 1.48);
+        ctx.arc(0, 0, 10.2, Math.PI * 1.15, Math.PI * 1.48);
         ctx.stroke();
+        // Hard hat brim
         ctx.fillStyle = '#facc15';
         ctx.strokeStyle = 'rgba(0, 0, 0, 0.45)';
         ctx.lineWidth = 0.9;
-        traceRoundedRect(ctx, -16.5, -2, 33, 4.5, 2.2);
+        traceRoundedRect(ctx, -16, -2, 32, 4.5, 2.2);
         ctx.fill();
         ctx.stroke();
+        // Center crest ridge
         ctx.fillStyle = '#fde047';
-        traceRoundedRect(ctx, -2.5, -14, 5, 12, 2.5);
+        traceRoundedRect(ctx, -2.5, -13.5, 5, 11.5, 2.5);
         ctx.fill();
         ctx.stroke();
         ctx.restore();
       } else if (ag.id === 'synth') {
-        // SYNTH: Big-eyed audio cursor wearing chunky Studio Headphones
+        // SYNTH: Big-eyed amber audio bot wearing chunky Studio Headphones
         ctx.strokeStyle = '#e2e8f0';
-        ctx.lineWidth = 3.2;
-        ctx.lineCap = 'round';
+        ctx.lineWidth = 3;
         ctx.beginPath();
-        ctx.moveTo(-15.5, -2);
-        ctx.bezierCurveTo(-25, -34, 0, -42, 14, -5);
+        ctx.arc(0, -1, 17, Math.PI * 1.05, -Math.PI * 0.05);
         ctx.stroke();
 
-        drawCursorBody(PALETTE.amber, agentAlpha);
+        drawBotChassis(bodyW, bodyH, '#251e12', '#120e08', PALETTE.amber, 10);
 
-        // Padded headphone earcups hugging the cursor flanks
-        ctx.save();
-        ctx.translate(-15.5, -1);
-        ctx.rotate(0.1);
+        // Padded headphone earcups + subtle metallic accent ring
         ctx.fillStyle = PALETTE.amber;
-        traceRoundedRect(ctx, -5, -7.5, 6.5, 15, 3.2);
+        traceRoundedRect(ctx, -bodyW * 0.5 - 5.5, -7, 6, 14, 3);
         ctx.fill();
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.42)';
-        ctx.fillRect(-2.6, -4.2, 1.5, 8.4);
-        ctx.restore();
-
-        ctx.save();
-        ctx.translate(14, -4.5);
-        ctx.rotate(-0.84);
-        ctx.fillStyle = PALETTE.amber;
-        traceRoundedRect(ctx, -3, -7.5, 6.5, 15, 3.2);
+        traceRoundedRect(ctx, bodyW * 0.5 - 0.5, -7, 6, 14, 3);
         ctx.fill();
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.42)';
-        ctx.fillRect(-0.6, -4.2, 1.5, 8.4);
-        ctx.restore();
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+        ctx.fillRect(-bodyW * 0.5 - 3.5, -4, 1.4, 8);
+        ctx.fillRect(bodyW * 0.5 + 2.1, -4, 1.4, 8);
 
-        drawTrackingEyes(ctx, -5.8, -1, 5.0, -1, ag.lookAngle - ag.tilt, blink, 5.0);
+        drawTrackingEyes(ctx, -6.5, -0.5, 6.5, -0.5, ag.lookAngle - ag.tilt, blink, 4.9);
       } else if (ag.id === 'motion') {
-        // MOTION: Kinetic lime cursor wearing a Dapper Top Hat + glowing hatband
-        drawCursorBody(PALETTE.lime, agentAlpha);
-        drawTrackingEyes(ctx, -5.5, -2.5, 4.5, -2.5, ag.lookAngle - ag.tilt, blink, 4.4);
+        // MOTION: Lime kinetic bot wearing a Dapper Top Hat + glowing hatband
+        drawBotChassis(bodyW, bodyH, '#192717', '#0d140c', PALETTE.lime, 9);
+        drawTrackingEyes(ctx, -6, 0, 6, 0, ag.lookAngle - ag.tilt, blink, 4.2);
 
+        // Dapper Top Hat
         ctx.save();
-        ctx.translate(-10, -24);
-        ctx.rotate(-0.16);
+        ctx.translate(0, -bodyH * 0.5 + 1);
         ctx.fillStyle = '#181c24';
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.55)';
-        ctx.lineWidth = 0.95;
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
+        ctx.lineWidth = 0.9;
         traceRoundedRect(ctx, -9.5, -16, 19, 15, 2.5);
         ctx.fill();
         ctx.stroke();
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.16)';
+        // Subtle silk crown sheen
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.14)';
         ctx.fillRect(-7.2, -14.5, 3, 9);
+        // Glowing lime ribbon band
         ctx.fillStyle = PALETTE.lime;
         ctx.fillRect(-9.2, -5.5, 18.4, 3);
+        // Hat brim
         ctx.fillStyle = '#1e2430';
-        traceRoundedRect(ctx, -16, -2.5, 32, 4.2, 2);
+        traceRoundedRect(ctx, -16, -2.5, 32, 4, 2);
         ctx.fill();
         ctx.stroke();
         ctx.restore();
       } else {
-        // COMPILER: Blue inspector cursor with wide curious eyes & Spinning Propeller Cap
-        drawCursorBody(PALETTE.blue, agentAlpha);
-        drawTrackingEyes(ctx, -5.5, -2.5, 4.5, -2.5, ag.lookAngle - ag.tilt, blink, 4.7);
+        // COMPILER: Blue inspector bot with wide curious eyes & Spinning Propeller Cap
+        drawBotChassis(bodyW, bodyH, '#16233a', '#0c1220', PALETTE.blue, 10);
+        drawTrackingEyes(ctx, -6, 0, 6, 0, ag.lookAngle - ag.tilt, blink, 4.6);
 
+        // Colorful beanie dome
         ctx.save();
-        ctx.translate(-10, -24);
-        ctx.rotate(-0.18);
+        ctx.translate(0, -bodyH * 0.5 + 1);
         ctx.fillStyle = PALETTE.blue;
         ctx.beginPath();
-        ctx.arc(0, 0, 12.5, Math.PI, 0);
+        ctx.arc(0, 0, 12, Math.PI, 0);
         ctx.closePath();
         ctx.fill();
         ctx.fillStyle = PALETTE.pink;
         ctx.beginPath();
-        ctx.arc(0, 0, 12.5, Math.PI, Math.PI * 1.45);
+        ctx.arc(0, 0, 12, Math.PI, Math.PI * 1.45);
         ctx.lineTo(0, 0);
         ctx.closePath();
         ctx.fill();
+        // Cap visor bill
         ctx.fillStyle = PALETTE.amber;
-        traceRoundedRect(ctx, 2, -2, 13.5, 3.8, 2);
+        traceRoundedRect(ctx, 2, -2, 13, 3.8, 2);
         ctx.fill();
 
         // Spinning propeller shaft + motion blur disc + blades
         ctx.fillStyle = '#e2e8f0';
-        ctx.fillRect(-1.2, -16.5, 2.4, 5);
-        ctx.fillStyle = 'rgba(0, 240, 255, 0.2)';
+        ctx.fillRect(-1.2, -16, 2.4, 5);
+        ctx.fillStyle = 'rgba(0, 240, 255, 0.18)';
         ctx.beginPath();
-        ctx.ellipse(0, -16.5, 16, 2.7, 0, 0, Math.PI * 2);
+        ctx.ellipse(0, -16, 15.5, 2.6, 0, 0, Math.PI * 2);
         ctx.fill();
-        const bladeW = 4.2 + Math.abs(Math.cos(ag.propellerAngle)) * 12.5;
+        const bladeW = 4 + Math.abs(Math.cos(ag.propellerAngle)) * 12;
         ctx.fillStyle = PALETTE.cyan;
-        traceRoundedRect(ctx, -bladeW, -18, bladeW * 2, 3.1, 1.5);
+        traceRoundedRect(ctx, -bladeW, -17.5, bladeW * 2, 3, 1.5);
         ctx.fill();
         ctx.restore();
       }
