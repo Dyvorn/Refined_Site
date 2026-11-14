@@ -91,10 +91,48 @@
 
   <link rel="manifest" href="manifest.json">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
-  <link rel="stylesheet" href="css/style.css?v=3.5">
+  <link rel="stylesheet" href="css/style.css?v=3.6">
+  <script>
+    if (window.matchMedia && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      document.documentElement.classList.add('swarm-booting');
+      setTimeout(function () {
+        if (!window.__vyrnSwarmInit) {
+          document.documentElement.classList.remove('swarm-booting');
+        }
+      }, 2500);
+    }
+  </script>
 </head>
 
 <body>
+  <!-- Autonomous Agent Swarm Startup Build Animation -->
+  <div id="swarm-startup" class="swarm-startup" role="region" aria-label="Website build animation">
+    <canvas id="swarm-canvas" class="swarm-canvas" aria-hidden="true"></canvas>
+
+    <div class="swarm-hud">
+      <div class="swarm-hud-left">
+        <div class="swarm-log-feed" id="swarm-log-feed" aria-hidden="true"></div>
+        <div class="swarm-status-pill">
+          <span class="swarm-status-dots" aria-hidden="true">
+            <span class="color-dot dot-pink"></span>
+            <span class="color-dot dot-cyan"></span>
+            <span class="color-dot dot-amber"></span>
+          </span>
+          <span class="swarm-status-label" id="swarm-status-label">SWARM // INITIALIZING</span>
+          <span class="swarm-status-pct" id="swarm-status-pct">00%</span>
+          <span class="swarm-progress-track" aria-hidden="true">
+            <span class="swarm-progress-fill" id="swarm-progress-fill"></span>
+          </span>
+        </div>
+      </div>
+
+      <button type="button" id="swarm-skip-btn" class="pill-btn pill-btn--glass swarm-skip-btn">
+        <span>Skip Intro</span>
+        <kbd class="swarm-kbd" aria-hidden="true">ESC</kbd>
+      </button>
+    </div>
+  </div>
+
   <!-- Ambient Atmospheric Glow Mesh (Subtle lighting for optical glass refraction) -->
   <div class="ambient-canvas" aria-hidden="true">
     <div class="ambient-glow ambient-glow--hero"></div>
@@ -577,6 +615,11 @@
         <span class="footer-copy">© 2026 VYRN</span>
 
         <nav class="footer-legal-nav" aria-label="Legal Links">
+          <button type="button" id="swarm-replay-btn" class="footer-legal-link footer-replay-btn" title="Replay the agent swarm startup animation">
+            <span class="color-dot dot-cyan" aria-hidden="true"></span>
+            <span>Replay Swarm</span>
+          </button>
+          <span class="footer-divider" aria-hidden="true">/</span>
           <a href="impressum.html" class="footer-legal-link">Impressum</a>
           <span class="footer-divider">/</span>
           <a href="datenschutz.html" class="footer-legal-link">Datenschutzerklärung</a>
@@ -817,7 +860,8 @@ void main() {
 
   <!-- Scripts -->
   <script src="config.js" defer></script>
-  <script src="js/main.js?v=3.5" defer></script>
+  <script src="js/swarm-boot.js?v=3.6" defer></script>
+  <script src="js/main.js?v=3.6" defer></script>
 </body>
 
 </html>
