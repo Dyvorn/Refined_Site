@@ -1,17 +1,18 @@
 /**
  * VYRN — Autonomous Agent Swarm Startup Sequence
- * Choreographs a real-time multi-agent swarm constructing the VYRN interface
- * in 1:1 spatial alignment with the live DOM before cross-dissolving seamlessly
- * into the interactive page.
+ * A tactile toolbox drops in and spills 5 stylized character agents
+ * (with hats, tracking eyes, and a waving Progress Pride Flag) that build
+ * the VYRN interface in 1:1 DOM alignment and bleed watercolor ink through
+ * the "VYRN" letterforms before handing off to the live page.
  */
 (function initSwarmBootModule() {
   'use strict';
 
   window.__vyrnSwarmInit = true;
 
-  const TOTAL_DURATION_MS = 3850;
+  const TOTAL_DURATION_MS = 4350;
   const SKIP_DISSOLVE_MS = 280;
-  const FAILSAFE_TIMEOUT_MS = 6500;
+  const FAILSAFE_TIMEOUT_MS = 7200;
 
   const PALETTE = {
     bg: '#090b0e',
@@ -24,29 +25,78 @@
   };
 
   const AGENT_SPECS = [
-    { id: 'architect', label: 'ARCHITECT', color: PALETTE.cyan, glowKey: 'cyan', angleBias: -2.2 },
-    { id: 'synth', label: 'SYNTH', color: PALETTE.amber, glowKey: 'amber', angleBias: -0.9 },
-    { id: 'shader', label: 'SHADER', color: PALETTE.pink, glowKey: 'pink', angleBias: 0.4 },
-    { id: 'motion', label: 'MOTION', color: PALETTE.lime, glowKey: 'lime', angleBias: 1.7 },
-    { id: 'compiler', label: 'COMPILER', color: PALETTE.blue, glowKey: 'blue', angleBias: 2.8 },
+    {
+      id: 'architect',
+      label: 'ARCHITECT',
+      color: PALETTE.cyan,
+      glowKey: 'cyan',
+      spillVx: -210,
+      spillVy: -360,
+      spillDelay: 0.075,
+    },
+    {
+      id: 'synth',
+      label: 'SYNTH',
+      color: PALETTE.amber,
+      glowKey: 'amber',
+      spillVx: -95,
+      spillVy: -430,
+      spillDelay: 0.095,
+    },
+    {
+      id: 'shader',
+      label: 'SHADER',
+      color: PALETTE.pink,
+      glowKey: 'pink',
+      spillVx: 15,
+      spillVy: -460,
+      spillDelay: 0.115,
+    },
+    {
+      id: 'motion',
+      label: 'MOTION',
+      color: PALETTE.lime,
+      glowKey: 'lime',
+      spillVx: 120,
+      spillVy: -400,
+      spillDelay: 0.135,
+    },
+    {
+      id: 'compiler',
+      label: 'COMPILER',
+      color: PALETTE.blue,
+      glowKey: 'blue',
+      spillVx: 225,
+      spillVy: -350,
+      spillDelay: 0.155,
+    },
   ];
 
   const LOG_MILESTONES = [
-    { t: 0.02, tag: 'ORCHESTRATOR', color: PALETTE.white, text: 'spawned 5 specialist agents + 22 micro-drones' },
-    { t: 0.14, tag: 'ARCHITECT', color: PALETTE.cyan, text: 'mapped responsive grid & glass-nav-pill' },
-    { t: 0.30, tag: 'SYNTH', color: PALETTE.amber, text: 'sampled Syne-800 glyph lattice for "VYRN"' },
-    { t: 0.48, tag: 'SHADER', color: PALETTE.pink, text: 'bound WebGL fluid pigment & specular rim' },
-    { t: 0.65, tag: 'MOTION', color: PALETTE.lime, text: 'locked capsule springs (AUDIO / VIDEO / CODE)' },
-    { t: 0.80, tag: 'COMPILER', color: PALETTE.blue, text: 'build verified · handing off to live DOM' },
+    { t: 0.04, tag: 'TOOLKIT', color: PALETTE.white, text: 'unlatched toolbox · deployed 5 builder bots' },
+    { t: 0.22, tag: 'ARCHITECT', color: PALETTE.cyan, text: 'scaffolding responsive grid & glass-nav-pill' },
+    { t: 0.36, tag: 'SYNTH', color: PALETTE.amber, text: 'sampled Syne-800 glyph lattice for "VYRN"' },
+    { t: 0.50, tag: 'SHADER', color: PALETTE.pink, text: 'bleeding spectral watercolor ink into glyphs' },
+    { t: 0.68, tag: 'MOTION', color: PALETTE.lime, text: 'locked liquid-glass pills (AUDIO / VIDEO / CODE)' },
+    { t: 0.82, tag: 'COMPILER', color: PALETTE.blue, text: 'build verified · handing off to live DOM' },
   ];
 
   const PHASE_STATUS = [
-    { t: 0.0, text: 'SWARM // DISPATCHING AGENTS' },
-    { t: 0.14, text: 'SWARM // SCAFFOLDING LAYOUT' },
-    { t: 0.34, text: 'SWARM // TRACING GLYPH MESH' },
-    { t: 0.56, text: 'SWARM // BINDING SHADERS & GLASS' },
-    { t: 0.76, text: 'SWARM // VERIFYING 60FPS PIPELINE' },
-    { t: 0.88, text: 'BUILD READY // LAUNCHING' },
+    { t: 0.0, text: 'TOOLKIT // OPENING SWARM' },
+    { t: 0.18, text: 'SWARM // SCAFFOLDING LAYOUT' },
+    { t: 0.36, text: 'SWARM // BLEEDING INK & MESH' },
+    { t: 0.60, text: 'SWARM // LOCKING GLASS PILLS' },
+    { t: 0.78, text: 'SWARM // VERIFYING 60FPS BUILD' },
+    { t: 0.90, text: 'BUILD READY // LAUNCHING' },
+  ];
+
+  const PRIDE_STRIPES = [
+    '#e40303', // Red
+    '#ff8c00', // Orange
+    '#ffed00', // Yellow
+    '#008026', // Green
+    '#004dff', // Blue
+    '#750787', // Violet
   ];
 
   /* --- Math & Easing Helpers --- */
@@ -57,6 +107,12 @@
     return t * t * (3 - 2 * t);
   };
   const easeOutCubic = (t) => 1 - Math.pow(1 - clamp(t, 0, 1), 3);
+  const easeOutBack = (t) => {
+    const x = clamp(t, 0, 1);
+    const c1 = 1.70158;
+    const c3 = c1 + 1;
+    return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2);
+  };
   const easeInOutCubic = (t) => {
     const x = clamp(t, 0, 1);
     return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
@@ -71,7 +127,7 @@
       return false;
     }
     const probe = document.createElement('div');
-    probe.style.cssText = 'transition: display 1s allow-discrete !important; display: block; position: fixed; visibility: hidden;';
+    probe.style.cssText = 'transition: display 1s allow-discrete !important; display: block; position: fixed; visibility: hidden; pointer-events: none;';
     document.body.appendChild(probe);
     getComputedStyle(probe).display;
     probe.style.display = 'none';
@@ -80,7 +136,7 @@
     return supportsDisplayTransition;
   }
 
-  /* --- Pre-rendered Additive Glow Sprite Cache (Zero shadowBlur overhead) --- */
+  /* --- Pre-rendered Additive Glow Sprites & Soft Watercolor Ink Brush Stamp --- */
   function createGlowSprites() {
     const colors = {
       cyan: [0, 240, 255],
@@ -102,18 +158,35 @@
       if (!gctx) return;
 
       const grad = gctx.createRadialGradient(half, half, 0, half, half, half);
-      grad.addColorStop(0, `rgba(${r}, ${g}, ${b}, 0.95)`);
-      grad.addColorStop(0.24, `rgba(${r}, ${g}, ${b}, 0.48)`);
-      grad.addColorStop(0.58, `rgba(${r}, ${g}, ${b}, 0.12)`);
+      grad.addColorStop(0, `rgba(${r}, ${g}, ${b}, 0.9)`);
+      grad.addColorStop(0.28, `rgba(${r}, ${g}, ${b}, 0.42)`);
+      grad.addColorStop(0.62, `rgba(${r}, ${g}, ${b}, 0.1)`);
       grad.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
       gctx.fillStyle = grad;
       gctx.fillRect(0, 0, size, size);
       cache[key] = c;
     });
+
+    // Organic feathered ink bleed stamp for watercolor glyph mask reveal
+    const inkStamp = document.createElement('canvas');
+    inkStamp.width = 96;
+    inkStamp.height = 96;
+    const ictx = inkStamp.getContext('2d');
+    if (ictx) {
+      const ig = ictx.createRadialGradient(48, 48, 8, 48, 48, 48);
+      ig.addColorStop(0, 'rgba(255, 255, 255, 1)');
+      ig.addColorStop(0.58, 'rgba(255, 255, 255, 0.96)');
+      ig.addColorStop(0.82, 'rgba(255, 255, 255, 0.55)');
+      ig.addColorStop(1, 'rgba(255, 255, 255, 0)');
+      ictx.fillStyle = ig;
+      ictx.fillRect(0, 0, 96, 96);
+    }
+    cache.inkStamp = inkStamp;
+
     return cache;
   }
 
-  /* --- Rounded Rect Perimeter Point Helper --- */
+  /* --- Rounded Rect Geometry Helpers --- */
   function pointOnRoundedRect(rect, progress) {
     const x = rect.left;
     const y = rect.top;
@@ -183,15 +256,145 @@
     ctx.globalAlpha = alpha;
     ctx.lineWidth = 1.25;
     ctx.beginPath();
-    // Top-left
     ctx.moveTo(x, y + l); ctx.lineTo(x, y); ctx.lineTo(x + l, y);
-    // Top-right
     ctx.moveTo(x + w - l, y); ctx.lineTo(x + w, y); ctx.lineTo(x + w, y + l);
-    // Bottom-right
     ctx.moveTo(x + w, y + h - l); ctx.lineTo(x + w, y + h); ctx.lineTo(x + w - l, y + h);
-    // Bottom-left
     ctx.moveTo(x + l, y + h); ctx.lineTo(x, y + h); ctx.lineTo(x, y + h - l);
     ctx.stroke();
+    ctx.restore();
+  }
+
+  /* --- Expressive Character Drawing Helpers --- */
+  function drawTrackingEyes(ctx, lx, ly, rx, ry, lookAngle, blinkAmount, radius = 4.2) {
+    const pupilDx = Math.cos(lookAngle) * (radius * 0.36);
+    const pupilDy = Math.sin(lookAngle) * (radius * 0.36);
+    const eyeScaleY = clamp(1 - blinkAmount, 0.12, 1);
+
+    [
+      [lx, ly],
+      [rx, ry],
+    ].forEach(([ex, ey]) => {
+      ctx.save();
+      ctx.translate(ex, ey);
+      ctx.scale(1, eyeScaleY);
+
+      // Glossy sclera
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(0, 0, radius, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Tracking iris/pupil
+      if (eyeScaleY > 0.35) {
+        ctx.fillStyle = '#090b0e';
+        ctx.beginPath();
+        ctx.arc(pupilDx, pupilDy, radius * 0.56, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Catchlight sparkle
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(pupilDx - radius * 0.18, pupilDy - radius * 0.22, radius * 0.2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+    });
+  }
+
+  function drawProgressPrideFlag(ctx, x, y, w, h, wavePhase) {
+    const waveY = (u) => Math.sin(wavePhase + u * 5.2) * (1.5 + u * 3.4);
+    const segs = 12;
+
+    const traceFlagCloth = () => {
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      for (let i = 1; i <= segs; i++) {
+        const u = i / segs;
+        ctx.lineTo(x + u * w, y + waveY(u));
+      }
+      for (let i = segs; i >= 0; i--) {
+        const u = i / segs;
+        ctx.lineTo(x + u * w, y + h + waveY(u));
+      }
+      ctx.closePath();
+    };
+
+    ctx.save();
+    // Sleek silver flagpole mast
+    ctx.strokeStyle = '#e2e8f0';
+    ctx.lineWidth = 2.2;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(x, y - 3);
+    ctx.lineTo(x, y + h + 11);
+    ctx.stroke();
+
+    ctx.fillStyle = '#f8fafc';
+    ctx.beginPath();
+    ctx.arc(x, y - 4, 2.3, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Clip to smoothly rippling flag cloth silhouette
+    traceFlagCloth();
+    ctx.save();
+    ctx.clip();
+
+    // 1. Six rainbow stripes following the cloth wave
+    const stripeH = h / PRIDE_STRIPES.length;
+    for (let s = 0; s < PRIDE_STRIPES.length; s++) {
+      ctx.fillStyle = PRIDE_STRIPES[s];
+      ctx.beginPath();
+      const topOff = s * stripeH;
+      const botOff = (s + 1) * stripeH + 0.6;
+      ctx.moveTo(x, y + topOff);
+      for (let i = 1; i <= segs; i++) {
+        const u = i / segs;
+        ctx.lineTo(x + u * w, y + topOff + waveY(u));
+      }
+      for (let i = segs; i >= 0; i--) {
+        const u = i / segs;
+        ctx.lineTo(x + u * w, y + botOff + waveY(u));
+      }
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    // 2. Progress Pride hoist chevron (Black, Brown, Light Blue, Pink, White)
+    const chevLayers = [
+      { apex: w * 0.56, color: '#111317' },
+      { apex: w * 0.47, color: '#613915' },
+      { apex: w * 0.38, color: '#73d7ee' },
+      { apex: w * 0.29, color: '#ffaec9' },
+      { apex: w * 0.20, color: '#ffffff' },
+    ];
+    const midY = y + h * 0.5;
+    chevLayers.forEach((layer) => {
+      const u = clamp(layer.apex / w, 0, 1);
+      ctx.fillStyle = layer.color;
+      ctx.beginPath();
+      ctx.moveTo(x - 1, y - 3);
+      ctx.lineTo(x + layer.apex, midY + waveY(u));
+      ctx.lineTo(x - 1, y + h + 3);
+      ctx.closePath();
+      ctx.fill();
+    });
+
+    // Subtle fabric lighting sheen along wave crests
+    const sheen = ctx.createLinearGradient(x, y, x + w, y + h);
+    sheen.addColorStop(0, 'rgba(255,255,255,0.18)');
+    sheen.addColorStop(0.5, 'rgba(0,0,0,0.08)');
+    sheen.addColorStop(1, 'rgba(255,255,255,0.14)');
+    ctx.fillStyle = sheen;
+    ctx.fillRect(x - 2, y - 6, w + 4, h + 12);
+
+    ctx.restore();
+
+    // Crisp rim outline on wavy flag cloth
+    traceFlagCloth();
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.42)';
+    ctx.lineWidth = 0.9;
+    ctx.stroke();
+
     ctx.restore();
   }
 
@@ -233,10 +436,8 @@
     let targets = null;
     let glyphData = null;
     let agents = [];
-    let microDrones = [];
-    let ripples = [];
     let sparks = [];
-    let lastRippleAt = -10;
+    let toolDebris = [];
 
     function addLogLine(item) {
       if (!logFeed) return;
@@ -256,7 +457,6 @@
       line.appendChild(msg);
       logFeed.appendChild(line);
 
-      // Keep only the latest 3 visible lines
       while (logFeed.children.length > 3) {
         logFeed.firstElementChild.remove();
       }
@@ -302,7 +502,6 @@
       let titleRect = toRect(titleEl, 8);
       let yOffset = 0;
 
-      // If browser reloaded mid-scroll, project hero targets into viewport center cleanly
       if (titleRect && (titleRect.bottom < 40 || titleRect.top > vh - 40)) {
         yOffset = vh * 0.44 - titleRect.cy;
       }
@@ -347,9 +546,9 @@
           rect: shiftRect(toRect(el, 999)),
           solid: idx === 0,
         })).filter((c) => c.rect),
-        orchestrator: {
-          x: vw * 0.5,
-          y: Math.max(96, Math.min(titleRect.top - 48, vh * 0.22)),
+        toolbox: {
+          x: titleRect.cx,
+          y: clamp(titleRect.cy + 14, 150, vh - 150),
         },
       };
     }
@@ -362,7 +561,7 @@
       const w = Math.max(120, Math.round(tr.width));
       const h = Math.max(60, Math.round(tr.height));
 
-      // 1. Offscreen mask canvas for exact Syne-800 glyph geometry
+      // 1. Exact Syne-800 glyph alpha mask
       const maskCanvas = document.createElement('canvas');
       maskCanvas.width = w;
       maskCanvas.height = h;
@@ -379,7 +578,7 @@
       mctx.fillStyle = '#ffffff';
       mctx.fillText('VYRN', w * 0.5, h * 0.5);
 
-      // 2. Pre-rendered multi-spectral gradient fill masked to VYRN
+      // 2. Multi-spectral watercolor gradient fill masked cleanly to "VYRN"
       const fillCanvas = document.createElement('canvas');
       fillCanvas.width = w;
       fillCanvas.height = h;
@@ -397,8 +596,14 @@
         fctx.fillRect(0, 0, w, h);
       }
 
-      // 3. Extract contour edge vertices & nearest-neighbor wireframe links
-      const step = vw <= 640 ? 5 : Math.max(5, Math.round(w / 110));
+      // 3. Dedicated offscreen canvas for organic ink-bleed compositing
+      const inkCanvas = document.createElement('canvas');
+      inkCanvas.width = w;
+      inkCanvas.height = h;
+      const inkCtx = inkCanvas.getContext('2d');
+
+      // 4. Sample glyph contour edges + interior ink-bleed anchor seeds
+      const step = vw <= 640 ? 5 : Math.max(5, Math.round(w / 108));
       const img = mctx.getImageData(0, 0, w, h).data;
       const isOpaque = (px, py) => {
         if (px < 0 || py < 0 || px >= w || py >= h) return false;
@@ -406,6 +611,7 @@
       };
 
       const edges = [];
+      const interiorPts = [];
       const accentColors = [PALETTE.cyan, PALETTE.pink, PALETTE.amber, PALETTE.white];
       for (let py = step; py < h - step; py += step) {
         for (let px = step; px < w - step; px += step) {
@@ -427,14 +633,15 @@
               color: accentColors[colorIdx],
               glowKey: normX < 0.3 ? 'pink' : normX < 0.62 ? 'cyan' : normX < 0.85 ? 'amber' : 'white',
             });
+          } else {
+            interiorPts.push({ lx: px, ly: py, normX: px / w });
           }
         }
       }
 
-      // Sort edge points left-to-right so wireframe build sweeps cleanly across V-Y-R-N
       edges.sort((a, b) => a.normX - b.normX || a.ly - b.ly);
 
-      // Build lightweight wireframe links between neighboring contour points
+      // Build wireframe triangulation struts along contour
       const maxLinkDist = step * 2.45;
       const maxDistSq = maxLinkDist * maxLinkDist;
       const links = [];
@@ -451,76 +658,111 @@
         }
       }
 
+      // Pick ~22 organic ink-bleed seed drops distributed across V-Y-R-N strokes
+      const inkSeeds = [];
+      const seedPool = interiorPts.length >= 24 ? interiorPts : edges;
+      if (seedPool.length > 0) {
+        const seedCount = Math.min(22, seedPool.length);
+        for (let i = 0; i < seedCount; i++) {
+          const idx = Math.floor((i / seedCount) * seedPool.length + ((i % 3) * 0.13)) % seedPool.length;
+          const pt = seedPool[idx];
+          const baseRadius = Math.max(54, Math.min(148, h * (0.45 + (i % 4) * 0.1)));
+          const lobes = [
+            { dx: 0, dy: 0, rScale: 1.0 },
+            { dx: Math.cos(i * 1.9) * baseRadius * 0.34, dy: Math.sin(i * 1.9) * baseRadius * 0.28, rScale: 0.78 },
+            { dx: Math.cos(i * 3.1 + 1.4) * baseRadius * 0.38, dy: Math.sin(i * 3.1 + 1.4) * baseRadius * 0.32, rScale: 0.72 },
+            { dx: Math.cos(i * 4.7 + 2.8) * baseRadius * 0.26, dy: Math.sin(i * 4.7 + 2.8) * baseRadius * 0.34, rScale: 0.65 },
+          ];
+          inkSeeds.push({
+            lx: pt.lx,
+            ly: pt.ly,
+            x: tr.left + pt.lx,
+            y: tr.top + pt.ly,
+            triggerP: 0.33 + (pt.normX * 0.19) + ((i % 3) * 0.015),
+            maxRadius: baseRadius,
+            lobes,
+          });
+        }
+      }
+
       glyphData = {
         w,
         h,
         fillCanvas,
+        inkCanvas,
+        inkCtx,
         edges,
         links,
+        inkSeeds,
       };
     }
 
     function initSwarmEntities() {
-      const cx = vw * 0.5;
-      const cy = vh * 0.48;
+      const tb = targets ? targets.toolbox : { x: vw * 0.5, y: vh * 0.48 };
 
-      agents = AGENT_SPECS.map((spec, idx) => {
-        const angle = spec.angleBias;
+      agents = AGENT_SPECS.map((spec, idx) => ({
+        ...spec,
+        index: idx,
+        x: tb.x + (idx - 2) * 8,
+        y: tb.y - 6,
+        vx: spec.spillVx,
+        vy: spec.spillVy,
+        tilt: 0,
+        lookAngle: -Math.PI * 0.5,
+        blinkTimer: 1.1 + idx * 0.55,
+        trail: [],
+        targetX: tb.x,
+        targetY: tb.y - 80,
+        laserTarget: null,
+        spilled: false,
+        thrustersActive: false,
+        propellerAngle: idx * 0.7,
+        flagPhase: idx * 1.2,
+      }));
+
+      // Playful little screws, bolts, and glowing tokens tumbling out with the agents
+      const debrisColors = [PALETTE.cyan, PALETTE.pink, PALETTE.amber, PALETTE.lime, PALETTE.white];
+      toolDebris = Array.from({ length: 14 }, (_, i) => {
+        const angle = -Math.PI * 0.85 + (i / 13) * Math.PI * 0.7;
+        const speed = 180 + (i % 5) * 65;
         return {
-          ...spec,
-          index: idx,
-          x: cx + Math.cos(angle) * 14,
-          y: cy + Math.sin(angle) * 14,
-          vx: Math.cos(angle) * 260,
-          vy: Math.sin(angle) * 260,
-          heading: angle,
-          trail: [],
-          targetX: cx,
-          targetY: cy,
-          laserTarget: null,
+          x: tb.x + ((i % 5) - 2) * 7,
+          y: tb.y - 10,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed - 90,
+          rot: i * 0.6,
+          vRot: (i % 2 === 0 ? 1 : -1) * (4 + (i % 4) * 2),
+          color: debrisColors[i % debrisColors.length],
+          kind: i % 2, // 0 = mini spark diamond, 1 = tiny bolt/plus
+          released: false,
+          delay: 0.075 + (i % 6) * 0.012,
+          life: 1,
         };
       });
 
-      microDrones = Array.from({ length: 22 }, (_, i) => ({
-        index: i,
-        progress: (i / 22) % 1,
-        speed: 0.55 + (i % 5) * 0.14,
-        arcOffset: ((i % 2 === 0 ? 1 : -1) * (36 + (i % 4) * 24)),
-        color: AGENT_SPECS[i % AGENT_SPECS.length].color,
-        glowKey: AGENT_SPECS[i % AGENT_SPECS.length].glowKey,
-        agentIdx: i % AGENT_SPECS.length,
-      }));
-
-      ripples = [];
       sparks = [];
-      lastRippleAt = -10;
       triggeredLogs = new Set();
       if (logFeed) logFeed.innerHTML = '';
-    }
-
-    function spawnRipple(x, y, maxRadius, color) {
-      ripples.push({ x, y, radius: 8, maxRadius, color, life: 1 });
     }
 
     function spawnSpark(x, y, color, count = 2) {
       for (let i = 0; i < count; i++) {
         const a = Math.random() * Math.PI * 2;
-        const speed = 28 + Math.random() * 85;
+        const speed = 35 + Math.random() * 95;
         sparks.push({
           x,
           y,
           vx: Math.cos(a) * speed,
-          vy: Math.sin(a) * speed,
+          vy: Math.sin(a) * speed - 35,
           color,
           life: 1,
-          decay: 2.2 + Math.random() * 1.4,
+          decay: 1.9 + Math.random() * 1.3,
         });
       }
     }
 
     function updateAgentTargets(p, elapsedSec) {
       if (!targets) return;
-      const o = targets.orchestrator;
       const tr = targets.title;
       const nav = targets.nav;
       const pills = targets.pills;
@@ -528,136 +770,143 @@
       agents.forEach((ag, idx) => {
         ag.laserTarget = null;
 
-        // Phase 0: Radial burst from Orchestrator hub
-        if (p < 0.13) {
-          const spreadR = Math.min(vw, vh) * (0.16 + 0.08 * easeOutCubic(p / 0.13));
-          const a = ag.angleBias + elapsedSec * 1.2;
-          ag.targetX = o.x + Math.cos(a) * spreadR;
-          ag.targetY = o.y + Math.sin(a) * spreadR * 0.72;
-          return;
+        // Release each agent out of the open toolbox cleanly
+        if (!ag.spilled && p >= ag.spillDelay) {
+          ag.spilled = true;
+          ag.x = targets.toolbox.x + (idx - 2) * 9;
+          ag.y = targets.toolbox.y - 10;
+          ag.vx = ag.spillVx;
+          ag.vy = ag.spillVy;
+          spawnSpark(ag.x, ag.y, ag.color, 4);
         }
 
-        // Phase 4: Scatter outward smoothly past screen edges on materialization
-        if (p >= 0.87) {
-          const scatter = (p - 0.87) / 0.13;
+        // Engage steering thrusters after parabolic tumble peak
+        if (ag.spilled && !ag.thrustersActive && p >= ag.spillDelay + 0.095) {
+          ag.thrustersActive = true;
+        }
+
+        // Phase 4: Cheerful outward exit sweep past viewport edges
+        if (p >= 0.88) {
+          const scatter = (p - 0.88) / 0.12;
           const outAngle = Math.atan2(ag.y - tr.cy, ag.x - tr.cx);
-          const dist = Math.max(vw, vh) * (0.65 + scatter * 0.55);
+          const dist = Math.max(vw, vh) * (0.68 + scatter * 0.55);
           ag.targetX = tr.cx + Math.cos(outAngle) * dist;
           ag.targetY = tr.cy + Math.sin(outAngle) * dist;
           return;
         }
 
-        // Phase 3: Formation orbit & verification pass
-        if (p >= 0.74) {
-          const orbitAngle = (idx / agents.length) * Math.PI * 2 + elapsedSec * 1.1;
-          const rx = Math.min(vw * 0.36, tr.width * 0.55 + 64);
-          const ry = Math.min(vh * 0.28, tr.height * 0.8 + 52);
+        // Phase 3: Victory orbit formation around the finished centerpiece
+        if (p >= 0.76) {
+          const orbitAngle = (idx / agents.length) * Math.PI * 2 + elapsedSec * 1.15;
+          const rx = Math.min(vw * 0.36, tr.width * 0.54 + 68);
+          const ry = Math.min(vh * 0.27, tr.height * 0.75 + 56);
           ag.targetX = tr.cx + Math.cos(orbitAngle) * rx;
           ag.targetY = tr.cy + Math.sin(orbitAngle) * ry;
           return;
         }
 
-        // Phase 1 & 2: Specialized parallel UI construction
+        // Phase 1 & 2: Specialized UI construction assignments
         switch (ag.id) {
           case 'architect': {
-            if (p < 0.38) {
-              const tNav = smoothstep(0.13, 0.36, p);
-              const sweepX = lerp(nav.left + 32, nav.left + nav.width - 32, tNav);
+            if (p < 0.41) {
+              const tNav = smoothstep(0.18, 0.40, p);
+              const sweepX = lerp(nav.left + 36, nav.left + nav.width - 36, tNav);
               ag.targetX = sweepX;
-              ag.targetY = nav.cy + Math.sin(elapsedSec * 7) * 14 + 28;
+              ag.targetY = nav.cy + Math.sin(elapsedSec * 6.5) * 12 + 42;
               ag.laserTarget = { x: sweepX, y: nav.cy };
             } else {
-              // Trace VIDEO pill or upper wireframe edge
               const videoPill = pills[1] || pills[0];
               if (videoPill) {
-                const pt = pointOnRoundedRect(videoPill.rect, (elapsedSec * 0.9) % 1);
-                ag.targetX = pt.x + 28;
-                ag.targetY = pt.y - 24;
+                const pt = pointOnRoundedRect(videoPill.rect, (elapsedSec * 0.85) % 1);
+                ag.targetX = pt.x + 36;
+                ag.targetY = pt.y - 32;
                 ag.laserTarget = pt;
               } else {
-                ag.targetX = tr.left + tr.width * 0.65;
-                ag.targetY = tr.top - 32;
+                ag.targetX = tr.left + tr.width * 0.68;
+                ag.targetY = tr.top - 42;
               }
             }
             break;
           }
           case 'synth': {
-            if (p < 0.32 && targets.eyebrow) {
-              const pt = pointOnRoundedRect(targets.eyebrow, smoothstep(0.13, 0.3, p));
-              ag.targetX = pt.x - 24;
-              ag.targetY = pt.y - 22;
+            if (p < 0.34 && targets.eyebrow) {
+              const pt = pointOnRoundedRect(targets.eyebrow, smoothstep(0.18, 0.33, p));
+              ag.targetX = pt.x - 36;
+              ag.targetY = pt.y - 28;
               ag.laserTarget = pt;
-            } else if (p < 0.68 && glyphData && glyphData.edges.length > 0) {
-              const buildT = smoothstep(0.28, 0.66, p);
+            } else if (p < 0.69 && glyphData && glyphData.edges.length > 0) {
+              const buildT = smoothstep(0.30, 0.67, p);
               const edgeIdx = Math.min(glyphData.edges.length - 1, Math.floor(buildT * glyphData.edges.length));
               const edgePt = glyphData.edges[edgeIdx];
-              ag.targetX = edgePt.x - 26 + Math.sin(elapsedSec * 6) * 22;
-              ag.targetY = edgePt.y - 42 + Math.cos(elapsedSec * 5) * 18;
+              ag.targetX = edgePt.x - 30 + Math.sin(elapsedSec * 5.2) * 26;
+              ag.targetY = edgePt.y - 52 + Math.cos(elapsedSec * 4.5) * 18;
               ag.laserTarget = edgePt;
             } else if (pills[2]) {
-              const pt = pointOnRoundedRect(pills[2].rect, (elapsedSec * 1.1) % 1);
-              ag.targetX = pt.x + 26;
-              ag.targetY = pt.y + 26;
+              const pt = pointOnRoundedRect(pills[2].rect, (elapsedSec * 1.05) % 1);
+              ag.targetX = pt.x + 34;
+              ag.targetY = pt.y + 34;
               ag.laserTarget = pt;
             }
             break;
           }
           case 'shader': {
-            if (p < 0.32) {
-              const a = elapsedSec * 2.4;
-              ag.targetX = tr.cx + Math.cos(a) * (tr.width * 0.35);
-              ag.targetY = tr.cy + Math.sin(a) * (tr.height * 0.45);
-            } else if (p < 0.68) {
-              const waveT = smoothstep(0.32, 0.68, p);
-              const lx = lerp(tr.left, tr.left + tr.width, waveT);
-              const ly = tr.cy + Math.sin(waveT * Math.PI * 5) * (tr.height * 0.32);
-              ag.targetX = lx + Math.cos(elapsedSec * 5) * 24;
-              ag.targetY = tr.top + tr.height + 34 + Math.sin(elapsedSec * 6) * 14;
-              ag.laserTarget = { x: lx, y: ly };
+            // Progress Pride Flag artist — sweeps across VYRN planting watercolor ink blooms
+            if (p < 0.36) {
+              const a = elapsedSec * 2.1;
+              ag.targetX = tr.cx + Math.cos(a) * Math.min(vw * 0.28, tr.width * 0.38);
+              ag.targetY = tr.cy - 44 + Math.sin(a) * 34;
+              ag.laserTarget = { x: tr.cx + Math.cos(a + 0.5) * 60, y: tr.cy };
+            } else if (p < 0.70) {
+              const bleedT = smoothstep(0.36, 0.68, p);
+              const targetX = lerp(tr.left + 20, tr.left + tr.width - 20, bleedT);
+              const targetY = tr.cy + Math.sin(bleedT * Math.PI * 4.5) * (tr.height * 0.28);
+              ag.targetX = targetX - 24;
+              ag.targetY = tr.top + tr.height + 46 + Math.sin(elapsedSec * 5) * 16;
+              ag.laserTarget = { x: targetX, y: targetY };
             } else if (pills[0]) {
-              const pt = pointOnRoundedRect(pills[0].rect, (elapsedSec * 1.15) % 1);
-              ag.targetX = pt.x - 26;
-              ag.targetY = pt.y - 22;
+              const pt = pointOnRoundedRect(pills[0].rect, (elapsedSec * 1.1) % 1);
+              ag.targetX = pt.x - 42;
+              ag.targetY = pt.y - 30;
               ag.laserTarget = pt;
             }
             break;
           }
           case 'motion': {
-            if (p < 0.56 && pills[0]) {
-              const pill = pills[p < 0.4 ? 0 : 1] || pills[0];
-              const pt = pointOnRoundedRect(pill.rect, (elapsedSec * 1.2) % 1);
-              ag.targetX = pt.x - 30;
-              ag.targetY = pt.y + 24;
+            if (p < 0.58 && pills[0]) {
+              const pill = pills[p < 0.42 ? 0 : 1] || pills[0];
+              const pt = pointOnRoundedRect(pill.rect, (elapsedSec * 1.15) % 1);
+              ag.targetX = pt.x - 40;
+              ag.targetY = pt.y + 32;
               ag.laserTarget = pt;
             } else if (pills[2]) {
-              const pt = pointOnRoundedRect(pills[2].rect, (elapsedSec * 1.2) % 1);
-              ag.targetX = pt.x + 24;
-              ag.targetY = pt.y + 28;
+              const pt = pointOnRoundedRect(pills[2].rect, (elapsedSec * 1.15) % 1);
+              ag.targetX = pt.x + 36;
+              ag.targetY = pt.y + 34;
               ag.laserTarget = pt;
             } else {
-              ag.targetX = tr.cx + Math.cos(elapsedSec * 2.5) * 160;
-              ag.targetY = tr.cy + Math.sin(elapsedSec * 2.5) * 90;
+              ag.targetX = tr.cx + Math.cos(elapsedSec * 2.2) * 170;
+              ag.targetY = tr.cy + Math.sin(elapsedSec * 2.2) * 95;
             }
             break;
           }
           case 'compiler': {
-            if (p < 0.38 && targets.navActions.length > 0) {
-              const act = targets.navActions[Math.floor(elapsedSec * 3) % targets.navActions.length];
-              const pt = pointOnRoundedRect(act, (elapsedSec * 1.4) % 1);
-              ag.targetX = pt.x - 20;
-              ag.targetY = pt.y + 34;
+            if (p < 0.42 && targets.navActions.length > 0) {
+              const act = targets.navActions[Math.floor(elapsedSec * 2.5) % targets.navActions.length];
+              const pt = pointOnRoundedRect(act, (elapsedSec * 1.3) % 1);
+              ag.targetX = pt.x - 28;
+              ag.targetY = pt.y + 42;
               ag.laserTarget = pt;
-            } else if (p < 0.62 && targets.tagline) {
-              const tTag = smoothstep(0.4, 0.6, p);
+            } else if (p < 0.64 && targets.tagline) {
+              const tTag = smoothstep(0.42, 0.62, p);
               const lx = lerp(targets.tagline.left, targets.tagline.left + targets.tagline.width, tTag);
               ag.targetX = lx;
-              ag.targetY = targets.tagline.top - 22;
+              ag.targetY = targets.tagline.top - 30;
               ag.laserTarget = { x: lx, y: targets.tagline.cy };
             } else if (targets.ctas.length > 0) {
-              const cta = targets.ctas[p > 0.68 && targets.ctas[1] ? 1 : 0];
-              const pt = pointOnRoundedRect(cta.rect, (elapsedSec * 1.3) % 1);
-              ag.targetX = pt.x + 18;
-              ag.targetY = pt.y + 30;
+              const cta = targets.ctas[p > 0.69 && targets.ctas[1] ? 1 : 0];
+              const pt = pointOnRoundedRect(cta.rect, (elapsedSec * 1.2) % 1);
+              ag.targetX = pt.x + 24;
+              ag.targetY = pt.y + 38;
               ag.laserTarget = pt;
             }
             break;
@@ -666,52 +915,81 @@
       });
     }
 
-    function stepPhysics(dt) {
-      const stiffness = 26;
-      const damping = 8.4;
+    function stepPhysics(p, dt) {
+      const stiffness = 24;
+      const damping = 8.0;
+      const gravity = 1150;
 
       agents.forEach((ag) => {
-        const ax = (ag.targetX - ag.x) * stiffness - ag.vx * damping;
-        const ay = (ag.targetY - ag.y) * stiffness - ag.vy * damping;
-        ag.vx += ax * dt;
-        ag.vy += ay * dt;
-        ag.x += ag.vx * dt;
-        ag.y += ag.vy * dt;
-
-        const speedSq = ag.vx * ag.vx + ag.vy * ag.vy;
-        if (speedSq > 25) {
-          const desiredAngle = Math.atan2(ag.vy, ag.vx);
-          let diff = desiredAngle - ag.heading;
-          while (diff > Math.PI) diff -= Math.PI * 2;
-          while (diff < -Math.PI) diff += Math.PI * 2;
-          ag.heading += diff * Math.min(1, dt * 14);
+        ag.propellerAngle += dt * 22;
+        ag.flagPhase += dt * 9.5;
+        ag.blinkTimer -= dt;
+        if (ag.blinkTimer <= -0.14) {
+          ag.blinkTimer = 1.6 + Math.random() * 2.2;
         }
+
+        if (!ag.spilled) return;
+
+        if (!ag.thrustersActive) {
+          // Ballistic gravity arc right out of the toolbox
+          ag.vy += gravity * dt;
+          ag.x += ag.vx * dt;
+          ag.y += ag.vy * dt;
+        } else {
+          // Spring-damped autonomous flight
+          const ax = (ag.targetX - ag.x) * stiffness - ag.vx * damping;
+          const ay = (ag.targetY - ag.y) * stiffness - ag.vy * damping;
+          ag.vx += ax * dt;
+          ag.vy += ay * dt;
+          ag.x += ag.vx * dt;
+          ag.y += ag.vy * dt;
+        }
+
+        // Subtle aerodynamic bank tilt matching horizontal velocity
+        const desiredTilt = clamp(ag.vx * 0.0009, -0.34, 0.34);
+        ag.tilt = lerp(ag.tilt, desiredTilt, Math.min(1, dt * 10));
+
+        // Eyes track laser target if actively building, otherwise velocity direction
+        let desiredLook = ag.lookAngle;
+        if (ag.laserTarget) {
+          desiredLook = Math.atan2(ag.laserTarget.y - ag.y, ag.laserTarget.x - ag.x);
+        } else if (ag.vx * ag.vx + ag.vy * ag.vy > 40) {
+          desiredLook = Math.atan2(ag.vy, ag.vx);
+        }
+        let lookDiff = desiredLook - ag.lookAngle;
+        while (lookDiff > Math.PI) lookDiff -= Math.PI * 2;
+        while (lookDiff < -Math.PI) lookDiff += Math.PI * 2;
+        ag.lookAngle += lookDiff * Math.min(1, dt * 14);
 
         ag.trail.push({ x: ag.x, y: ag.y });
         if (ag.trail.length > 16) ag.trail.shift();
 
-        if (ag.laserTarget && Math.random() < dt * 14) {
+        if (ag.laserTarget && Math.random() < dt * 13) {
           spawnSpark(ag.laserTarget.x, ag.laserTarget.y, ag.color, 1);
         }
       });
 
-      microDrones.forEach((d) => {
-        d.progress = (d.progress + d.speed * dt) % 1;
+      // Step falling toolbox bolts & spark debris
+      toolDebris.forEach((d) => {
+        if (!d.released && p >= d.delay) {
+          d.released = true;
+        }
+        if (!d.released || d.life <= 0) return;
+        d.vy += 860 * dt;
+        d.x += d.vx * dt;
+        d.y += d.vy * dt;
+        d.rot += d.vRot * dt;
+        d.life -= dt * 0.95;
       });
 
-      for (let i = ripples.length - 1; i >= 0; i--) {
-        const r = ripples[i];
-        r.radius += (r.maxRadius - r.radius) * Math.min(1, dt * 4.5) + 40 * dt;
-        r.life -= dt * 0.85;
-        if (r.life <= 0) ripples.splice(i, 1);
-      }
-
+      // Step welding sparks with soft gravity
       for (let i = sparks.length - 1; i >= 0; i--) {
         const s = sparks[i];
+        s.vy += 240 * dt;
         s.x += s.vx * dt;
         s.y += s.vy * dt;
-        s.vx *= 0.94;
-        s.vy *= 0.94;
+        s.vx *= 0.95;
+        s.vy *= 0.95;
         s.life -= s.decay * dt;
         if (s.life <= 0) sparks.splice(i, 1);
       }
@@ -727,15 +1005,130 @@
       ctx.restore();
     }
 
+    function drawToolbox(p) {
+      if (!targets || !targets.toolbox) return;
+      // Visible from 0.00 -> 0.30 (drops in, unlatches, opens, agents spill out, shuts, tucks away)
+      if (p > 0.31) return;
+
+      const tb = targets.toolbox;
+      const dropT = smoothstep(0.0, 0.075, p);
+      const exitT = smoothstep(0.22, 0.30, p);
+      const alpha = (1 - exitT) * smoothstep(0.0, 0.03, p);
+      if (alpha <= 0.01) return;
+
+      const scale = lerp(0.55, 1, easeOutBack(dropT)) * lerp(1, 0.65, easeInOutCubic(exitT));
+      const boxY = tb.y - (1 - easeOutCubic(dropT)) * 64 + exitT * 26;
+
+      // Lid opens cleanly from 0.055 -> 0.11, stays open for spill, closes at 0.19 -> 0.24
+      const openFrac = smoothstep(0.055, 0.11, p) * (1 - smoothstep(0.19, 0.24, p));
+      const lidAngle = -openFrac * 2.05; // ~-117 deg
+
+      const bw = vw <= 640 ? 112 : 138;
+      const bh = vw <= 640 ? 64 : 76;
+      const lidH = 22;
+
+      ctx.save();
+      ctx.translate(tb.x, boxY);
+      ctx.scale(scale, scale);
+      ctx.globalAlpha = alpha;
+
+      // Soft interior emission glow when lid is open
+      if (openFrac > 0.08) {
+        drawGlow(0, -bh * 0.32, 68, 'cyan', 0.45 * openFrac);
+        drawGlow(-18, -bh * 0.28, 48, 'pink', 0.35 * openFrac);
+        drawGlow(18, -bh * 0.28, 48, 'amber', 0.3 * openFrac);
+      }
+
+      // 1. Toolbox lower body (sleek dark metallic steel + glass bevel)
+      const bodyTop = -bh * 0.35;
+      const bodyGrad = ctx.createLinearGradient(-bw * 0.5, bodyTop, bw * 0.5, bodyTop + bh);
+      bodyGrad.addColorStop(0, '#1e2636');
+      bodyGrad.addColorStop(0.5, '#131822');
+      bodyGrad.addColorStop(1, '#0c1017');
+      ctx.fillStyle = bodyGrad;
+      traceRoundedRect(ctx, -bw * 0.5, bodyTop, bw, bh, 12);
+      ctx.fill();
+
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.26)';
+      ctx.lineWidth = 1.4;
+      ctx.stroke();
+
+      // Tri-color VYRN discipline stripe across chest
+      const stripeY = bodyTop + bh * 0.56;
+      ctx.fillStyle = PALETTE.pink;
+      ctx.fillRect(-bw * 0.44, stripeY, bw * 0.28, 3);
+      ctx.fillStyle = PALETTE.cyan;
+      ctx.fillRect(-bw * 0.14, stripeY, bw * 0.28, 3);
+      ctx.fillStyle = PALETTE.amber;
+      ctx.fillRect(bw * 0.16, stripeY, bw * 0.28, 3);
+
+      // Toolbox label
+      ctx.font = '700 10px ui-monospace, SFMono-Regular, Menlo, monospace';
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.72)';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('VYRN // KIT', 0, bodyTop + bh * 0.32);
+
+      // 2. Hinged Lid (pivots around back-left hinge corner)
+      const hingeX = -bw * 0.5 + 4;
+      const hingeY = bodyTop + 2;
+      ctx.save();
+      ctx.translate(hingeX, hingeY);
+      ctx.rotate(lidAngle);
+
+      // Top carry handle on lid
+      ctx.strokeStyle = 'rgba(226, 232, 240, 0.72)';
+      ctx.lineWidth = 3;
+      traceRoundedRect(ctx, bw * 0.32, -lidH - 11, bw * 0.36, 12, 5);
+      ctx.stroke();
+
+      // Lid body
+      const lidGrad = ctx.createLinearGradient(0, -lidH, 0, 2);
+      lidGrad.addColorStop(0, '#2a3448');
+      lidGrad.addColorStop(1, '#161c28');
+      ctx.fillStyle = lidGrad;
+      traceRoundedRect(ctx, -4, -lidH, bw, lidH + 3, 10);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.34)';
+      ctx.lineWidth = 1.3;
+      ctx.stroke();
+
+      // Glowing cyan latch clasp
+      ctx.fillStyle = openFrac > 0.1 ? PALETTE.cyan : '#cbd5e1';
+      traceRoundedRect(ctx, bw * 0.44, -4, bw * 0.12, 9, 3);
+      ctx.fill();
+
+      ctx.restore();
+
+      // Draw tumbling mini bolts & sparks inside/around toolbox
+      toolDebris.forEach((d) => {
+        if (!d.released || d.life <= 0) return;
+        ctx.save();
+        ctx.translate(d.x - tb.x, d.y - boxY);
+        ctx.rotate(d.rot);
+        ctx.globalAlpha = clamp(d.life, 0, 1) * alpha;
+        ctx.fillStyle = d.color;
+        if (d.kind === 0) {
+          ctx.fillRect(-2.5, -2.5, 5, 5);
+        } else {
+          ctx.fillRect(-4, -1.2, 8, 2.4);
+          ctx.fillRect(-1.2, -4, 2.4, 8);
+        }
+        ctx.restore();
+      });
+
+      ctx.restore();
+    }
+
     function drawBlueprintGrid(p, wireframeAlpha) {
       if (wireframeAlpha <= 0.01) return;
-      const gridAlpha = smoothstep(0.0, 0.14, p) * wireframeAlpha * 0.08;
+      const gridAlpha = smoothstep(0.06, 0.20, p) * wireframeAlpha * 0.075;
       if (gridAlpha <= 0.002) return;
 
       const step = vw <= 640 ? 44 : 56;
       const cx = targets.title.cx;
       const cy = targets.title.cy;
-      const maxR = Math.hypot(vw, vh) * 0.58 * easeOutCubic(clamp(p / 0.24, 0, 1));
+      const maxR = Math.max(1, Math.hypot(vw, vh) * 0.58 * easeOutCubic(clamp(p / 0.28, 0, 1)));
 
       ctx.save();
       ctx.beginPath();
@@ -755,17 +1148,14 @@
       }
       ctx.stroke();
 
-      // Architectural hero bounding guides & dimension ticks
-      const guideAlpha = smoothstep(0.12, 0.28, p) * wireframeAlpha * 0.22;
+      const guideAlpha = smoothstep(0.16, 0.32, p) * wireframeAlpha * 0.2;
       if (guideAlpha > 0.01) {
         const tr = targets.title;
         ctx.strokeStyle = `rgba(0, 240, 255, ${guideAlpha.toFixed(3)})`;
         ctx.setLineDash([4, 6]);
         ctx.beginPath();
-        // Horizontal cap & baseline lines
         ctx.moveTo(0, tr.top); ctx.lineTo(vw, tr.top);
         ctx.moveTo(0, tr.top + tr.height); ctx.lineTo(vw, tr.top + tr.height);
-        // Vertical stage rails
         ctx.moveTo(tr.left, 0); ctx.lineTo(tr.left, vh);
         ctx.moveTo(tr.left + tr.width, 0); ctx.lineTo(tr.left + tr.width, vh);
         ctx.stroke();
@@ -780,14 +1170,13 @@
     }
 
     function drawConstructedNav(p, wireframeAlpha) {
-      const navProg = smoothstep(0.12, 0.36, p);
+      const navProg = smoothstep(0.18, 0.41, p);
       if (navProg <= 0.01 || wireframeAlpha <= 0.01) return;
 
       const nav = targets.nav;
       const alpha = wireframeAlpha;
 
       ctx.save();
-      // Nav bottom hairline sweep
       const lineW = nav.width * easeInOutCubic(navProg);
       ctx.strokeStyle = `rgba(0, 240, 255, ${(0.42 * alpha).toFixed(3)})`;
       ctx.lineWidth = 1.25;
@@ -796,14 +1185,12 @@
       ctx.lineTo(nav.cx + lineW * 0.5, nav.top + nav.height);
       ctx.stroke();
 
-      // Nav glass backdrop fill
-      const fillA = smoothstep(0.24, 0.42, p) * 0.6 * alpha;
+      const fillA = smoothstep(0.28, 0.46, p) * 0.6 * alpha;
       if (fillA > 0.01) {
         ctx.fillStyle = `rgba(9, 11, 14, ${fillA.toFixed(3)})`;
         ctx.fillRect(nav.left, nav.top, nav.width, nav.height);
       }
 
-      // Brand monogram wireframe
       if (targets.brand) {
         const b = targets.brand;
         drawCornerBrackets(ctx, b, 6, PALETTE.white, 0.5 * alpha * navProg);
@@ -815,7 +1202,6 @@
         }
       }
 
-      // Nav link capsules
       targets.navLinks.forEach((linkRect, idx) => {
         const itemP = smoothstep(0.25 + idx * 0.07, 0.72 + idx * 0.06, navProg);
         if (itemP <= 0.01) return;
@@ -825,7 +1211,6 @@
         ctx.stroke();
       });
 
-      // Utility action capsules
       targets.navActions.forEach((actRect, idx) => {
         const actP = smoothstep(0.45 + idx * 0.12, 0.95, navProg);
         if (actP <= 0.01) return;
@@ -840,20 +1225,87 @@
       ctx.restore();
     }
 
-    function drawConstructedHero(p, wireframeAlpha, elapsedSec) {
+    function drawOrganicInkFill(p, wireframeAlpha) {
+      if (!glyphData || !glyphData.inkCtx || !glowSprites.inkStamp) return;
+      const inkStart = 0.34;
+      if (p <= inkStart) return;
+
+      const tr = targets.title;
+      const ictx = glyphData.inkCtx;
+      const w = glyphData.w;
+      const h = glyphData.h;
+      const stamp = glowSprites.inkStamp;
+
+      ictx.clearRect(0, 0, w, h);
+      ictx.globalCompositeOperation = 'source-over';
+
+      // 1. Expanding multi-lobed ink blooms anchored across V-Y-R-N strokes
+      let anyDrawn = false;
+      glyphData.inkSeeds.forEach((seed) => {
+        if (p < seed.triggerP) return;
+        anyDrawn = true;
+        const localT = clamp((p - seed.triggerP) / 0.19, 0, 1);
+        const radius = seed.maxRadius * easeOutCubic(localT);
+        ictx.globalAlpha = smoothstep(0, 0.22, localT);
+
+        seed.lobes.forEach((lobe) => {
+          const r = radius * lobe.rScale;
+          const cx = seed.lx + lobe.dx * localT;
+          const cy = seed.ly + lobe.dy * localT;
+          ictx.drawImage(stamp, cx - r, cy - r, r * 2, r * 2);
+        });
+      });
+
+      // 2. Live brush bleed right under SHADER & SYNTH laser impact points
+      agents.forEach((ag) => {
+        if ((ag.id === 'shader' || ag.id === 'synth') && ag.laserTarget && p >= 0.35 && p <= 0.74) {
+          const lx = ag.laserTarget.x - tr.left;
+          const ly = ag.laserTarget.y - tr.top;
+          if (lx >= -30 && lx <= w + 30 && ly >= -30 && ly <= h + 30) {
+            anyDrawn = true;
+            const brushR = Math.max(42, h * 0.34);
+            ictx.globalAlpha = 0.9;
+            ictx.drawImage(stamp, lx - brushR, ly - brushR, brushR * 2, brushR * 2);
+          }
+        }
+      });
+
+      // 3. Ensure full rich saturation before verification handoff
+      const fullFillBlend = smoothstep(0.66, 0.76, p);
+      if (fullFillBlend > 0.01) {
+        anyDrawn = true;
+        ictx.globalAlpha = fullFillBlend;
+        ictx.fillStyle = '#ffffff';
+        ictx.fillRect(0, 0, w, h);
+      }
+
+      if (!anyDrawn) return;
+
+      // Clip organic wet ink silhouette cleanly to the multi-spectral Syne-800 "VYRN" fill
+      ictx.globalAlpha = 1;
+      ictx.globalCompositeOperation = 'source-in';
+      ictx.drawImage(glyphData.fillCanvas, 0, 0);
+
+      ctx.save();
+      ctx.globalAlpha = clamp(smoothstep(0.35, 0.72, p) * 1.15, 0, 0.98) * wireframeAlpha;
+      ctx.drawImage(glyphData.inkCanvas, tr.left, tr.top, tr.width, tr.height);
+      ctx.restore();
+    }
+
+    function drawConstructedHero(p, wireframeAlpha) {
       const tr = targets.title;
 
-      // Ambient tri-color halo behind VYRN
-      const haloP = smoothstep(0.18, 0.55, p) * wireframeAlpha;
+      // Soft tri-color backlight glow behind VYRN
+      const haloP = smoothstep(0.28, 0.62, p) * wireframeAlpha;
       if (haloP > 0.01) {
-        drawGlow(tr.cx - tr.width * 0.22, tr.cy, tr.width * 0.38, 'pink', 0.26 * haloP);
-        drawGlow(tr.cx, tr.cy, tr.width * 0.42, 'cyan', 0.24 * haloP);
-        drawGlow(tr.cx + tr.width * 0.22, tr.cy, tr.width * 0.36, 'amber', 0.2 * haloP);
+        drawGlow(tr.cx - tr.width * 0.22, tr.cy, tr.width * 0.36, 'pink', 0.24 * haloP);
+        drawGlow(tr.cx, tr.cy, tr.width * 0.4, 'cyan', 0.22 * haloP);
+        drawGlow(tr.cx + tr.width * 0.22, tr.cy, tr.width * 0.34, 'amber', 0.18 * haloP);
       }
 
       // Eyebrow capsule
       if (targets.eyebrow) {
-        const ebP = smoothstep(0.16, 0.34, p);
+        const ebP = smoothstep(0.20, 0.38, p);
         if (ebP > 0.01 && wireframeAlpha > 0.01) {
           const eb = targets.eyebrow;
           drawCornerBrackets(ctx, {
@@ -873,24 +1325,16 @@
         }
       }
 
-      // Giant VYRN Wireframe Mesh + Spectral Shader Fill
+      // Organic watercolor ink-bleed fill inside "VYRN"
+      if (wireframeAlpha > 0.01) {
+        drawOrganicInkFill(p, wireframeAlpha);
+      }
+
+      // Wireframe contour mesh across V-Y-R-N
       if (glyphData && wireframeAlpha > 0.01) {
-        const meshP = smoothstep(0.24, 0.64, p);
-        const fillP = smoothstep(0.42, 0.76, p);
+        const meshP = smoothstep(0.28, 0.66, p);
+        const fillP = smoothstep(0.45, 0.78, p);
 
-        // 1. Progressive spectral watercolor fill clipped cleanly to VYRN glyphs
-        if (fillP > 0.01) {
-          ctx.save();
-          const revealW = glyphData.w * easeInOutCubic(fillP);
-          ctx.beginPath();
-          ctx.rect(tr.left, tr.top, revealW, glyphData.h);
-          ctx.clip();
-          ctx.globalAlpha = clamp(fillP * 1.1, 0, 0.95) * wireframeAlpha;
-          ctx.drawImage(glyphData.fillCanvas, tr.left, tr.top, tr.width, tr.height);
-          ctx.restore();
-        }
-
-        // 2. Wireframe triangulation struts connecting edge vertices
         if (meshP > 0.02) {
           const edgeCount = glyphData.edges.length;
           const activeNormLimit = meshP * 1.15;
@@ -911,7 +1355,6 @@
           }
           ctx.stroke();
 
-          // 3. Glowing contour vertices along V-Y-R-N edges
           const vertexAlphaBase = wireframeAlpha * (1 - fillP * 0.35);
           for (let i = 0; i < edgeCount; i++) {
             const pt = glyphData.edges[i];
@@ -934,17 +1377,16 @@
 
       // Floating Liquid Glass Pills (AUDIO, VIDEO, CODE)
       targets.pills.forEach((pill, idx) => {
-        const pillStart = 0.42 + idx * 0.07;
+        const pillStart = 0.44 + idx * 0.07;
         const pillP = smoothstep(pillStart, pillStart + 0.22, p);
         if (pillP <= 0.01 || wireframeAlpha <= 0.01) return;
 
         const r = pill.rect;
         ctx.save();
         ctx.translate(r.cx, r.cy);
-        ctx.rotate(pill.tilt * (1 - smoothstep(0.75, 0.9, p)));
+        ctx.rotate(pill.tilt * (1 - smoothstep(0.78, 0.92, p)));
         ctx.translate(-r.cx, -r.cy);
 
-        // Glass interior fill
         const glassA = smoothstep(0.45, 1, pillP) * 0.72 * wireframeAlpha;
         if (glassA > 0.01) {
           ctx.fillStyle = `rgba(18, 22, 30, ${glassA.toFixed(3)})`;
@@ -952,7 +1394,6 @@
           ctx.fill();
         }
 
-        // Animated capsule perimeter trace
         const perim = 2 * (r.width + r.height);
         ctx.strokeStyle = pill.color;
         ctx.globalAlpha = 0.85 * pillP * wireframeAlpha;
@@ -962,7 +1403,6 @@
         ctx.stroke();
         ctx.setLineDash([]);
 
-        // Colored discipline dot + crisp text
         if (pillP > 0.4) {
           const innerA = smoothstep(0.4, 0.85, pillP) * wireframeAlpha;
           const dotX = r.left + 20;
@@ -985,7 +1425,7 @@
 
       // Tagline skeleton lines
       if (targets.tagline) {
-        const tagP = smoothstep(0.48, 0.68, p);
+        const tagP = smoothstep(0.50, 0.70, p);
         if (tagP > 0.01 && wireframeAlpha > 0.01) {
           const tg = targets.tagline;
           const barW = Math.min(tg.width * 0.85, 480) * easeOutCubic(tagP);
@@ -1004,7 +1444,7 @@
 
       // CTA Pill Frames
       targets.ctas.forEach((cta, idx) => {
-        const ctaP = smoothstep(0.56 + idx * 0.06, 0.76 + idx * 0.06, p);
+        const ctaP = smoothstep(0.58 + idx * 0.06, 0.78 + idx * 0.06, p);
         if (ctaP <= 0.01 || wireframeAlpha <= 0.01) return;
         const r = cta.rect;
         const perim = 2 * (r.width + r.height);
@@ -1024,70 +1464,218 @@
         ctx.restore();
       });
 
-      // Photonic Verification Scan Beam (Phase 3)
-      if (p >= 0.71 && p <= 0.86) {
-        const scanT = (p - 0.71) / 0.15;
+      // Verification Scan Beam (Phase 3)
+      if (p >= 0.74 && p <= 0.88) {
+        const scanT = (p - 0.74) / 0.14;
         const scanY = lerp(0, vh, easeInOutCubic(scanT));
-        const scanAlpha = Math.sin(scanT * Math.PI) * 0.75;
+        const scanAlpha = Math.sin(scanT * Math.PI) * 0.7;
         const grad = ctx.createLinearGradient(0, scanY - 40, 0, scanY + 6);
         grad.addColorStop(0, 'rgba(0, 240, 255, 0)');
-        grad.addColorStop(0.85, `rgba(0, 240, 255, ${(scanAlpha * 0.35).toFixed(3)})`);
-        grad.addColorStop(1, `rgba(255, 255, 255, ${(scanAlpha * 0.9).toFixed(3)})`);
+        grad.addColorStop(0.85, `rgba(0, 240, 255, ${(scanAlpha * 0.32).toFixed(3)})`);
+        grad.addColorStop(1, `rgba(255, 255, 255, ${(scanAlpha * 0.85).toFixed(3)})`);
         ctx.fillStyle = grad;
         ctx.fillRect(0, scanY - 40, vw, 46);
       }
-
-      void elapsedSec;
     }
 
-    function drawOrchestratorAndLinks(p, elapsedSec, agentAlpha) {
-      if (agentAlpha <= 0.01 || !targets) return;
-      const o = targets.orchestrator;
-      const ox = o.x + Math.sin(elapsedSec * 1.4) * 8;
-      const oy = o.y + Math.cos(elapsedSec * 1.8) * 5;
+    function drawSingleAgentCharacter(ag, agentAlpha) {
+      const blink = ag.blinkTimer < 0 ? Math.sin(((-ag.blinkTimer) / 0.14) * Math.PI) : 0;
+      const bodyW = 28;
+      const bodyH = 22;
 
-      // Subtle periodic sonar ripple (<= 1.2/sec, smooth non-flashing)
-      if (p < 0.82 && elapsedSec - lastRippleAt > 0.95) {
-        lastRippleAt = elapsedSec;
-        spawnRipple(ox, oy, Math.min(vw, vh) * 0.32, PALETTE.cyan);
+      ctx.save();
+      ctx.translate(ag.x, ag.y);
+      ctx.rotate(ag.tilt);
+      ctx.globalAlpha = agentAlpha;
+
+      // Subtle hover thruster flame under bot
+      if (ag.thrustersActive) {
+        ctx.fillStyle = ag.color;
+        ctx.globalAlpha = 0.45 * agentAlpha;
+        ctx.beginPath();
+        ctx.moveTo(-6, bodyH * 0.5);
+        ctx.lineTo(0, bodyH * 0.5 + 8 + Math.sin(ag.flagPhase * 2) * 2.5);
+        ctx.lineTo(6, bodyH * 0.5);
+        ctx.closePath();
+        ctx.fill();
+        ctx.globalAlpha = agentAlpha;
       }
 
-      // Draw expanding ripples
-      ripples.forEach((r) => {
+      if (ag.id === 'shader') {
+        // SHADER: Sleek artist bot carrying a large animated LGBTQIA+ Progress Pride Flag + beret
+        drawProgressPrideFlag(ctx, 10, -28, 42, 26, ag.flagPhase);
+
+        // Dark glass rounded bot body
+        ctx.fillStyle = '#131722';
+        traceRoundedRect(ctx, -bodyW * 0.5, -bodyH * 0.5, bodyW, bodyH, 10);
+        ctx.fill();
+        ctx.strokeStyle = PALETTE.pink;
+        ctx.lineWidth = 1.6;
+        ctx.stroke();
+
+        // Expressive tracking eyes
+        drawTrackingEyes(ctx, -6, -1, 6, -1, ag.lookAngle - ag.tilt, blink, 4.3);
+
+        // Sleek magenta artist beret tilted on top
         ctx.save();
-        ctx.strokeStyle = r.color;
-        ctx.globalAlpha = clamp(r.life * 0.25 * agentAlpha, 0, 0.35);
-        ctx.lineWidth = 1;
+        ctx.translate(-2, -bodyH * 0.5 - 1);
+        ctx.rotate(-0.18);
+        ctx.fillStyle = '#ff3b69';
         ctx.beginPath();
-        ctx.arc(r.x, r.y, r.radius, 0, Math.PI * 2);
+        ctx.ellipse(0, 0, 14, 5.5, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 0.8;
+        ctx.stroke();
+        ctx.fillStyle = '#ff3b69';
+        ctx.fillRect(-1.5, -7, 3, 4);
+        ctx.restore();
+      } else if (ag.id === 'architect') {
+        // ARCHITECT: Cyan builder bot with expressive eyes + Yellow Construction Hard Hat
+        ctx.fillStyle = '#0e1622';
+        traceRoundedRect(ctx, -bodyW * 0.5, -bodyH * 0.5, bodyW, bodyH, 9);
+        ctx.fill();
+        ctx.strokeStyle = PALETTE.cyan;
+        ctx.lineWidth = 1.6;
+        ctx.stroke();
+
+        drawTrackingEyes(ctx, -6, 0, 6, 0, ag.lookAngle - ag.tilt, blink, 4.2);
+
+        // Yellow Hard Hat
+        ctx.save();
+        ctx.translate(0, -bodyH * 0.5 + 1);
+        ctx.fillStyle = '#facc15';
+        ctx.strokeStyle = 'rgba(0, 0, 0, 0.45)';
+        ctx.lineWidth = 0.9;
+        ctx.beginPath();
+        ctx.arc(0, 0, 13, Math.PI, 0);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        // Hard hat brim
+        traceRoundedRect(ctx, -16, -2, 32, 4.5, 2.2);
+        ctx.fill();
+        ctx.stroke();
+        // Center crest ridge
+        ctx.fillStyle = '#fde047';
+        traceRoundedRect(ctx, -2.5, -13.5, 5, 11.5, 2.5);
+        ctx.fill();
         ctx.stroke();
         ctx.restore();
-      });
-
-      // Curved Bezier telemetry links from Orchestrator to each Specialist Agent
-      ctx.save();
-      agents.forEach((ag, idx) => {
-        const mx = (ox + ag.x) * 0.5 + Math.sin(elapsedSec * 2 + idx) * 28;
-        const my = (oy + ag.y) * 0.5 - 32;
-
-        ctx.strokeStyle = ag.color;
-        ctx.globalAlpha = 0.2 * agentAlpha;
-        ctx.lineWidth = 1;
+      } else if (ag.id === 'synth') {
+        // SYNTH: Big-eyed amber audio bot wearing chunky Studio Headphones
+        // Headphone band
+        ctx.strokeStyle = '#e2e8f0';
+        ctx.lineWidth = 3;
         ctx.beginPath();
-        ctx.moveTo(ox, oy);
-        ctx.quadraticCurveTo(mx, my, ag.x, ag.y);
+        ctx.arc(0, -1, 17, Math.PI * 1.05, -Math.PI * 0.05);
         ctx.stroke();
-      });
 
-      // Agent-to-agent proximity mesh filaments
+        // Body
+        ctx.fillStyle = '#18140d';
+        traceRoundedRect(ctx, -bodyW * 0.5, -bodyH * 0.5, bodyW, bodyH, 10);
+        ctx.fill();
+        ctx.strokeStyle = PALETTE.amber;
+        ctx.lineWidth = 1.6;
+        ctx.stroke();
+
+        // Padded headphone earcups
+        ctx.fillStyle = PALETTE.amber;
+        traceRoundedRect(ctx, -bodyW * 0.5 - 5.5, -7, 6, 14, 3);
+        ctx.fill();
+        traceRoundedRect(ctx, bodyW * 0.5 - 0.5, -7, 6, 14, 3);
+        ctx.fill();
+
+        // Extra-big expressive eyes
+        drawTrackingEyes(ctx, -6.5, -0.5, 6.5, -0.5, ag.lookAngle - ag.tilt, blink, 4.9);
+      } else if (ag.id === 'motion') {
+        // MOTION: Lime kinetic bot wearing a Dapper Top Hat + glowing hatband
+        ctx.fillStyle = '#111a10';
+        traceRoundedRect(ctx, -bodyW * 0.5, -bodyH * 0.5, bodyW, bodyH, 9);
+        ctx.fill();
+        ctx.strokeStyle = PALETTE.lime;
+        ctx.lineWidth = 1.6;
+        ctx.stroke();
+
+        drawTrackingEyes(ctx, -6, 0, 6, 0, ag.lookAngle - ag.tilt, blink, 4.2);
+
+        // Dapper Top Hat
+        ctx.save();
+        ctx.translate(0, -bodyH * 0.5 + 1);
+        ctx.fillStyle = '#181c24';
+        ctx.strokeStyle = 'rgba(255,255,255,0.45)';
+        ctx.lineWidth = 0.9;
+        // Crown
+        traceRoundedRect(ctx, -9.5, -16, 19, 15, 2.5);
+        ctx.fill();
+        ctx.stroke();
+        // Glowing lime ribbon band
+        ctx.fillStyle = PALETTE.lime;
+        ctx.fillRect(-9.2, -5.5, 18.4, 3);
+        // Hat brim
+        ctx.fillStyle = '#1e2430';
+        traceRoundedRect(ctx, -16, -2.5, 32, 4, 2);
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+      } else {
+        // COMPILER: Blue inspector bot with wide curious eyes & Spinning Propeller Cap
+        ctx.fillStyle = '#0f1726';
+        traceRoundedRect(ctx, -bodyW * 0.5, -bodyH * 0.5, bodyW, bodyH, 10);
+        ctx.fill();
+        ctx.strokeStyle = PALETTE.blue;
+        ctx.lineWidth = 1.6;
+        ctx.stroke();
+
+        drawTrackingEyes(ctx, -6, 0, 6, 0, ag.lookAngle - ag.tilt, blink, 4.6);
+
+        // Colorful beanie dome
+        ctx.save();
+        ctx.translate(0, -bodyH * 0.5 + 1);
+        ctx.fillStyle = PALETTE.blue;
+        ctx.beginPath();
+        ctx.arc(0, 0, 12, Math.PI, 0);
+        ctx.closePath();
+        ctx.fill();
+        ctx.fillStyle = PALETTE.pink;
+        ctx.beginPath();
+        ctx.arc(0, 0, 12, Math.PI, Math.PI * 1.45);
+        ctx.lineTo(0, 0);
+        ctx.closePath();
+        ctx.fill();
+        // Cap visor bill
+        ctx.fillStyle = PALETTE.amber;
+        traceRoundedRect(ctx, 2, -2, 13, 3.8, 2);
+        ctx.fill();
+
+        // Spinning propeller blades on top!
+        ctx.fillStyle = '#e2e8f0';
+        ctx.fillRect(-1.2, -16, 2.4, 5);
+        const bladeW = 4 + Math.abs(Math.cos(ag.propellerAngle)) * 12;
+        ctx.fillStyle = PALETTE.cyan;
+        traceRoundedRect(ctx, -bladeW, -17.5, bladeW * 2, 3, 1.5);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      ctx.restore();
+    }
+
+    function drawAgentsAndSparks(agentAlpha) {
+      if (agentAlpha <= 0.01) return;
+
+      // Subtle agent-to-agent cooperation filaments when close
+      ctx.save();
       for (let i = 0; i < agents.length; i++) {
+        if (!agents[i].spilled) continue;
         for (let j = i + 1; j < agents.length; j++) {
+          if (!agents[j].spilled) continue;
           const a = agents[i];
           const b = agents[j];
           const dist = Math.hypot(b.x - a.x, b.y - a.y);
-          if (dist < 280) {
+          if (dist < 240) {
             ctx.strokeStyle = '#ffffff';
-            ctx.globalAlpha = (1 - dist / 280) * 0.16 * agentAlpha;
+            ctx.globalAlpha = (1 - dist / 240) * 0.14 * agentAlpha;
             ctx.lineWidth = 0.85;
             ctx.beginPath();
             ctx.moveTo(a.x, a.y);
@@ -1096,63 +1684,7 @@
           }
         }
       }
-
-      // Swarm Micro-Drones racing along Bezier splines
-      microDrones.forEach((d) => {
-        const ag = agents[d.agentIdx];
-        const mx = (ox + ag.x) * 0.5 + d.arcOffset;
-        const my = (oy + ag.y) * 0.5 - Math.abs(d.arcOffset) * 0.6;
-        const t = d.progress;
-        const inv = 1 - t;
-        const dx = inv * inv * ox + 2 * inv * t * mx + t * t * ag.x;
-        const dy = inv * inv * oy + 2 * inv * t * my + t * t * ag.y;
-
-        drawGlow(dx, dy, 8, d.glowKey, 0.75 * agentAlpha);
-        ctx.fillStyle = '#ffffff';
-        ctx.globalAlpha = 0.85 * agentAlpha;
-        ctx.fillRect(dx - 1.2, dy - 1.2, 2.4, 2.4);
-      });
-
-      // Orchestrator central dual-reticle core
-      const hubScale = smoothstep(0.0, 0.1, p) * agentAlpha;
-      if (hubScale > 0.01) {
-        drawGlow(ox, oy, 30, 'white', 0.45 * hubScale);
-        drawGlow(ox, oy, 42, 'cyan', 0.35 * hubScale);
-
-        ctx.globalAlpha = 0.7 * hubScale;
-        ctx.strokeStyle = PALETTE.white;
-        ctx.lineWidth = 1.2;
-
-        ctx.save();
-        ctx.translate(ox, oy);
-        ctx.rotate(elapsedSec * 1.4);
-        ctx.setLineDash([7, 5]);
-        ctx.beginPath();
-        ctx.arc(0, 0, 18, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.restore();
-
-        ctx.save();
-        ctx.translate(ox, oy);
-        ctx.rotate(-elapsedSec * 2.1);
-        ctx.strokeStyle = PALETTE.cyan;
-        ctx.setLineDash([3, 6]);
-        ctx.beginPath();
-        ctx.arc(0, 0, 11, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.restore();
-
-        ctx.setLineDash([]);
-        ctx.fillStyle = PALETTE.white;
-        ctx.beginPath();
-        ctx.arc(ox, oy, 3.2, 0, Math.PI * 2);
-        ctx.fill();
-      }
       ctx.restore();
-    }
-
-    function drawAgentsAndSparks(agentAlpha) {
-      if (agentAlpha <= 0.01) return;
 
       // Impact sparks
       ctx.save();
@@ -1164,44 +1696,47 @@
       });
       ctx.restore();
 
-      // Specialist Agents
       agents.forEach((ag) => {
-        // Active construction laser beam
+        if (!ag.spilled) return;
+
+        // Active construction laser beam onto target
         if (ag.laserTarget && agentAlpha > 0.15) {
           const dist = Math.hypot(ag.laserTarget.x - ag.x, ag.laserTarget.y - ag.y);
-          if (dist < 340) {
+          if (dist < 360) {
             ctx.save();
             ctx.globalCompositeOperation = 'lighter';
             ctx.strokeStyle = ag.color;
-            ctx.globalAlpha = 0.55 * agentAlpha;
-            ctx.lineWidth = 1.3;
+            ctx.globalAlpha = 0.52 * agentAlpha;
+            ctx.lineWidth = 1.5;
             ctx.beginPath();
             ctx.moveTo(ag.x, ag.y);
             ctx.lineTo(ag.laserTarget.x, ag.laserTarget.y);
             ctx.stroke();
 
             ctx.strokeStyle = '#ffffff';
-            ctx.globalAlpha = 0.75 * agentAlpha;
-            ctx.lineWidth = 0.6;
+            ctx.globalAlpha = 0.72 * agentAlpha;
+            ctx.lineWidth = 0.7;
             ctx.beginPath();
             ctx.moveTo(ag.x, ag.y);
             ctx.lineTo(ag.laserTarget.x, ag.laserTarget.y);
             ctx.stroke();
             ctx.restore();
 
-            drawGlow(ag.laserTarget.x, ag.laserTarget.y, 14, ag.glowKey, 0.8 * agentAlpha);
+            drawGlow(ag.laserTarget.x, ag.laserTarget.y, 15, ag.glowKey, 0.82 * agentAlpha);
           }
         }
 
-        // Tapered ribbon trail
+        // Tapered ribbon trail (rainbow shimmer for SHADER pride bot!)
         if (ag.trail.length > 2) {
           ctx.save();
           ctx.lineCap = 'round';
           for (let i = 1; i < ag.trail.length; i++) {
             const t = i / ag.trail.length;
-            ctx.strokeStyle = ag.color;
-            ctx.globalAlpha = t * t * 0.68 * agentAlpha;
-            ctx.lineWidth = t * 3.2;
+            ctx.strokeStyle = ag.id === 'shader'
+              ? PRIDE_STRIPES[i % PRIDE_STRIPES.length]
+              : ag.color;
+            ctx.globalAlpha = t * t * 0.62 * agentAlpha;
+            ctx.lineWidth = t * 3.8;
             ctx.beginPath();
             ctx.moveTo(ag.trail[i - 1].x, ag.trail[i - 1].y);
             ctx.lineTo(ag.trail[i].x, ag.trail[i].y);
@@ -1210,40 +1745,22 @@
           ctx.restore();
         }
 
-        // Agent drone glow & directional delta cursor
-        drawGlow(ag.x, ag.y, 20, ag.glowKey, 0.85 * agentAlpha);
+        drawGlow(ag.x, ag.y, 26, ag.glowKey, 0.58 * agentAlpha);
+        drawSingleAgentCharacter(ag, agentAlpha);
 
-        ctx.save();
-        ctx.translate(ag.x, ag.y);
-        ctx.rotate(ag.heading);
-        ctx.globalAlpha = agentAlpha;
-
-        ctx.fillStyle = ag.color;
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 1.1;
-        ctx.beginPath();
-        ctx.moveTo(9, 0);
-        ctx.lineTo(-6, 5.2);
-        ctx.lineTo(-3, 0);
-        ctx.lineTo(-6, -5.2);
-        ctx.closePath();
-        ctx.fill();
-        ctx.stroke();
-        ctx.restore();
-
-        // Compact floating monospace agent tag (hidden on ultra-narrow screens to stay tidy)
-        if (vw > 460) {
+        // Compact floating monospace agent tag
+        if (vw > 460 && ag.thrustersActive) {
           ctx.save();
           ctx.font = '600 9.5px ui-monospace, SFMono-Regular, Menlo, monospace';
           const textW = ctx.measureText(ag.label).width;
           const padX = 6;
           const pillW = textW + padX * 2;
           const pillH = 16;
-          const lx = clamp(ag.x + 12, 8, vw - pillW - 8);
-          const ly = clamp(ag.y - 18, 8, vh - pillH - 64);
+          const lx = clamp(ag.x - pillW * 0.5, 8, vw - pillW - 8);
+          const ly = clamp(ag.y + 18, 8, vh - pillH - 64);
 
           ctx.globalAlpha = 0.86 * agentAlpha;
-          ctx.fillStyle = 'rgba(11, 14, 20, 0.85)';
+          ctx.fillStyle = 'rgba(11, 14, 20, 0.86)';
           traceRoundedRect(ctx, lx, ly, pillW, pillH, 999);
           ctx.fill();
           ctx.strokeStyle = ag.color;
@@ -1341,7 +1858,6 @@
     function renderFrame(timestamp) {
       if (!isRunning) return;
 
-      // Wait for first visible frame so background-tab loads play from 0%
       if (document.hidden) {
         rafId = requestAnimationFrame(renderFrame);
         return;
@@ -1377,15 +1893,14 @@
         const elapsedMs = timestamp - clockStartedAt;
         progress = clamp(elapsedMs / TOTAL_DURATION_MS, 0, 1);
 
-        if (progress >= 0.85) {
+        if (progress >= 0.86) {
           overlay.classList.add('is-hud-fading');
         }
 
-        // Seamless cross-dissolve into live DOM at Phase 3 -> 4
-        const dissolveT = smoothstep(0.76, 0.94, progress);
+        const dissolveT = smoothstep(0.77, 0.94, progress);
         backdropAlpha = 1 - dissolveT;
-        wireframeAlpha = 1 - smoothstep(0.79, 0.96, progress);
-        agentAlpha = 1 - smoothstep(0.89, 1.0, progress);
+        wireframeAlpha = 1 - smoothstep(0.80, 0.96, progress);
+        agentAlpha = 1 - smoothstep(0.90, 1.0, progress);
 
         if (progress >= 1) {
           updateHud(1);
@@ -1396,14 +1911,13 @@
 
       const elapsedSec = (timestamp - clockStartedAt) / 1000;
       updateAgentTargets(progress, elapsedSec);
-      stepPhysics(dt);
+      stepPhysics(progress, dt);
       updateHud(progress);
 
       ctx.save();
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, vw, vh);
 
-      // Opaque obsidian canvas backdrop that fades directly into the live DOM
       if (backdropAlpha > 0.004) {
         ctx.fillStyle = `rgba(9, 11, 14, ${backdropAlpha.toFixed(3)})`;
         ctx.fillRect(0, 0, vw, vh);
@@ -1411,8 +1925,8 @@
 
       drawBlueprintGrid(progress, wireframeAlpha);
       drawConstructedNav(progress, wireframeAlpha);
-      drawConstructedHero(progress, wireframeAlpha, elapsedSec);
-      drawOrchestratorAndLinks(progress, elapsedSec, agentAlpha);
+      drawConstructedHero(progress, wireframeAlpha);
+      drawToolbox(progress);
       drawAgentsAndSparks(agentAlpha);
 
       ctx.restore();
@@ -1445,7 +1959,6 @@
       }
       document.documentElement.classList.add('swarm-booting');
 
-      // Ensure Syne 800 font is ready before sampling glyph lattice (capped at 180ms wait)
       if (document.fonts && document.fonts.ready) {
         await Promise.race([
           document.fonts.ready,
@@ -1459,7 +1972,6 @@
       buildGlyphData();
       initSwarmEntities();
 
-      // Re-sample once if fonts finish resolving slightly after initial start
       if (document.fonts && document.fonts.ready) {
         document.fonts.ready.then(() => {
           if (isRunning && !isSkipping) {
