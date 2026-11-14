@@ -10,8 +10,24 @@
 
   window.__vyrnSwarmInit = true;
 
-  const TOTAL_DURATION_MS = 4350;
-  const FAILSAFE_TIMEOUT_MS = 7200;
+  const TOTAL_DURATION_MS = 5100;
+  const FAILSAFE_TIMEOUT_MS = 8200;
+
+  // Prototyping draft poses: elements spawn off-position / off-scale and get nudged & resized into exact DOM lock
+  const PROTO_SPECS = {
+    eyebrow: { dx: 24, dy: -16, scale: 0.85, rot: 0, start: 0.17, end: 0.41 },
+    title: { dx: -36, dy: 24, scale: 0.74, rot: -0.022, start: 0.22, end: 0.56 },
+    tagline: { dx: 28, dy: 14, scale: 0.76, rot: 0, start: 0.34, end: 0.57 },
+    pills: [
+      { dx: -48, dy: -24, scale: 0.72, rot: -0.16, start: 0.30, end: 0.56 },
+      { dx: 46, dy: 28, scale: 1.18, rot: 0.15, start: 0.36, end: 0.61 },
+      { dx: -40, dy: 30, scale: 0.78, rot: 0.11, start: 0.42, end: 0.65 },
+    ],
+    ctas: [
+      { dx: -34, dy: 18, scale: 0.84, rot: 0, start: 0.44, end: 0.66 },
+      { dx: 40, dy: -12, scale: 0.84, rot: 0, start: 0.46, end: 0.68 },
+    ],
+  };
 
   const PALETTE = {
     bg: '#090b0e',
@@ -98,6 +114,87 @@
     const x = clamp(t, 0, 1);
     return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
   };
+
+  // Multi-step prototyping motion: initial slide, tactile adjustment wave, spring lock at 1.0
+  const layoutEase = (t) => {
+    const x = clamp(t, 0, 1);
+    if (x <= 0) return 0;
+    if (x >= 1) return 1;
+    const wave = Math.sin(x * Math.PI * 2.2) * (1 - x) * (1 - x) * 0.16;
+    const back = easeOutBack(clamp((x - 0.14) / 0.86, 0, 1)) * 0.55 + easeInOutCubic(x) * 0.45;
+    const raw = clamp(back + wave, -0.16, 1.045);
+    const lockBlend = smoothstep(0.91, 1, x);
+    return raw * (1 - lockBlend) + lockBlend;
+  };
+
+  function computePose(spec, p, dampX = 1, dampY = 1) {
+    if (!spec) {
+      return { dx: 0, dy: 0, scale: 1, rot: 0, settled: true, moving: false, progress: 1, settleFlash: 0 };
+    }
+    const rawT = (p - spec.start) / Math.max(0.01, spec.end - spec.start);
+    const k = layoutEase(rawT);
+    return {
+      dx: lerp(spec.dx * dampX, 0, k),
+      dy: lerp(spec.dy * dampY, 0, k),
+      scale: lerp(spec.scale, 1, k),
+      rot: lerp(spec.rot, 0, k),
+      settled: rawT >= 1,
+      moving: rawT > 0.02 && rawT < 1,
+      progress: clamp(rawT, 0, 1),
+      settleFlash: rawT >= 0.95 && rawT <= 1.18 ? Math.sin(((rawT - 0.95) / 0.23) * Math.PI) : 0,
+    };
+  }
+
+  function applyPoseToRect(rect, pose) {
+    if (!rect || !pose) return rect;
+    const w = rect.width * pose.scale;
+    const h = rect.height * pose.scale;
+    const cx = rect.cx + pose.dx;
+    const cy = rect.cy + pose.dy;
+    return {
+      left: cx - w * 0.5,
+      top: cy - h * 0.5,
+      right: cx + w * 0.5,
+      bottom: cy + h * 0.5,
+      width: w,
+      height: h,
+      cx,
+      cy,
+      radius: (rect.radius || 0) * pose.scale,
+      scale: pose.scale,
+      rot: pose.rot,
+      dx: pose.dx,
+      dy: pose.dy,
+      settled: pose.settled,
+      moving: pose.moving,
+      settleFlash: pose.settleFlash,
+    };
+  }
+
+  function transformPoint(pt, cx, cy, pose) {
+    if (!pt || !pose) return pt;
+    const lx = (pt.x - cx) * pose.scale;
+    const ly = (pt.y - cy) * pose.scale;
+    const cos = Math.cos(pose.rot);
+    const sin = Math.sin(pose.rot);
+    return {
+      x: cx + pose.dx + lx * cos - ly * sin,
+      y: cy + pose.dy + lx * sin + ly * cos,
+    };
+  }
+
+  function inverseTransformPoint(pt, cx, cy, pose) {
+    if (!pt || !pose) return pt;
+    const s = Math.max(0.05, pose.scale);
+    const dx = pt.x - (cx + pose.dx);
+    const dy = pt.y - (cy + pose.dy);
+    const cos = Math.cos(-pose.rot);
+    const sin = Math.sin(-pose.rot);
+    return {
+      x: cx + (dx * cos - dy * sin) / s,
+      y: cy + (dx * sin + dy * cos) / s,
+    };
+  }
 
   /* --- Discrete Display Exit Support Probe (Chrome/Safari/Edge vs Firefox) --- */
   let supportsDisplayTransition;
@@ -242,6 +339,140 @@
     ctx.moveTo(x + w, y + h - l); ctx.lineTo(x + w, y + h); ctx.lineTo(x + w - l, y + h);
     ctx.moveTo(x + l, y + h); ctx.lineTo(x, y + h); ctx.lineTo(x, y + h - l);
     ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawPixelBadge(ctx, cx, cy, text, accentColor, alpha) {
+    if (alpha <= 0.02 || !text) return;
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.font = '600 10px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
+    const padX = 5;
+    const h = 15;
+    const w = Math.ceil(ctx.measureText(text).width) + padX * 2;
+    const left = cx - w * 0.5;
+    const top = cy - h * 0.5;
+
+    ctx.fillStyle = 'rgba(9, 11, 14, 0.9)';
+    traceRoundedRect(ctx, left, top, w, h, 3.5);
+    ctx.fill();
+
+    ctx.strokeStyle = accentColor;
+    ctx.globalAlpha = alpha * 0.68;
+    ctx.lineWidth = 0.85;
+    ctx.stroke();
+
+    ctx.fillStyle = accentColor;
+    ctx.globalAlpha = alpha * 0.96;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, cx, cy + 0.5);
+    ctx.restore();
+  }
+
+  function drawDimensionLine(ctx, x1, y1, x2, y2, label, color, alpha, badgeOffsetX = 0, badgeOffsetY = 0) {
+    const dist = Math.hypot(x2 - x1, y2 - y1);
+    if (alpha <= 0.02 || dist < 6) return;
+
+    const ux = (x2 - x1) / dist;
+    const uy = (y2 - y1) / dist;
+    const nx = -uy;
+    const ny = ux;
+    const cap = 4;
+
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.globalAlpha = alpha;
+    ctx.lineWidth = 0.95;
+
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    // End perpendicular caps
+    ctx.moveTo(x1 - nx * cap, y1 - ny * cap);
+    ctx.lineTo(x1 + nx * cap, y1 + ny * cap);
+    ctx.moveTo(x2 - nx * cap, y2 - ny * cap);
+    ctx.lineTo(x2 + nx * cap, y2 + ny * cap);
+    ctx.stroke();
+
+    // Subtle inward caliper arrowheads when long enough
+    if (dist >= 22) {
+      const aLen = 4.2;
+      const aHalf = 2.2;
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x1 + ux * aLen + nx * aHalf, y1 + uy * aLen + ny * aHalf);
+      ctx.lineTo(x1 + ux * aLen - nx * aHalf, y1 + uy * aLen - ny * aHalf);
+      ctx.closePath();
+      ctx.moveTo(x2, y2);
+      ctx.lineTo(x2 - ux * aLen + nx * aHalf, y2 - uy * aLen + ny * aHalf);
+      ctx.lineTo(x2 - ux * aLen - nx * aHalf, y2 - uy * aLen - ny * aHalf);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    ctx.restore();
+
+    const text = label || `${Math.round(dist)}px`;
+    drawPixelBadge(ctx, (x1 + x2) * 0.5 + badgeOffsetX, (y1 + y2) * 0.5 + badgeOffsetY, text, color, alpha);
+  }
+
+  function drawTransformBox(ctx, cx, cy, w, h, rot, color, alpha, handleAlpha, tagText) {
+    if (alpha <= 0.01 || w < 4 || h < 4) return;
+    const hw = w * 0.5;
+    const hh = h * 0.5;
+
+    ctx.save();
+    ctx.translate(cx, cy);
+    if (rot) ctx.rotate(rot);
+
+    // Dashed Figma-style bounding frame
+    ctx.strokeStyle = color;
+    ctx.globalAlpha = alpha;
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4, 3]);
+    ctx.strokeRect(-hw, -hh, w, h);
+    ctx.setLineDash([]);
+
+    // 8 Resize / Transform Handles (corners + midpoints)
+    if (handleAlpha > 0.02) {
+      const hs = 4.5;
+      const half = hs * 0.5;
+      const pts = [
+        [-hw, -hh], [0, -hh], [hw, -hh],
+        [-hw, 0], [hw, 0],
+        [-hw, hh], [0, hh], [hw, hh],
+      ];
+      ctx.globalAlpha = handleAlpha;
+      ctx.lineWidth = 1.05;
+      pts.forEach(([px, py]) => {
+        ctx.fillStyle = '#090b0e';
+        ctx.fillRect(px - half, py - half, hs, hs);
+        ctx.strokeStyle = color;
+        ctx.strokeRect(px - half, py - half, hs, hs);
+      });
+    }
+
+    if (tagText) {
+      ctx.font = '600 9.5px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
+      const tw = Math.ceil(ctx.measureText(tagText).width) + 8;
+      const bx = -hw;
+      const by = -hh - 17;
+      ctx.globalAlpha = alpha * 0.95;
+      ctx.fillStyle = 'rgba(9, 11, 14, 0.9)';
+      traceRoundedRect(ctx, bx, by, tw, 14, 3);
+      ctx.fill();
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 0.8;
+      ctx.stroke();
+
+      ctx.fillStyle = color;
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(tagText, bx + 4, by + 7.5);
+    }
+
     ctx.restore();
   }
 
@@ -417,6 +648,7 @@
     let glyphData = null;
     let agents = [];
     let sparks = [];
+    let snappedKeys = new Set();
 
     function measureTargets() {
       vw = window.innerWidth;
@@ -433,6 +665,8 @@
         return {
           left: r.left,
           top: r.top,
+          right: r.right,
+          bottom: r.bottom,
           width: r.width,
           height: r.height,
           cx: r.left + r.width * 0.5,
@@ -449,6 +683,7 @@
       const discordBtn = navEl ? navEl.querySelector('.nav-btn--discord') : null;
       const bmacBtn = navEl ? navEl.querySelector('.nav-btn--bmac') : null;
 
+      const containerEl = document.querySelector('.hero-section .container');
       const eyebrowEl = document.querySelector('.hero-eyebrow');
       const eyebrowDotEls = eyebrowEl ? Array.from(eyebrowEl.querySelectorAll('.color-dot')) : [];
       const titleEl = document.querySelector('.hero-title-giant');
@@ -467,7 +702,7 @@
 
       const shiftRect = (r) => {
         if (!r || yOffset === 0) return r;
-        return { ...r, top: r.top + yOffset, cy: r.cy + yOffset };
+        return { ...r, top: r.top + yOffset, bottom: (r.bottom || r.top + r.height) + yOffset, cy: r.cy + yOffset };
       };
 
       titleRect = shiftRect(titleRect) || {
@@ -557,8 +792,16 @@
         return { rect, label, color, glowKey, tilt, dot, text };
       };
 
+      const containerRect = toRect(containerEl, 0);
+      if (containerRect && containerEl) {
+        const cStyle = window.getComputedStyle(containerEl);
+        containerRect.padLeft = parseFloat(cStyle.paddingLeft) || 0;
+        containerRect.padRight = parseFloat(cStyle.paddingRight) || 0;
+      }
+
       targets = {
-        nav: toRect(navEl, 0) || { left: 0, top: 0, width: vw, height: 64, cx: vw * 0.5, cy: 32, radius: 0 },
+        nav: toRect(navEl, 0) || { left: 0, top: 0, right: vw, bottom: 64, width: vw, height: 64, cx: vw * 0.5, cy: 32, radius: 0 },
+        container: containerRect,
         brand: toRect(brandEl, 8),
         brandText: toRect(brandTextEl, 4),
         brandFont: brandStyle ? {
@@ -789,6 +1032,45 @@
       }));
 
       sparks = [];
+      snappedKeys.clear();
+    }
+
+    function computeFrameLayout(p) {
+      const sx = clamp(vw / 1100, 0.36, 1);
+      const sy = clamp(vh / 800, 0.52, 1);
+
+      const eyebrowPose = computePose(PROTO_SPECS.eyebrow, p, sx, sy);
+      const titlePose = computePose(PROTO_SPECS.title, p, sx, sy);
+      const taglinePose = computePose(PROTO_SPECS.tagline, p, sx, sy);
+      const pillPoses = targets.pills.map((_, i) => computePose(PROTO_SPECS.pills[i % PROTO_SPECS.pills.length], p, sx, sy));
+      const ctaPoses = targets.ctas.map((_, i) => computePose(PROTO_SPECS.ctas[i % PROTO_SPECS.ctas.length], p, sx, sy));
+
+      return {
+        eyebrowPose,
+        eyebrowRect: applyPoseToRect(targets.eyebrow, eyebrowPose),
+        titlePose,
+        titleRect: applyPoseToRect(targets.title, titlePose),
+        taglinePose,
+        taglineRect: applyPoseToRect(targets.tagline, taglinePose),
+        pillPoses,
+        pillRects: targets.pills.map((pill, i) => applyPoseToRect(pill.rect, pillPoses[i])),
+        ctaPoses,
+        ctaRects: targets.ctas.map((cta, i) => applyPoseToRect(cta.rect, ctaPoses[i])),
+      };
+    }
+
+    function emitSnapSparks(p, layout) {
+      if (p < 0.25 || p > 0.78) return;
+      const trySnap = (key, rect, color, pose) => {
+        if (!rect || !pose || !pose.settled || snappedKeys.has(key)) return;
+        snappedKeys.add(key);
+        spawnSpark(rect.cx, rect.cy, color, 5);
+      };
+      trySnap('eyebrow', layout.eyebrowRect, PALETTE.amber, layout.eyebrowPose);
+      trySnap('title', layout.titleRect, PALETTE.cyan, layout.titlePose);
+      trySnap('tagline', layout.taglineRect, PALETTE.blue, layout.taglinePose);
+      layout.pillRects.forEach((r, i) => trySnap(`pill-${i}`, r, targets.pills[i].color, layout.pillPoses[i]));
+      layout.ctaRects.forEach((r, i) => trySnap(`cta-${i}`, r, targets.ctas[i].solid ? PALETTE.white : PALETTE.cyan, layout.ctaPoses[i]));
     }
 
     function spawnSpark(x, y, color, count = 2) {
@@ -807,9 +1089,11 @@
       }
     }
 
-    function updateAgentTargets(p, elapsedSec) {
-      if (!targets) return;
+    function updateAgentTargets(p, elapsedSec, layout) {
+      if (!targets || !layout) return;
       const tr = targets.title;
+      const titleR = layout.titleRect || tr;
+      const tPose = layout.titlePose;
       const nav = targets.nav;
       const pills = targets.pills;
 
@@ -858,55 +1142,62 @@
         }
         ag.gazeTarget = null;
 
-        // Phase 1 & 2: Coordinated specialized construction roles
+        // Phase 1 & 2: Specialized prototyping, resizing, dragging & final stroke finish
         switch (ag.id) {
           case 'architect': {
-            if (p < 0.38) {
-              const tNav = smoothstep(0.15, 0.36, p);
+            if (p < 0.34) {
+              const tNav = smoothstep(0.15, 0.33, p);
               const sweepX = lerp(nav.left + 36, nav.left + nav.width - 36, tNav);
               ag.targetX = sweepX;
               ag.targetY = nav.cy + Math.sin(elapsedSec * 6.5) * 10 + 46;
               ag.laserTarget = { x: sweepX, y: nav.cy };
-            } else if (p < 0.69 && glyphData && glyphData.edges.length > 0) {
-              // Parallel team trace across right letters ("R-N")
+            } else if (p < 0.54) {
+              // Grabs top-right transform handle of "VYRN" to scale it cleanly up into 100% DOM lock
+              const cornerPt = transformPoint({ x: tr.left + tr.width, y: tr.top }, tr.cx, tr.cy, tPose);
+              ag.targetX = cornerPt.x + 36;
+              ag.targetY = cornerPt.y - 34;
+              ag.laserTarget = cornerPt;
+            } else if (p < 0.71 && glyphData && glyphData.edges.length > 0) {
               const half = Math.floor(glyphData.edges.length * 0.5);
-              const buildT = smoothstep(0.37, 0.67, p);
+              const buildT = smoothstep(0.53, 0.70, p);
               const edgeIdx = clamp(half + Math.floor(buildT * (glyphData.edges.length - 1 - half)), half, glyphData.edges.length - 1);
-              const edgePt = glyphData.edges[edgeIdx];
-              ag.targetX = edgePt.x + 34 + Math.sin(elapsedSec * 4.8) * 18;
-              ag.targetY = edgePt.y - 54 + Math.cos(elapsedSec * 4.2) * 14;
+              const edgePt = transformPoint(glyphData.edges[edgeIdx], tr.cx, tr.cy, tPose);
+              ag.targetX = edgePt.x + 34 + Math.sin(elapsedSec * 4.8) * 16;
+              ag.targetY = edgePt.y - 52 + Math.cos(elapsedSec * 4.2) * 12;
               ag.laserTarget = edgePt;
-            } else {
-              const videoPill = pills[1] || pills[0];
-              if (videoPill) {
-                const pt = pointOnRoundedRect(videoPill.rect, (elapsedSec * 0.9) % 1);
-                ag.targetX = pt.x + 40;
-                ag.targetY = pt.y - 34;
-                ag.laserTarget = pt;
-              } else {
-                ag.targetX = tr.left + tr.width * 0.72;
-                ag.targetY = tr.top - 42;
-              }
+            } else if (layout.pillRects[1] || layout.pillRects[0]) {
+              const slot = layout.pillRects[1] ? 1 : 0;
+              const pill = targets.pills[slot];
+              const pose = layout.pillPoses[slot];
+              const basePt = pointOnRoundedRect(pill.rect, (elapsedSec * 0.9) % 1);
+              const pt = transformPoint(basePt, pill.rect.cx, pill.rect.cy, { ...pose, rot: pill.tilt + pose.rot });
+              ag.targetX = pt.x + 40;
+              ag.targetY = pt.y - 34;
+              ag.laserTarget = pt;
             }
             break;
           }
           case 'synth': {
-            if (p < 0.32 && targets.eyebrow) {
-              const pt = pointOnRoundedRect(targets.eyebrow, smoothstep(0.16, 0.31, p));
+            if (p < 0.36 && layout.eyebrowRect) {
+              const ebR = layout.eyebrowRect;
+              const pt = pointOnRoundedRect(ebR, smoothstep(0.16, 0.35, p));
               ag.targetX = pt.x - 36;
               ag.targetY = pt.y - 30;
               ag.laserTarget = pt;
-            } else if (p < 0.68 && glyphData && glyphData.edges.length > 0) {
-              // Traces left letters ("V-Y") while emitting waveform acoustics
+            } else if (p < 0.67 && glyphData && glyphData.edges.length > 0) {
+              // Guides left strokes ("V-Y") while "VYRN" stretches into center lock
               const half = Math.max(1, Math.floor(glyphData.edges.length * 0.52));
-              const buildT = smoothstep(0.30, 0.66, p);
+              const buildT = smoothstep(0.35, 0.66, p);
               const edgeIdx = Math.min(half - 1, Math.floor(buildT * half));
-              const edgePt = glyphData.edges[edgeIdx];
-              ag.targetX = edgePt.x - 32 + Math.sin(elapsedSec * 5.2) * 20;
-              ag.targetY = edgePt.y - 52 + Math.cos(elapsedSec * 4.5) * 16;
+              const edgePt = transformPoint(glyphData.edges[edgeIdx], tr.cx, tr.cy, tPose);
+              ag.targetX = edgePt.x - 32 + Math.sin(elapsedSec * 5.2) * 18;
+              ag.targetY = edgePt.y - 50 + Math.cos(elapsedSec * 4.5) * 14;
               ag.laserTarget = edgePt;
-            } else if (pills[2]) {
-              const pt = pointOnRoundedRect(pills[2].rect, (elapsedSec * 1.1) % 1);
+            } else if (layout.pillRects[2]) {
+              const pill = targets.pills[2];
+              const pose = layout.pillPoses[2];
+              const basePt = pointOnRoundedRect(pill.rect, (elapsedSec * 1.1) % 1);
+              const pt = transformPoint(basePt, pill.rect.cx, pill.rect.cy, { ...pose, rot: pill.tilt + pose.rot });
               ag.targetX = pt.x + 36;
               ag.targetY = pt.y + 36;
               ag.laserTarget = pt;
@@ -914,21 +1205,24 @@
             break;
           }
           case 'shader': {
-            // Progress Pride Flag artist — visits each inkSeed along V-Y-R-N bleeding prismatic watercolor
-            if (p < 0.32) {
+            // Progress Pride Flag artist — floods V-Y-R-N with live watercolor bleed while it scales into place
+            if (p < 0.30) {
               const a = elapsedSec * 2.4;
-              ag.targetX = tr.cx + Math.cos(a) * Math.min(vw * 0.28, tr.width * 0.36);
-              ag.targetY = tr.cy - 44 + Math.sin(a) * 32;
-              ag.laserTarget = { x: tr.cx + Math.cos(a + 0.5) * 60, y: tr.cy };
-            } else if (p < 0.71 && glyphData && glyphData.inkSeeds.length > 0) {
-              const bleedT = smoothstep(0.32, 0.69, p);
+              ag.targetX = titleR.cx + Math.cos(a) * Math.min(vw * 0.28, titleR.width * 0.36);
+              ag.targetY = titleR.cy - 44 + Math.sin(a) * 30;
+              ag.laserTarget = { x: titleR.cx + Math.cos(a + 0.5) * 56, y: titleR.cy };
+            } else if (p < 0.72 && glyphData && glyphData.inkSeeds.length > 0) {
+              const bleedT = smoothstep(0.30, 0.70, p);
               const seedIdx = Math.min(glyphData.inkSeeds.length - 1, Math.floor(bleedT * glyphData.inkSeeds.length));
-              const seed = glyphData.inkSeeds[seedIdx];
-              ag.targetX = seed.x - 22 + Math.cos(elapsedSec * 5.5) * 14;
-              ag.targetY = seed.y + 62 + Math.sin(elapsedSec * 4.8) * 14;
-              ag.laserTarget = { x: seed.x, y: seed.y };
-            } else if (pills[0]) {
-              const pt = pointOnRoundedRect(pills[0].rect, (elapsedSec * 1.15) % 1);
+              const seedPt = transformPoint(glyphData.inkSeeds[seedIdx], tr.cx, tr.cy, tPose);
+              ag.targetX = seedPt.x - 22 + Math.cos(elapsedSec * 5.5) * 14;
+              ag.targetY = seedPt.y + 60 + Math.sin(elapsedSec * 4.8) * 14;
+              ag.laserTarget = seedPt;
+            } else if (layout.pillRects[0]) {
+              const pill = targets.pills[0];
+              const pose = layout.pillPoses[0];
+              const basePt = pointOnRoundedRect(pill.rect, (elapsedSec * 1.15) % 1);
+              const pt = transformPoint(basePt, pill.rect.cx, pill.rect.cy, { ...pose, rot: pill.tilt + pose.rot });
               ag.targetX = pt.x - 42;
               ag.targetY = pt.y - 30;
               ag.laserTarget = pt;
@@ -936,36 +1230,43 @@
             break;
           }
           case 'motion': {
+            // Layout & Transform specialist — slides, scales & levels AUDIO -> VIDEO -> CODE pills into lock
             if (pills.length > 0) {
-              const slot = p < 0.42 ? 0 : p < 0.58 ? 1 : Math.min(2, pills.length - 1);
+              const slot = p < 0.45 ? 0 : p < 0.59 ? 1 : Math.min(2, pills.length - 1);
               const pill = pills[slot] || pills[0];
-              const pt = pointOnRoundedRect(pill.rect, (elapsedSec * 1.2) % 1);
+              const pose = layout.pillPoses[slot] || layout.pillPoses[0];
+              const basePt = pointOnRoundedRect(pill.rect, (elapsedSec * 1.25) % 1);
+              const pt = transformPoint(basePt, pill.rect.cx, pill.rect.cy, { ...pose, rot: pill.tilt + pose.rot });
               ag.targetX = pt.x + (slot === 2 ? 38 : -40);
               ag.targetY = pt.y + (slot === 1 ? -34 : 32);
               ag.laserTarget = pt;
             } else {
-              ag.targetX = tr.cx + Math.cos(elapsedSec * 2.2) * 170;
-              ag.targetY = tr.cy + Math.sin(elapsedSec * 2.2) * 95;
+              ag.targetX = titleR.cx + Math.cos(elapsedSec * 2.2) * 170;
+              ag.targetY = titleR.cy + Math.sin(elapsedSec * 2.2) * 95;
             }
             break;
           }
           case 'compiler': {
-            if (p < 0.40 && targets.navActions.length > 0) {
+            if (p < 0.36 && targets.navActions.length > 0) {
               const act = targets.navActions[Math.floor(elapsedSec * 2.5) % targets.navActions.length];
               const pt = pointOnRoundedRect(act, (elapsedSec * 1.35) % 1);
               ag.targetX = pt.x - 28;
               ag.targetY = pt.y + 42;
               ag.laserTarget = pt;
-            } else if (p < 0.60 && targets.tagline) {
-              const tTag = smoothstep(0.40, 0.59, p);
-              const lx = lerp(targets.tagline.left, targets.tagline.left + targets.tagline.width, tTag);
+            } else if (p < 0.54 && layout.taglineRect) {
+              // Stretches & aligns tagline wireframe horizontally to exact width
+              const tgR = layout.taglineRect;
+              const tTag = smoothstep(0.35, 0.53, p);
+              const lx = lerp(tgR.left, tgR.left + tgR.width, tTag);
               ag.targetX = lx;
-              ag.targetY = targets.tagline.top - 30;
-              ag.laserTarget = { x: lx, y: targets.tagline.cy };
-            } else if (targets.ctas.length > 0) {
-              const cta = targets.ctas[p > 0.67 && targets.ctas[1] ? 1 : 0];
-              const pt = pointOnRoundedRect(cta.rect, (elapsedSec * 1.25) % 1);
-              ag.targetX = pt.x + 26;
+              ag.targetY = tgR.top - 30;
+              ag.laserTarget = { x: lx, y: tgR.cy };
+            } else if (layout.ctaRects.length > 0) {
+              // Pushes the two CTA pills horizontally along the spacing caliper until gap settles
+              const idxCta = p > 0.62 && layout.ctaRects[1] ? 1 : 0;
+              const ctaR = layout.ctaRects[idxCta];
+              const pt = pointOnRoundedRect(ctaR, (elapsedSec * 1.3) % 1);
+              ag.targetX = pt.x + (idxCta === 1 ? 30 : -30);
               ag.targetY = pt.y + 38;
               ag.laserTarget = pt;
             }
@@ -975,7 +1276,7 @@
       });
     }
 
-    function stepPhysics(p, dt) {
+    function stepPhysics(p, dt, layout) {
       const stiffness = 24;
       const damping = 8.0;
       const gravity = 1150;
@@ -1033,12 +1334,15 @@
         }
       });
 
-      // Ignite inkSeeds dynamically when SHADER's brush nears them or on timeline trigger
+      // Ignite inkSeeds dynamically when SHADER's brush nears them (mapped through live titlePose) or on timeline trigger
       if (glyphData && glyphData.inkSeeds) {
         const shaderBot = agents.find((a) => a.id === 'shader');
         const shaderBrush = shaderBot && shaderBot.laserTarget ? shaderBot.laserTarget : null;
+        const tPose = layout ? layout.titlePose : null;
+        const tr = targets ? targets.title : null;
         glyphData.inkSeeds.forEach((seed) => {
-          const brushNear = shaderBrush && Math.hypot(shaderBrush.x - seed.x, shaderBrush.y - seed.y) < 92;
+          const seedPt = tPose && tr ? transformPoint(seed, tr.cx, tr.cy, tPose) : seed;
+          const brushNear = shaderBrush && Math.hypot(shaderBrush.x - seedPt.x, shaderBrush.y - seedPt.y) < 96;
           if (brushNear || p >= seed.triggerP) {
             seed.bloom = Math.min(1, seed.bloom + dt * 4.2);
           }
@@ -1228,7 +1532,149 @@
       ctx.restore();
     }
 
-    function drawBlueprintGrid(p, wireframeAlpha) {
+    function drawLayoutAnnotations(p, layout, protoAlpha) {
+      if (protoAlpha <= 0.01 || !targets || !layout) return;
+
+      const nav = targets.nav;
+      const tr = targets.title;
+      const titleR = layout.titleRect || tr;
+      const container = targets.container;
+
+      ctx.save();
+
+      // 1. Vertical Center Alignment Axis (flares briefly whenever any block snaps into 0px lock)
+      const snapPulse = Math.max(
+        layout.titlePose.settleFlash,
+        layout.eyebrowPose.settleFlash,
+        layout.taglinePose.settleFlash,
+        ...layout.pillPoses.map((x) => x.settleFlash),
+        ...layout.ctaPoses.map((x) => x.settleFlash)
+      );
+      const axisYTop = nav ? nav.top + nav.height : 0;
+      const axisYBot = Math.min(vh - 24, (layout.ctaRects[0] ? layout.ctaRects[0].bottom : titleR.bottom) + 64);
+
+      ctx.strokeStyle = snapPulse > 0.1
+        ? `rgba(255, 255, 255, ${(0.22 * protoAlpha + 0.48 * snapPulse).toFixed(3)})`
+        : `rgba(0, 240, 255, ${(0.14 * protoAlpha).toFixed(3)})`;
+      ctx.lineWidth = 0.9;
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.moveTo(tr.cx, axisYTop);
+      ctx.lineTo(tr.cx, axisYBot);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      if (snapPulse > 0.18) {
+        drawPixelBadge(ctx, tr.cx, axisYBot + 10, 'SNAP 0px', PALETTE.cyan, protoAlpha * snapPulse);
+      }
+
+      // 2. Outer Container Margin Rails & Real Viewport Margin / Padding Calipers
+      if (container && container.width > 40) {
+        const cLeft = container.left;
+        const cRight = container.left + container.width;
+        const padL = container.padLeft || 0;
+        const padR = container.padRight || 0;
+        const innerLeft = cLeft + padL;
+        const innerRight = cRight - padR;
+
+        ctx.strokeStyle = `rgba(0, 240, 255, ${(0.18 * protoAlpha).toFixed(3)})`;
+        ctx.lineWidth = 0.85;
+        ctx.setLineDash([3, 5]);
+        ctx.beginPath();
+        ctx.moveTo(innerLeft, axisYTop);
+        ctx.lineTo(innerLeft, axisYBot);
+        ctx.moveTo(innerRight, axisYTop);
+        ctx.lineTo(innerRight, axisYBot);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        const marginY = axisYTop + 26;
+        if (innerLeft >= 56 && vw >= 640) {
+          const leftLabel = cLeft >= 32 ? `mx ${Math.round(innerLeft)}px` : `px ${Math.round(padL)}px`;
+          const rightLabel = (vw - cRight) >= 32 ? `mx ${Math.round(vw - innerRight)}px` : `px ${Math.round(padR)}px`;
+          drawDimensionLine(ctx, 4, marginY, innerLeft, marginY, leftLabel, PALETTE.cyan, protoAlpha * 0.72);
+          drawDimensionLine(ctx, innerRight, marginY, vw - 4, marginY, rightLabel, PALETTE.cyan, protoAlpha * 0.72);
+        }
+
+        // Top nav height indicator along right inner margin rail
+        if (nav && nav.height >= 24 && vw >= 640 && innerRight + 26 < vw) {
+          drawDimensionLine(ctx, innerRight + 14, nav.top + 2, innerRight + 14, nav.top + nav.height - 2, `${Math.round(nav.height)}px`, PALETTE.blue, protoAlpha * 0.74, 22, 0);
+        }
+      }
+
+      // 3. Live Height & Spanning Width Calipers on Moving/Scaling "VYRN" Frame
+      if (titleR.left >= 64 && vw >= 560) {
+        const hX = Math.max(18, titleR.left - 22);
+        drawDimensionLine(ctx, hX, titleR.top, hX, titleR.bottom, `${Math.round(titleR.height)}px`, PALETTE.cyan, protoAlpha * 0.85, -20, 0);
+      }
+      const spanY = Math.min(titleR.top - 20, layout.eyebrowRect ? layout.eyebrowRect.top - 18 : titleR.top - 20);
+      if (spanY > axisYTop + 20) {
+        ctx.strokeStyle = `rgba(0, 240, 255, ${(0.28 * protoAlpha).toFixed(3)})`;
+        ctx.lineWidth = 0.8;
+        ctx.setLineDash([2, 2]);
+        ctx.beginPath();
+        ctx.moveTo(titleR.left, titleR.top - 2);
+        ctx.lineTo(titleR.left, spanY - 3);
+        ctx.moveTo(titleR.right, titleR.top - 2);
+        ctx.lineTo(titleR.right, spanY - 3);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        drawDimensionLine(ctx, titleR.left, spanY, titleR.right, spanY, `W ${Math.round(titleR.width)}px`, PALETTE.cyan, protoAlpha * 0.8);
+      }
+
+      // 4. Live Vertical Spacing Gap Calipers (Eyebrow -> Title -> Tagline -> CTAs)
+      if (layout.eyebrowRect) {
+        const ebR = layout.eyebrowRect;
+        const gapEyebrow = titleR.top - ebR.bottom;
+        if (gapEyebrow >= 14) {
+          const gx = tr.cx + (vw >= 640 ? 64 : 36);
+          drawDimensionLine(ctx, gx, ebR.bottom, gx, titleR.top, `${Math.round(gapEyebrow)}px`, PALETTE.amber, protoAlpha * 0.8, 22, 0);
+        }
+      }
+
+      if (layout.taglineRect) {
+        const tgR = layout.taglineRect;
+        const gapTitleTag = tgR.top - titleR.bottom;
+        if (gapTitleTag >= 14) {
+          const gx = tr.cx - (vw >= 640 ? 72 : 42);
+          drawDimensionLine(ctx, gx, titleR.bottom, gx, tgR.top, `${Math.round(gapTitleTag)}px`, PALETTE.blue, protoAlpha * 0.78, -22, 0);
+        }
+
+        if (layout.ctaRects.length > 0) {
+          const ctaTop = Math.min(...layout.ctaRects.map((c) => c.top));
+          const gapTagCta = ctaTop - tgR.bottom;
+          if (gapTagCta >= 14) {
+            drawDimensionLine(ctx, tr.cx, tgR.bottom, tr.cx, ctaTop, `${Math.round(gapTagCta)}px`, PALETTE.blue, protoAlpha * 0.76, 22, 0);
+          }
+        }
+      }
+
+      // 5. Below-CTA Live Gap Caliper (updates as COMPILER pushes buttons inward to lock)
+      if (layout.ctaRects.length >= 2) {
+        const c0 = layout.ctaRects[0];
+        const c1 = layout.ctaRects[1];
+        if (Math.abs(c0.cy - c1.cy) < 22 && c1.left > c0.right - 2) {
+          const dimY = Math.max(c0.bottom, c1.bottom) + 18;
+          ctx.strokeStyle = `rgba(0, 240, 255, ${(0.32 * protoAlpha).toFixed(3)})`;
+          ctx.lineWidth = 0.8;
+          ctx.setLineDash([2, 2]);
+          ctx.beginPath();
+          ctx.moveTo(c0.right, c0.bottom + 2);
+          ctx.lineTo(c0.right, dimY + 3);
+          ctx.moveTo(c1.left, c1.bottom + 2);
+          ctx.lineTo(c1.left, dimY + 3);
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          const gapPx = Math.max(0, Math.round(c1.left - c0.right));
+          drawDimensionLine(ctx, c0.right, dimY, c1.left, dimY, `gap ${gapPx}px`, PALETTE.cyan, protoAlpha * 0.88, 0, gapPx < 48 ? 14 : 0);
+        }
+      }
+
+      ctx.restore();
+    }
+
+    function drawBlueprintGrid(p, wireframeAlpha, layout) {
       if (wireframeAlpha <= 0.01) return;
       const gridAlpha = smoothstep(0.06, 0.20, p) * wireframeAlpha * 0.075;
       if (gridAlpha <= 0.002) return;
@@ -1255,11 +1701,13 @@
         ctx.lineTo(vw, y);
       }
       ctx.stroke();
+      ctx.restore();
 
-      // Subtle localized corner crop marks & calibrated dimension ticks around centerpiece title
+      // Corner crop marks & live margin/pixel calipers drawn unclipped
+      const protoAlpha = smoothstep(0.14, 0.24, p) * (1 - smoothstep(0.67, 0.78, p));
       const guideAlpha = smoothstep(0.16, 0.34, p) * wireframeAlpha * 0.42;
-      if (guideAlpha > 0.01) {
-        const tr = targets.title;
+      if (guideAlpha > 0.01 && layout && layout.titleRect) {
+        const tr = layout.titleRect;
         const m = 12;
         const len = 14;
         const l = tr.left - m;
@@ -1267,24 +1715,23 @@
         const t = tr.top - m;
         const b = tr.top + tr.height + m;
 
+        ctx.save();
         ctx.strokeStyle = `rgba(0, 240, 255, ${guideAlpha.toFixed(3)})`;
         ctx.lineWidth = 1.25;
         ctx.beginPath();
-        // Top-left & top-right
         ctx.moveTo(l, t + len); ctx.lineTo(l, t); ctx.lineTo(l + len, t);
         ctx.moveTo(r - len, t); ctx.lineTo(r, t); ctx.lineTo(r, t + len);
-        // Bottom-left & bottom-right
         ctx.moveTo(l, b - len); ctx.lineTo(l, b); ctx.lineTo(l + len, b);
         ctx.moveTo(r - len, b); ctx.lineTo(r, b); ctx.lineTo(r, b - len);
-        // Center crosshair ticks on frame edges
         ctx.moveTo(tr.cx, t - 5); ctx.lineTo(tr.cx, t + 4);
         ctx.moveTo(tr.cx, b - 4); ctx.lineTo(tr.cx, b + 5);
         ctx.moveTo(l - 5, tr.cy); ctx.lineTo(l + 4, tr.cy);
         ctx.moveTo(r - 4, tr.cy); ctx.lineTo(r + 5, tr.cy);
         ctx.stroke();
+        ctx.restore();
       }
 
-      ctx.restore();
+      drawLayoutAnnotations(p, layout, protoAlpha);
     }
 
     function drawConstructedNav(p, wireframeAlpha) {
@@ -1357,9 +1804,9 @@
       ctx.restore();
     }
 
-    function drawOrganicInkFill(p, wireframeAlpha) {
+    function drawOrganicInkFill(p, wireframeAlpha, titlePose) {
       if (!glyphData || !glyphData.inkCtx || !glowSprites.inkStamp) return;
-      const inkStart = 0.32;
+      const inkStart = 0.30;
       if (p <= inkStart) return;
 
       const tr = targets.title;
@@ -1393,11 +1840,12 @@
         });
       });
 
-      // 2. Live painterly bleed directly beneath SHADER & SYNTH beam contact points
+      // 2. Live painterly bleed directly beneath SHADER & SYNTH beam contact points (untransformed back to local inkCanvas)
       agents.forEach((ag) => {
-        if ((ag.id === 'shader' || ag.id === 'synth' || ag.id === 'architect') && ag.laserTarget && p >= 0.32 && p <= 0.74) {
-          const lx = ag.laserTarget.x - (tr.left - pad);
-          const ly = ag.laserTarget.y - (tr.top - pad);
+        if ((ag.id === 'shader' || ag.id === 'synth' || ag.id === 'architect') && ag.laserTarget && p >= 0.30 && p <= 0.74) {
+          const localPt = titlePose ? inverseTransformPoint(ag.laserTarget, tr.cx, tr.cy, titlePose) : ag.laserTarget;
+          const lx = localPt.x - (tr.left - pad);
+          const ly = localPt.y - (tr.top - pad);
           if (lx >= -40 && lx <= gw + 40 && ly >= -40 && ly <= gh + 40) {
             anyDrawn = true;
             const brushR = Math.max(46, glyphData.h * 0.34);
@@ -1429,39 +1877,52 @@
       ictx.restore();
 
       ctx.save();
-      ctx.globalAlpha = clamp(smoothstep(0.32, 0.72, p) * 1.15, 0, 0.98) * wireframeAlpha;
-      ctx.drawImage(glyphData.inkCanvas, tr.left - pad, tr.top - pad, gw, gh);
+      if (titlePose) {
+        ctx.translate(tr.cx + titlePose.dx, tr.cy + titlePose.dy);
+        ctx.rotate(titlePose.rot);
+        ctx.scale(titlePose.scale, titlePose.scale);
+        ctx.globalAlpha = clamp(smoothstep(0.30, 0.72, p) * 1.15, 0, 0.98) * wireframeAlpha;
+        ctx.drawImage(glyphData.inkCanvas, (tr.left - pad) - tr.cx, (tr.top - pad) - tr.cy, gw, gh);
+      } else {
+        ctx.globalAlpha = clamp(smoothstep(0.30, 0.72, p) * 1.15, 0, 0.98) * wireframeAlpha;
+        ctx.drawImage(glyphData.inkCanvas, tr.left - pad, tr.top - pad, gw, gh);
+      }
       ctx.restore();
     }
 
-    function drawConstructedHero(p, wireframeAlpha) {
+    function drawConstructedHero(p, wireframeAlpha, layout) {
       const tr = targets.title;
+      const titlePose = layout ? layout.titlePose : { dx: 0, dy: 0, scale: 1, rot: 0, settled: true, settleFlash: 0 };
+      const titleR = (layout && layout.titleRect) || tr;
+      const protoAlpha = smoothstep(0.16, 0.26, p) * (1 - smoothstep(0.66, 0.76, p));
 
-      // Soft tri-color backlight glow behind VYRN
-      const haloP = smoothstep(0.28, 0.62, p) * wireframeAlpha;
+      // Soft tri-color backlight glow behind live moving/scaling VYRN
+      const haloP = smoothstep(0.24, 0.62, p) * wireframeAlpha;
       if (haloP > 0.01) {
-        drawGlow(tr.cx - tr.width * 0.22, tr.cy, tr.width * 0.36, 'pink', 0.24 * haloP);
-        drawGlow(tr.cx, tr.cy, tr.width * 0.4, 'cyan', 0.22 * haloP);
-        drawGlow(tr.cx + tr.width * 0.22, tr.cy, tr.width * 0.34, 'amber', 0.18 * haloP);
+        drawGlow(titleR.cx - titleR.width * 0.22, titleR.cy, titleR.width * 0.36, 'pink', 0.24 * haloP);
+        drawGlow(titleR.cx, titleR.cy, titleR.width * 0.4, 'cyan', 0.22 * haloP);
+        drawGlow(titleR.cx + titleR.width * 0.22, titleR.cy, titleR.width * 0.34, 'amber', 0.18 * haloP);
       }
 
-      // Eyebrow capsule
+      // Eyebrow capsule (nudged cleanly into center lock)
       if (targets.eyebrow) {
-        const ebP = smoothstep(0.20, 0.38, p);
+        const ebP = smoothstep(0.17, 0.36, p);
         if (ebP > 0.01 && wireframeAlpha > 0.01) {
-          const eb = targets.eyebrow;
+          const ebPose = (layout && layout.eyebrowPose) || { dx: 0, dy: 0, scale: 1 };
+          const ebR = (layout && layout.eyebrowRect) || targets.eyebrow;
           drawCornerBrackets(ctx, {
-            left: eb.left - 8,
-            top: eb.top - 4,
-            width: eb.width + 16,
-            height: eb.height + 8,
+            left: ebR.left - 8,
+            top: ebR.top - 4,
+            width: ebR.width + 16,
+            height: ebR.height + 8,
           }, 7, PALETTE.amber, 0.65 * ebP * wireframeAlpha);
 
           if (targets.eyebrowDots && targets.eyebrowDots.length) {
             targets.eyebrowDots.forEach((dot, i) => {
               const dotAppear = smoothstep(0.2 + i * 0.15, 0.55 + i * 0.15, ebP);
               if (dotAppear > 0) {
-                drawGlow(dot.rect.cx, dot.rect.cy, Math.max(10, dot.rect.width * 1.8), dot.glowKey, 0.85 * dotAppear * wireframeAlpha);
+                const pt = transformPoint({ x: dot.rect.cx, y: dot.rect.cy }, targets.eyebrow.cx, targets.eyebrow.cy, ebPose);
+                drawGlow(pt.x, pt.y, Math.max(10, dot.rect.width * 1.8), dot.glowKey, 0.85 * dotAppear * wireframeAlpha);
               }
             });
           } else {
@@ -1469,21 +1930,42 @@
             dotColors.forEach((dk, i) => {
               const dotAppear = smoothstep(0.2 + i * 0.15, 0.55 + i * 0.15, ebP);
               if (dotAppear > 0) {
-                drawGlow(eb.left + 4 + i * 13, eb.cy, 12, dk, 0.85 * dotAppear * wireframeAlpha);
+                drawGlow(ebR.left + 4 + i * 13 * ebPose.scale, ebR.cy, 12, dk, 0.85 * dotAppear * wireframeAlpha);
               }
             });
           }
         }
       }
 
-      // Organic watercolor ink-bleed fill inside "VYRN"
-      if (wireframeAlpha > 0.01) {
-        drawOrganicInkFill(p, wireframeAlpha);
+      // Prototyping transform bounding box & live spec tag around "VYRN"
+      if (protoAlpha > 0.02 && p >= 0.21) {
+        const boxIn = smoothstep(0.21, 0.29, p);
+        const scalePct = Math.round(titlePose.scale * 100);
+        const tag = titlePose.settled
+          ? `${Math.round(titleR.width)}×${Math.round(titleR.height)}px • LOCKED`
+          : `${Math.round(titleR.width)}×${Math.round(titleR.height)}px • ${scalePct}%`;
+        drawTransformBox(
+          ctx,
+          titleR.cx,
+          titleR.cy,
+          titleR.width + 16,
+          titleR.height + 12,
+          titlePose.rot,
+          titlePose.settleFlash > 0.1 ? PALETTE.white : PALETTE.cyan,
+          protoAlpha * boxIn * (0.48 + 0.42 * titlePose.settleFlash),
+          protoAlpha * boxIn * 0.92,
+          tag
+        );
       }
 
-      // Wireframe contour mesh across V-Y-R-N
+      // Organic watercolor ink-bleed fill inside moving/scaling "VYRN"
+      if (wireframeAlpha > 0.01) {
+        drawOrganicInkFill(p, wireframeAlpha, titlePose);
+      }
+
+      // Wireframe contour mesh across V-Y-R-N (follows live titlePose transform)
       if (glyphData && wireframeAlpha > 0.01) {
-        const meshP = smoothstep(0.28, 0.66, p);
+        const meshP = smoothstep(0.22, 0.64, p);
         const fillP = smoothstep(0.45, 0.78, p);
 
         if (meshP > 0.02) {
@@ -1491,8 +1973,13 @@
           const activeNormLimit = meshP * 1.15;
 
           ctx.save();
+          ctx.translate(tr.cx + titlePose.dx, tr.cy + titlePose.dy);
+          ctx.rotate(titlePose.rot);
+          ctx.scale(titlePose.scale, titlePose.scale);
+          ctx.translate(-tr.cx, -tr.cy);
+
           ctx.globalCompositeOperation = 'lighter';
-          ctx.lineWidth = 1;
+          ctx.lineWidth = 1 / Math.max(0.4, titlePose.scale);
           ctx.strokeStyle = `rgba(0, 240, 255, ${(0.34 * wireframeAlpha * (1 - fillP * 0.45)).toFixed(3)})`;
           ctx.beginPath();
           for (let i = 0; i < glyphData.links.length; i++) {
@@ -1526,59 +2013,62 @@
         }
       }
 
-      // Floating Liquid Glass Pills (AUDIO, VIDEO, CODE)
+      // Floating Liquid Glass Pills (prototype wireframes scaled/dragged by MOTION into final glass lock)
       targets.pills.forEach((pill, idx) => {
-        const pillStart = 0.44 + idx * 0.07;
-        const pillP = smoothstep(pillStart, pillStart + 0.22, p);
+        const pillStart = 0.26 + idx * 0.05;
+        const pillP = smoothstep(pillStart, pillStart + 0.24, p);
         if (pillP <= 0.01 || wireframeAlpha <= 0.01) return;
 
-        const r = pill.rect;
-        ctx.save();
-        if (pill.tilt) {
-          ctx.translate(r.cx, r.cy);
-          ctx.rotate(pill.tilt);
-          ctx.translate(-r.cx, -r.cy);
-        }
+        const rOrig = pill.rect;
+        const pose = (layout && layout.pillPoses[idx]) || { dx: 0, dy: 0, scale: 1, rot: 0, settled: true, settleFlash: 0 };
+        const rLive = (layout && layout.pillRects[idx]) || rOrig;
+        const finalMix = smoothstep(0.65, 1.0, pose.progress);
 
-        const glassA = smoothstep(0.45, 1, pillP) * 0.72 * wireframeAlpha;
+        ctx.save();
+        ctx.translate(rOrig.cx + pose.dx, rOrig.cy + pose.dy);
+        ctx.rotate(pill.tilt + pose.rot);
+        ctx.scale(pose.scale, pose.scale);
+        ctx.translate(-rOrig.cx, -rOrig.cy);
+
+        const glassA = smoothstep(0.45, 1, pillP) * (0.28 + 0.44 * finalMix) * wireframeAlpha;
         if (glassA > 0.01) {
           ctx.fillStyle = `rgba(18, 22, 30, ${glassA.toFixed(3)})`;
-          traceRoundedRect(ctx, r.left, r.top, r.width, r.height, r.radius);
+          traceRoundedRect(ctx, rOrig.left, rOrig.top, rOrig.width, rOrig.height, rOrig.radius);
           ctx.fill();
         }
 
-        // Diagonal specular glass glint sweep clipped to pill contour
-        if (pillP > 0.35 && pillP < 0.98) {
-          const glintT = (pillP - 0.35) / 0.63;
-          const glintA = Math.sin(glintT * Math.PI) * 0.32 * wireframeAlpha;
+        // Diagonal specular glass glint sweep clipped to pill contour upon settle
+        if (pillP > 0.48 && pillP < 0.98) {
+          const glintT = (pillP - 0.48) / 0.50;
+          const glintA = Math.sin(glintT * Math.PI) * 0.34 * wireframeAlpha;
           if (glintA > 0.01) {
             ctx.save();
-            traceRoundedRect(ctx, r.left, r.top, r.width, r.height, r.radius);
+            traceRoundedRect(ctx, rOrig.left, rOrig.top, rOrig.width, rOrig.height, rOrig.radius);
             ctx.clip();
-            const sx = lerp(r.left - 34, r.left + r.width + 34, easeInOutCubic(glintT));
-            const sGrad = ctx.createLinearGradient(sx - 18, r.top, sx + 18, r.top + r.height);
+            const sx = lerp(rOrig.left - 34, rOrig.left + rOrig.width + 34, easeInOutCubic(glintT));
+            const sGrad = ctx.createLinearGradient(sx - 18, rOrig.top, sx + 18, rOrig.top + rOrig.height);
             sGrad.addColorStop(0, 'rgba(255, 255, 255, 0)');
             sGrad.addColorStop(0.5, `rgba(255, 255, 255, ${glintA.toFixed(3)})`);
             sGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
             ctx.fillStyle = sGrad;
-            ctx.fillRect(r.left - 2, r.top - 2, r.width + 4, r.height + 4);
+            ctx.fillRect(rOrig.left - 2, rOrig.top - 2, rOrig.width + 4, rOrig.height + 4);
             ctx.restore();
           }
         }
 
-        const perim = 2 * (r.width + r.height);
-        ctx.strokeStyle = pill.color;
-        ctx.globalAlpha = 0.85 * pillP * wireframeAlpha;
+        const perim = 2 * (rOrig.width + rOrig.height);
+        ctx.strokeStyle = pose.settleFlash > 0.1 ? PALETTE.white : pill.color;
+        ctx.globalAlpha = (0.72 + 0.25 * finalMix) * pillP * wireframeAlpha;
         ctx.lineWidth = 1.4;
         ctx.setLineDash([perim * easeOutCubic(pillP), perim]);
-        traceRoundedRect(ctx, r.left, r.top, r.width, r.height, r.radius);
+        traceRoundedRect(ctx, rOrig.left, rOrig.top, rOrig.width, rOrig.height, rOrig.radius);
         ctx.stroke();
         ctx.setLineDash([]);
 
-        if (pillP > 0.4) {
-          const innerA = smoothstep(0.4, 0.85, pillP) * wireframeAlpha;
-          const dotX = r.cx + (pill.dot ? pill.dot.x : (-r.width * 0.5 + 18));
-          const dotY = r.cy + (pill.dot ? pill.dot.y : 0);
+        if (pillP > 0.28) {
+          const innerA = smoothstep(0.28, 0.72, pillP) * wireframeAlpha;
+          const dotX = rOrig.cx + (pill.dot ? pill.dot.x : (-rOrig.width * 0.5 + 18));
+          const dotY = rOrig.cy + (pill.dot ? pill.dot.y : 0);
           const dotR = pill.dot ? pill.dot.r : 3.5;
 
           drawGlow(dotX, dotY, dotR * 3.6, pill.glowKey, 0.9 * innerA);
@@ -1595,22 +2085,37 @@
           }
           ctx.textBaseline = 'middle';
           ctx.textAlign = 'center';
-          const textX = r.cx + (pill.text ? pill.text.x : 10);
-          const textY = r.cy + (pill.text ? pill.text.y : 0);
+          const textX = rOrig.cx + (pill.text ? pill.text.x : 10);
+          const textY = rOrig.cy + (pill.text ? pill.text.y : 0);
           ctx.fillText(pill.label, textX, textY);
         }
 
         ctx.restore();
+
+        // Figma prototyping handle box & live delta readout while sliding into place
+        if (protoAlpha > 0.02 && (!pose.settled || pose.settleFlash > 0.04)) {
+          const boxAlpha = protoAlpha * pillP * (pose.settled ? pose.settleFlash : 0.78);
+          const pillTag = pose.settled
+            ? 'LOCKED 0px'
+            : `dx:${pose.dx >= 0 ? '+' : ''}${Math.round(pose.dx)} ${Math.round(pose.scale * 100)}%`;
+          drawTransformBox(ctx, rLive.cx, rLive.cy, rLive.width + 6, rLive.height + 6, pill.tilt + pose.rot, pill.color, boxAlpha, boxAlpha, pillTag);
+        }
       });
 
-      // Tagline skeleton lines
+      // Tagline skeleton lines (stretches horizontally into centered DOM width)
       if (targets.tagline) {
-        const tagP = smoothstep(0.50, 0.70, p);
+        const tagP = smoothstep(0.32, 0.56, p);
         if (tagP > 0.01 && wireframeAlpha > 0.01) {
-          const tg = targets.tagline;
-          const barW = Math.min(tg.width * 0.85, 480) * easeOutCubic(tagP);
+          const tg = (layout && layout.taglineRect) || targets.tagline;
+          const tgPose = (layout && layout.taglinePose) || { scale: 1, settled: true, settleFlash: 0 };
+          const barW = Math.min(tg.width * 0.86, 480) * easeOutCubic(tagP);
+
+          if (protoAlpha > 0.02 && (!tgPose.settled || tgPose.settleFlash > 0.05)) {
+            drawTransformBox(ctx, tg.cx, tg.cy, tg.width + 12, tg.height + 8, 0, PALETTE.blue, protoAlpha * 0.55, protoAlpha * 0.7, `W:${Math.round(tg.width)}px`);
+          }
+
           ctx.save();
-          ctx.strokeStyle = `rgba(255, 255, 255, ${(0.28 * tagP * wireframeAlpha).toFixed(3)})`;
+          ctx.strokeStyle = `rgba(255, 255, 255, ${(0.32 * tagP * wireframeAlpha).toFixed(3)})`;
           ctx.lineWidth = 1;
           ctx.beginPath();
           ctx.moveTo(tg.cx - barW * 0.5, tg.cy - 5);
@@ -1622,26 +2127,34 @@
         }
       }
 
-      // CTA Pill Frames
+      // CTA Pill Frames (drawn as prototype blocks then pushed smoothly together to exact DOM gap)
       targets.ctas.forEach((cta, idx) => {
-        const ctaP = smoothstep(0.58 + idx * 0.06, 0.78 + idx * 0.06, p);
+        const ctaP = smoothstep(0.40 + idx * 0.04, 0.62 + idx * 0.04, p);
         if (ctaP <= 0.01 || wireframeAlpha <= 0.01) return;
-        const r = cta.rect;
+        const r = (layout && layout.ctaRects[idx]) || cta.rect;
+        const cPose = (layout && layout.ctaPoses[idx]) || { settled: true, settleFlash: 0, progress: 1 };
+        const finalMix = smoothstep(0.55, 1.0, cPose.progress);
         const perim = 2 * (r.width + r.height);
+
         ctx.save();
         if (cta.solid) {
-          ctx.fillStyle = `rgba(255, 255, 255, ${(0.14 * smoothstep(0.5, 1, ctaP) * wireframeAlpha).toFixed(3)})`;
+          ctx.fillStyle = `rgba(255, 255, 255, ${((0.05 + 0.11 * finalMix) * smoothstep(0.35, 1, ctaP) * wireframeAlpha).toFixed(3)})`;
           traceRoundedRect(ctx, r.left, r.top, r.width, r.height, r.radius);
           ctx.fill();
         }
-        ctx.strokeStyle = cta.solid ? PALETTE.white : PALETTE.cyan;
-        ctx.globalAlpha = 0.82 * ctaP * wireframeAlpha;
+        ctx.strokeStyle = cPose.settleFlash > 0.12 ? PALETTE.cyan : (cta.solid ? PALETTE.white : PALETTE.cyan);
+        ctx.globalAlpha = 0.84 * ctaP * wireframeAlpha;
         ctx.lineWidth = 1.35;
         ctx.setLineDash([perim * easeOutCubic(ctaP), perim]);
         traceRoundedRect(ctx, r.left, r.top, r.width, r.height, r.radius);
         ctx.stroke();
         ctx.setLineDash([]);
         ctx.restore();
+
+        if (protoAlpha > 0.02 && (!cPose.settled || cPose.settleFlash > 0.05)) {
+          const boxA = protoAlpha * ctaP * (cPose.settled ? cPose.settleFlash : 0.65);
+          drawTransformBox(ctx, r.cx, r.cy, r.width + 6, r.height + 6, 0, PALETTE.cyan, boxA, boxA, `${Math.round(r.width)}×${Math.round(r.height)}px`);
+        }
       });
 
       // Verification Scan Beam (Phase 3 — sharp dual-layer laser sweep)
@@ -2076,8 +2589,10 @@
       }
 
       const elapsedSec = (timestamp - clockStartedAt) / 1000;
-      updateAgentTargets(progress, elapsedSec);
-      stepPhysics(progress, dt);
+      const layout = computeFrameLayout(progress);
+      emitSnapSparks(progress, layout);
+      updateAgentTargets(progress, elapsedSec, layout);
+      stepPhysics(progress, dt, layout);
 
       ctx.save();
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -2088,9 +2603,9 @@
         ctx.fillRect(0, 0, vw, vh);
       }
 
-      drawBlueprintGrid(progress, wireframeAlpha);
+      drawBlueprintGrid(progress, wireframeAlpha, layout);
       drawConstructedNav(progress, wireframeAlpha);
-      drawConstructedHero(progress, wireframeAlpha);
+      drawConstructedHero(progress, wireframeAlpha, layout);
       drawToolbox(progress);
       drawAgentsAndSparks(agentAlpha);
 
