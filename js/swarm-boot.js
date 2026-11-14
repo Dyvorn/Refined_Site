@@ -10,8 +10,8 @@
 
   window.__vyrnSwarmInit = true;
 
-  const TOTAL_DURATION_MS = 3950;
-  const FAILSAFE_TIMEOUT_MS = 6800;
+  const TOTAL_DURATION_MS = 4350;
+  const FAILSAFE_TIMEOUT_MS = 7200;
 
   const PALETTE = {
     bg: '#090b0e',
@@ -607,15 +607,19 @@
 
       const w = Math.max(120, Math.round(tr.width));
       const h = Math.max(60, Math.round(tr.height));
+      const pad = 28;
+      const gw = w + pad * 2;
+      const gh = h + pad * 2;
+      const glyphDpr = Math.min(dpr || 1, 1.8);
 
-      // 1. Exact Syne-800 glyph alpha mask
+      // 1. Exact Syne-800 glyph alpha mask (padded so tall/wide tips never clip)
       const maskCanvas = document.createElement('canvas');
-      maskCanvas.width = w;
-      maskCanvas.height = h;
+      maskCanvas.width = gw;
+      maskCanvas.height = gh;
       const mctx = maskCanvas.getContext('2d');
       if (!mctx) return;
 
-      mctx.clearRect(0, 0, w, h);
+      mctx.clearRect(0, 0, gw, gh);
       mctx.font = `${tf.weight} ${tf.size}px ${tf.family}`;
       mctx.textAlign = 'center';
       mctx.textBaseline = 'middle';
@@ -623,17 +627,26 @@
         mctx.letterSpacing = tf.letterSpacing;
       }
       mctx.fillStyle = '#ffffff';
-      mctx.fillText('VYRN', w * 0.5, h * 0.5);
+      mctx.fillText('VYRN', pad + w * 0.5, pad + h * 0.5);
 
-      // 2. Multi-spectral watercolor gradient fill masked cleanly to "VYRN"
+      // 2. High-DPI multi-spectral watercolor gradient fill masked cleanly to "VYRN"
       const fillCanvas = document.createElement('canvas');
-      fillCanvas.width = w;
-      fillCanvas.height = h;
+      fillCanvas.width = Math.max(1, Math.round(gw * glyphDpr));
+      fillCanvas.height = Math.max(1, Math.round(gh * glyphDpr));
       const fctx = fillCanvas.getContext('2d');
       if (fctx) {
-        fctx.drawImage(maskCanvas, 0, 0);
+        fctx.save();
+        fctx.scale(glyphDpr, glyphDpr);
+        fctx.font = `${tf.weight} ${tf.size}px ${tf.family}`;
+        fctx.textAlign = 'center';
+        fctx.textBaseline = 'middle';
+        if ('letterSpacing' in fctx && tf.letterSpacing && tf.letterSpacing !== 'normal') {
+          fctx.letterSpacing = tf.letterSpacing;
+        }
+        fctx.fillStyle = '#ffffff';
+        fctx.fillText('VYRN', pad + w * 0.5, pad + h * 0.5);
         fctx.globalCompositeOperation = 'source-in';
-        const grad = fctx.createLinearGradient(0, 0, w, h * 0.85);
+        const grad = fctx.createLinearGradient(pad, pad, pad + w, pad + h * 0.85);
         grad.addColorStop(0, '#ff2a5f');
         grad.addColorStop(0.24, '#ff5c8a');
         grad.addColorStop(0.46, '#00e5ff');
@@ -641,48 +654,49 @@
         grad.addColorStop(0.82, '#fbbf24');
         grad.addColorStop(1, '#ff2a5f');
         fctx.fillStyle = grad;
-        fctx.fillRect(0, 0, w, h);
+        fctx.fillRect(0, 0, gw, gh);
+        fctx.restore();
       }
 
-      // 3. Dedicated offscreen canvas for organic ink-bleed compositing
+      // 3. Dedicated high-DPI offscreen canvas for organic ink-bleed compositing
       const inkCanvas = document.createElement('canvas');
-      inkCanvas.width = w;
-      inkCanvas.height = h;
+      inkCanvas.width = Math.max(1, Math.round(gw * glyphDpr));
+      inkCanvas.height = Math.max(1, Math.round(gh * glyphDpr));
       const inkCtx = inkCanvas.getContext('2d');
 
-      // 4. Sample glyph contour edges + interior ink-bleed anchor seeds
-      const step = vw <= 640 ? 5 : Math.max(5, Math.round(w / 108));
-      const img = mctx.getImageData(0, 0, w, h).data;
+      // 4. Sample glyph contour edges + interior ink-bleed anchor seeds across padded canvas
+      const step = vw <= 640 ? 5 : Math.max(5, Math.round(w / 112));
+      const img = mctx.getImageData(0, 0, gw, gh).data;
       const isOpaque = (px, py) => {
-        if (px < 0 || py < 0 || px >= w || py >= h) return false;
-        return img[(py * w + px) * 4 + 3] > 120;
+        if (px < 0 || py < 0 || px >= gw || py >= gh) return false;
+        return img[(py * gw + px) * 4 + 3] > 120;
       };
 
       const edges = [];
       const interiorPts = [];
       const accentColors = [PALETTE.cyan, PALETTE.pink, PALETTE.amber, PALETTE.white];
-      for (let py = step; py < h - step; py += step) {
-        for (let px = step; px < w - step; px += step) {
+      for (let py = step; py < gh - step; py += step) {
+        for (let px = step; px < gw - step; px += step) {
           if (!isOpaque(px, py)) continue;
           const onBoundary =
             !isOpaque(px - step, py) ||
             !isOpaque(px + step, py) ||
             !isOpaque(px, py - step) ||
             !isOpaque(px, py + step);
+          const normX = clamp((px - pad) / w, 0, 1);
           if (onBoundary) {
-            const normX = px / w;
             const colorIdx = (Math.floor(normX * 4) + (py % 2)) % accentColors.length;
             edges.push({
               lx: px,
               ly: py,
-              x: tr.left + px,
-              y: tr.top + py,
+              x: tr.left - pad + px,
+              y: tr.top - pad + py,
               normX,
               color: accentColors[colorIdx],
               glowKey: normX < 0.3 ? 'pink' : normX < 0.62 ? 'cyan' : normX < 0.85 ? 'amber' : 'white',
             });
           } else {
-            interiorPts.push({ lx: px, ly: py, normX: px / w });
+            interiorPts.push({ lx: px, ly: py, normX });
           }
         }
       }
@@ -690,7 +704,7 @@
       edges.sort((a, b) => a.normX - b.normX || a.ly - b.ly);
 
       // Build wireframe triangulation struts along contour
-      const maxLinkDist = step * 2.45;
+      const maxLinkDist = step * 2.55;
       const maxDistSq = maxLinkDist * maxLinkDist;
       const links = [];
       for (let i = 0; i < edges.length; i++) {
@@ -706,15 +720,16 @@
         }
       }
 
-      // Pick ~22 organic ink-bleed seed drops distributed across V-Y-R-N strokes
+      // Pick ~24 organic ink-bleed seed drops ordered left-to-right across V-Y-R-N strokes
       const inkSeeds = [];
       const seedPool = interiorPts.length >= 24 ? interiorPts : edges;
       if (seedPool.length > 0) {
-        const seedCount = Math.min(22, seedPool.length);
+        const sortedPool = [...seedPool].sort((a, b) => a.normX - b.normX || a.ly - b.ly);
+        const seedCount = Math.min(24, sortedPool.length);
         for (let i = 0; i < seedCount; i++) {
-          const idx = Math.floor((i / seedCount) * seedPool.length + ((i % 3) * 0.13)) % seedPool.length;
-          const pt = seedPool[idx];
-          const baseRadius = Math.max(54, Math.min(148, h * (0.45 + (i % 4) * 0.1)));
+          const idx = Math.floor((i / seedCount) * sortedPool.length);
+          const pt = sortedPool[idx];
+          const baseRadius = Math.max(54, Math.min(152, h * (0.42 + (i % 4) * 0.09)));
           const lobes = [
             { dx: 0, dy: 0, rScale: 1.0 },
             { dx: Math.cos(i * 1.9) * baseRadius * 0.34, dy: Math.sin(i * 1.9) * baseRadius * 0.28, rScale: 0.78 },
@@ -724,9 +739,10 @@
           inkSeeds.push({
             lx: pt.lx,
             ly: pt.ly,
-            x: tr.left + pt.lx,
-            y: tr.top + pt.ly,
-            triggerP: 0.33 + (pt.normX * 0.19) + ((i % 3) * 0.015),
+            x: tr.left - pad + pt.lx,
+            y: tr.top - pad + pt.ly,
+            triggerP: 0.32 + (pt.normX * 0.26) + ((i % 3) * 0.012),
+            bloom: 0,
             maxRadius: baseRadius,
             lobes,
           });
@@ -736,6 +752,10 @@
       glyphData = {
         w,
         h,
+        pad,
+        gw,
+        gh,
+        glyphDpr,
         fillCanvas,
         inkCanvas,
         inkCtx,
@@ -821,76 +841,94 @@
           return;
         }
 
-        // Phase 3: Victory orbit formation around the finished centerpiece
-        if (p >= 0.76) {
-          const orbitAngle = (idx / agents.length) * Math.PI * 2 + elapsedSec * 1.15;
-          const rx = Math.min(vw * 0.36, tr.width * 0.54 + 68);
-          const ry = Math.min(vh * 0.27, tr.height * 0.75 + 56);
-          ag.targetX = tr.cx + Math.cos(orbitAngle) * rx;
-          ag.targetY = tr.cy + Math.sin(orbitAngle) * ry;
+        // Phase 3: Synchronized guard formation with all 5 bots tracking the verification scan line
+        if (p >= 0.74) {
+          const formT = easeOutCubic(smoothstep(0.74, 0.80, p));
+          const spreadAngle = lerp(-Math.PI * 0.82, -Math.PI * 0.18, idx / Math.max(1, agents.length - 1));
+          const arcRx = Math.min(vw * 0.40, tr.width * 0.56 + 60);
+          const arcRy = Math.min(vh * 0.28, tr.height * 0.85 + 75);
+          const idleSway = Math.sin(elapsedSec * 2.4 + idx * 1.1) * 8;
+          ag.targetX = tr.cx + Math.cos(spreadAngle) * arcRx;
+          ag.targetY = tr.cy + Math.sin(spreadAngle) * arcRy + idleSway;
+
+          const scanT = clamp((p - 0.74) / 0.14, 0, 1);
+          const scanY = lerp(0, vh, easeInOutCubic(scanT));
+          ag.gazeTarget = formT > 0.25 ? { x: tr.cx + (idx - 2) * 38, y: scanY } : null;
           return;
         }
+        ag.gazeTarget = null;
 
-        // Phase 1 & 2: Specialized UI construction assignments
+        // Phase 1 & 2: Coordinated specialized construction roles
         switch (ag.id) {
           case 'architect': {
-            if (p < 0.41) {
-              const tNav = smoothstep(0.18, 0.40, p);
+            if (p < 0.38) {
+              const tNav = smoothstep(0.15, 0.36, p);
               const sweepX = lerp(nav.left + 36, nav.left + nav.width - 36, tNav);
               ag.targetX = sweepX;
-              ag.targetY = nav.cy + Math.sin(elapsedSec * 6.5) * 12 + 42;
+              ag.targetY = nav.cy + Math.sin(elapsedSec * 6.5) * 10 + 46;
               ag.laserTarget = { x: sweepX, y: nav.cy };
+            } else if (p < 0.69 && glyphData && glyphData.edges.length > 0) {
+              // Parallel team trace across right letters ("R-N")
+              const half = Math.floor(glyphData.edges.length * 0.5);
+              const buildT = smoothstep(0.37, 0.67, p);
+              const edgeIdx = clamp(half + Math.floor(buildT * (glyphData.edges.length - 1 - half)), half, glyphData.edges.length - 1);
+              const edgePt = glyphData.edges[edgeIdx];
+              ag.targetX = edgePt.x + 34 + Math.sin(elapsedSec * 4.8) * 18;
+              ag.targetY = edgePt.y - 54 + Math.cos(elapsedSec * 4.2) * 14;
+              ag.laserTarget = edgePt;
             } else {
               const videoPill = pills[1] || pills[0];
               if (videoPill) {
-                const pt = pointOnRoundedRect(videoPill.rect, (elapsedSec * 0.85) % 1);
-                ag.targetX = pt.x + 36;
-                ag.targetY = pt.y - 32;
+                const pt = pointOnRoundedRect(videoPill.rect, (elapsedSec * 0.9) % 1);
+                ag.targetX = pt.x + 40;
+                ag.targetY = pt.y - 34;
                 ag.laserTarget = pt;
               } else {
-                ag.targetX = tr.left + tr.width * 0.68;
+                ag.targetX = tr.left + tr.width * 0.72;
                 ag.targetY = tr.top - 42;
               }
             }
             break;
           }
           case 'synth': {
-            if (p < 0.34 && targets.eyebrow) {
-              const pt = pointOnRoundedRect(targets.eyebrow, smoothstep(0.18, 0.33, p));
+            if (p < 0.32 && targets.eyebrow) {
+              const pt = pointOnRoundedRect(targets.eyebrow, smoothstep(0.16, 0.31, p));
               ag.targetX = pt.x - 36;
-              ag.targetY = pt.y - 28;
+              ag.targetY = pt.y - 30;
               ag.laserTarget = pt;
-            } else if (p < 0.69 && glyphData && glyphData.edges.length > 0) {
-              const buildT = smoothstep(0.30, 0.67, p);
-              const edgeIdx = Math.min(glyphData.edges.length - 1, Math.floor(buildT * glyphData.edges.length));
+            } else if (p < 0.68 && glyphData && glyphData.edges.length > 0) {
+              // Traces left letters ("V-Y") while emitting waveform acoustics
+              const half = Math.max(1, Math.floor(glyphData.edges.length * 0.52));
+              const buildT = smoothstep(0.30, 0.66, p);
+              const edgeIdx = Math.min(half - 1, Math.floor(buildT * half));
               const edgePt = glyphData.edges[edgeIdx];
-              ag.targetX = edgePt.x - 30 + Math.sin(elapsedSec * 5.2) * 26;
-              ag.targetY = edgePt.y - 52 + Math.cos(elapsedSec * 4.5) * 18;
+              ag.targetX = edgePt.x - 32 + Math.sin(elapsedSec * 5.2) * 20;
+              ag.targetY = edgePt.y - 52 + Math.cos(elapsedSec * 4.5) * 16;
               ag.laserTarget = edgePt;
             } else if (pills[2]) {
-              const pt = pointOnRoundedRect(pills[2].rect, (elapsedSec * 1.05) % 1);
-              ag.targetX = pt.x + 34;
-              ag.targetY = pt.y + 34;
+              const pt = pointOnRoundedRect(pills[2].rect, (elapsedSec * 1.1) % 1);
+              ag.targetX = pt.x + 36;
+              ag.targetY = pt.y + 36;
               ag.laserTarget = pt;
             }
             break;
           }
           case 'shader': {
-            // Progress Pride Flag artist — sweeps across VYRN planting watercolor ink blooms
-            if (p < 0.36) {
-              const a = elapsedSec * 2.1;
-              ag.targetX = tr.cx + Math.cos(a) * Math.min(vw * 0.28, tr.width * 0.38);
-              ag.targetY = tr.cy - 44 + Math.sin(a) * 34;
+            // Progress Pride Flag artist — visits each inkSeed along V-Y-R-N bleeding prismatic watercolor
+            if (p < 0.32) {
+              const a = elapsedSec * 2.4;
+              ag.targetX = tr.cx + Math.cos(a) * Math.min(vw * 0.28, tr.width * 0.36);
+              ag.targetY = tr.cy - 44 + Math.sin(a) * 32;
               ag.laserTarget = { x: tr.cx + Math.cos(a + 0.5) * 60, y: tr.cy };
-            } else if (p < 0.70) {
-              const bleedT = smoothstep(0.36, 0.68, p);
-              const targetX = lerp(tr.left + 20, tr.left + tr.width - 20, bleedT);
-              const targetY = tr.cy + Math.sin(bleedT * Math.PI * 4.5) * (tr.height * 0.28);
-              ag.targetX = targetX - 24;
-              ag.targetY = tr.top + tr.height + 46 + Math.sin(elapsedSec * 5) * 16;
-              ag.laserTarget = { x: targetX, y: targetY };
+            } else if (p < 0.71 && glyphData && glyphData.inkSeeds.length > 0) {
+              const bleedT = smoothstep(0.32, 0.69, p);
+              const seedIdx = Math.min(glyphData.inkSeeds.length - 1, Math.floor(bleedT * glyphData.inkSeeds.length));
+              const seed = glyphData.inkSeeds[seedIdx];
+              ag.targetX = seed.x - 22 + Math.cos(elapsedSec * 5.5) * 14;
+              ag.targetY = seed.y + 62 + Math.sin(elapsedSec * 4.8) * 14;
+              ag.laserTarget = { x: seed.x, y: seed.y };
             } else if (pills[0]) {
-              const pt = pointOnRoundedRect(pills[0].rect, (elapsedSec * 1.1) % 1);
+              const pt = pointOnRoundedRect(pills[0].rect, (elapsedSec * 1.15) % 1);
               ag.targetX = pt.x - 42;
               ag.targetY = pt.y - 30;
               ag.laserTarget = pt;
@@ -898,16 +936,12 @@
             break;
           }
           case 'motion': {
-            if (p < 0.58 && pills[0]) {
-              const pill = pills[p < 0.42 ? 0 : 1] || pills[0];
-              const pt = pointOnRoundedRect(pill.rect, (elapsedSec * 1.15) % 1);
-              ag.targetX = pt.x - 40;
-              ag.targetY = pt.y + 32;
-              ag.laserTarget = pt;
-            } else if (pills[2]) {
-              const pt = pointOnRoundedRect(pills[2].rect, (elapsedSec * 1.15) % 1);
-              ag.targetX = pt.x + 36;
-              ag.targetY = pt.y + 34;
+            if (pills.length > 0) {
+              const slot = p < 0.42 ? 0 : p < 0.58 ? 1 : Math.min(2, pills.length - 1);
+              const pill = pills[slot] || pills[0];
+              const pt = pointOnRoundedRect(pill.rect, (elapsedSec * 1.2) % 1);
+              ag.targetX = pt.x + (slot === 2 ? 38 : -40);
+              ag.targetY = pt.y + (slot === 1 ? -34 : 32);
               ag.laserTarget = pt;
             } else {
               ag.targetX = tr.cx + Math.cos(elapsedSec * 2.2) * 170;
@@ -916,22 +950,22 @@
             break;
           }
           case 'compiler': {
-            if (p < 0.42 && targets.navActions.length > 0) {
+            if (p < 0.40 && targets.navActions.length > 0) {
               const act = targets.navActions[Math.floor(elapsedSec * 2.5) % targets.navActions.length];
-              const pt = pointOnRoundedRect(act, (elapsedSec * 1.3) % 1);
+              const pt = pointOnRoundedRect(act, (elapsedSec * 1.35) % 1);
               ag.targetX = pt.x - 28;
               ag.targetY = pt.y + 42;
               ag.laserTarget = pt;
-            } else if (p < 0.64 && targets.tagline) {
-              const tTag = smoothstep(0.42, 0.62, p);
+            } else if (p < 0.60 && targets.tagline) {
+              const tTag = smoothstep(0.40, 0.59, p);
               const lx = lerp(targets.tagline.left, targets.tagline.left + targets.tagline.width, tTag);
               ag.targetX = lx;
               ag.targetY = targets.tagline.top - 30;
               ag.laserTarget = { x: lx, y: targets.tagline.cy };
             } else if (targets.ctas.length > 0) {
-              const cta = targets.ctas[p > 0.69 && targets.ctas[1] ? 1 : 0];
-              const pt = pointOnRoundedRect(cta.rect, (elapsedSec * 1.2) % 1);
-              ag.targetX = pt.x + 24;
+              const cta = targets.ctas[p > 0.67 && targets.ctas[1] ? 1 : 0];
+              const pt = pointOnRoundedRect(cta.rect, (elapsedSec * 1.25) % 1);
+              ag.targetX = pt.x + 26;
               ag.targetY = pt.y + 38;
               ag.laserTarget = pt;
             }
@@ -975,10 +1009,11 @@
         const desiredTilt = clamp(ag.vx * 0.0009, -0.34, 0.34);
         ag.tilt = lerp(ag.tilt, desiredTilt, Math.min(1, dt * 10));
 
-        // Eyes track laser target if actively building, otherwise velocity direction
+        // Eyes track active laser weld target, synchronized scan gaze, or velocity vector
         let desiredLook = ag.lookAngle;
-        if (ag.laserTarget) {
-          desiredLook = Math.atan2(ag.laserTarget.y - ag.y, ag.laserTarget.x - ag.x);
+        const eyeFocus = ag.laserTarget || ag.gazeTarget;
+        if (eyeFocus) {
+          desiredLook = Math.atan2(eyeFocus.y - ag.y, eyeFocus.x - ag.x);
         } else if (ag.vx * ag.vx + ag.vy * ag.vy > 40) {
           desiredLook = Math.atan2(ag.vy, ag.vx);
         }
@@ -988,12 +1023,27 @@
         ag.lookAngle += lookDiff * Math.min(1, dt * 14);
 
         ag.trail.push({ x: ag.x, y: ag.y });
-        if (ag.trail.length > 18) ag.trail.shift();
+        if (ag.trail.length > 20) ag.trail.shift();
 
-        if (ag.laserTarget && Math.random() < dt * 11) {
-          spawnSpark(ag.laserTarget.x, ag.laserTarget.y, ag.color, 1);
+        if (ag.laserTarget && Math.random() < dt * 13) {
+          const sparkColor = ag.id === 'shader'
+            ? PRIDE_STRIPES[Math.floor(Math.random() * PRIDE_STRIPES.length)]
+            : ag.color;
+          spawnSpark(ag.laserTarget.x, ag.laserTarget.y, sparkColor, 1);
         }
       });
+
+      // Ignite inkSeeds dynamically when SHADER's brush nears them or on timeline trigger
+      if (glyphData && glyphData.inkSeeds) {
+        const shaderBot = agents.find((a) => a.id === 'shader');
+        const shaderBrush = shaderBot && shaderBot.laserTarget ? shaderBot.laserTarget : null;
+        glyphData.inkSeeds.forEach((seed) => {
+          const brushNear = shaderBrush && Math.hypot(shaderBrush.x - seed.x, shaderBrush.y - seed.y) < 92;
+          if (brushNear || p >= seed.triggerP) {
+            seed.bloom = Math.min(1, seed.bloom + dt * 4.2);
+          }
+        });
+      }
 
       // Step welding sparks with soft gravity & air drag
       for (let i = sparks.length - 1; i >= 0; i--) {
@@ -1063,17 +1113,49 @@
         ctx.restore();
       }
 
+      // Precision cyan landing sonar ring on toolbox impact
+      if (p >= 0.045 && p <= 0.21) {
+        const ringT = clamp((p - 0.045) / 0.165, 0, 1);
+        const ringAlpha = (1 - easeOutCubic(ringT)) * 0.55 * alpha;
+        if (ringAlpha > 0.01) {
+          const rx = bw * (0.45 + easeOutCubic(ringT) * 1.45);
+          const ry = 10 + easeOutCubic(ringT) * 32;
+          ctx.save();
+          ctx.strokeStyle = `rgba(0, 240, 255, ${ringAlpha.toFixed(3)})`;
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.ellipse(tb.x, tb.y + bodyTop + bh + 4, rx, ry, 0, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.restore();
+        }
+      }
+
       ctx.save();
       ctx.translate(tb.x, boxY);
       ctx.rotate(rattle);
       ctx.scale(scaleX, scaleY);
       ctx.globalAlpha = alpha;
 
-      // Soft interior emission glow when lid is open
+      // Soft interior volumetric cone + glow beam when lid unlatches
       if (openFrac > 0.08) {
-        drawGlow(0, -bh * 0.32, 68, 'cyan', 0.48 * openFrac);
-        drawGlow(-18, -bh * 0.28, 46, 'pink', 0.36 * openFrac);
-        drawGlow(18, -bh * 0.28, 46, 'amber', 0.3 * openFrac);
+        drawGlow(0, -bh * 0.32, 74, 'cyan', 0.5 * openFrac);
+        drawGlow(-20, -bh * 0.28, 50, 'pink', 0.38 * openFrac);
+        drawGlow(20, -bh * 0.28, 50, 'amber', 0.34 * openFrac);
+
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
+        const beamGrad = ctx.createLinearGradient(0, bodyTop, 0, bodyTop - bh * 1.9);
+        beamGrad.addColorStop(0, `rgba(0, 240, 255, ${(0.28 * openFrac).toFixed(3)})`);
+        beamGrad.addColorStop(1, 'rgba(0, 240, 255, 0)');
+        ctx.fillStyle = beamGrad;
+        ctx.beginPath();
+        ctx.moveTo(-bw * 0.42, bodyTop + 2);
+        ctx.lineTo(bw * 0.42, bodyTop + 2);
+        ctx.lineTo(bw * 0.88, bodyTop - bh * 1.85);
+        ctx.lineTo(-bw * 0.88, bodyTop - bh * 1.85);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
       }
 
       // 1. Toolbox lower body (sleek dark metallic steel + glass bevel)
@@ -1174,8 +1256,8 @@
       }
       ctx.stroke();
 
-      // Subtle localized corner crop marks around the centerpiece title
-      const guideAlpha = smoothstep(0.16, 0.34, p) * wireframeAlpha * 0.36;
+      // Subtle localized corner crop marks & calibrated dimension ticks around centerpiece title
+      const guideAlpha = smoothstep(0.16, 0.34, p) * wireframeAlpha * 0.42;
       if (guideAlpha > 0.01) {
         const tr = targets.title;
         const m = 12;
@@ -1194,6 +1276,11 @@
         // Bottom-left & bottom-right
         ctx.moveTo(l, b - len); ctx.lineTo(l, b); ctx.lineTo(l + len, b);
         ctx.moveTo(r - len, b); ctx.lineTo(r, b); ctx.lineTo(r, b - len);
+        // Center crosshair ticks on frame edges
+        ctx.moveTo(tr.cx, t - 5); ctx.lineTo(tr.cx, t + 4);
+        ctx.moveTo(tr.cx, b - 4); ctx.lineTo(tr.cx, b + 5);
+        ctx.moveTo(l - 5, tr.cy); ctx.lineTo(l + 4, tr.cy);
+        ctx.moveTo(r - 4, tr.cy); ctx.lineTo(r + 5, tr.cy);
         ctx.stroke();
       }
 
@@ -1272,24 +1359,29 @@
 
     function drawOrganicInkFill(p, wireframeAlpha) {
       if (!glyphData || !glyphData.inkCtx || !glowSprites.inkStamp) return;
-      const inkStart = 0.34;
+      const inkStart = 0.32;
       if (p <= inkStart) return;
 
       const tr = targets.title;
+      const pad = glyphData.pad || 0;
+      const gw = glyphData.gw || glyphData.w;
+      const gh = glyphData.gh || glyphData.h;
+      const gdpr = glyphData.glyphDpr || 1;
       const ictx = glyphData.inkCtx;
-      const w = glyphData.w;
-      const h = glyphData.h;
       const stamp = glowSprites.inkStamp;
 
-      ictx.clearRect(0, 0, w, h);
+      ictx.save();
+      ictx.setTransform(1, 0, 0, 1, 0, 0);
+      ictx.clearRect(0, 0, glyphData.inkCanvas.width, glyphData.inkCanvas.height);
+      ictx.scale(gdpr, gdpr);
       ictx.globalCompositeOperation = 'source-over';
 
-      // 1. Expanding multi-lobed ink blooms anchored across V-Y-R-N strokes
+      // 1. Dynamic organic ink blooms driven by SHADER's brush sweeps
       let anyDrawn = false;
       glyphData.inkSeeds.forEach((seed) => {
-        if (p < seed.triggerP) return;
+        if (seed.bloom <= 0.01) return;
         anyDrawn = true;
-        const localT = clamp((p - seed.triggerP) / 0.19, 0, 1);
+        const localT = clamp(seed.bloom, 0, 1);
         const radius = seed.maxRadius * easeOutCubic(localT);
         ictx.globalAlpha = smoothstep(0, 0.22, localT);
 
@@ -1301,39 +1393,44 @@
         });
       });
 
-      // 2. Live brush bleed right under SHADER & SYNTH laser impact points
+      // 2. Live painterly bleed directly beneath SHADER & SYNTH beam contact points
       agents.forEach((ag) => {
-        if ((ag.id === 'shader' || ag.id === 'synth') && ag.laserTarget && p >= 0.35 && p <= 0.74) {
-          const lx = ag.laserTarget.x - tr.left;
-          const ly = ag.laserTarget.y - tr.top;
-          if (lx >= -30 && lx <= w + 30 && ly >= -30 && ly <= h + 30) {
+        if ((ag.id === 'shader' || ag.id === 'synth' || ag.id === 'architect') && ag.laserTarget && p >= 0.32 && p <= 0.74) {
+          const lx = ag.laserTarget.x - (tr.left - pad);
+          const ly = ag.laserTarget.y - (tr.top - pad);
+          if (lx >= -40 && lx <= gw + 40 && ly >= -40 && ly <= gh + 40) {
             anyDrawn = true;
-            const brushR = Math.max(42, h * 0.34);
-            ictx.globalAlpha = 0.9;
+            const brushR = Math.max(46, glyphData.h * 0.34);
+            ictx.globalAlpha = ag.id === 'shader' ? 0.94 : 0.72;
             ictx.drawImage(stamp, lx - brushR, ly - brushR, brushR * 2, brushR * 2);
           }
         }
       });
 
       // 3. Ensure full rich saturation before verification handoff
-      const fullFillBlend = smoothstep(0.66, 0.76, p);
+      const fullFillBlend = smoothstep(0.66, 0.75, p);
       if (fullFillBlend > 0.01) {
         anyDrawn = true;
         ictx.globalAlpha = fullFillBlend;
         ictx.fillStyle = '#ffffff';
-        ictx.fillRect(0, 0, w, h);
+        ictx.fillRect(0, 0, gw, gh);
       }
 
-      if (!anyDrawn) return;
+      if (!anyDrawn) {
+        ictx.restore();
+        return;
+      }
 
-      // Clip organic wet ink silhouette cleanly to the multi-spectral Syne-800 "VYRN" fill
+      // Clip organic wet ink silhouette cleanly to padded high-DPI Syne-800 "VYRN" fill
+      ictx.setTransform(1, 0, 0, 1, 0, 0);
       ictx.globalAlpha = 1;
       ictx.globalCompositeOperation = 'source-in';
       ictx.drawImage(glyphData.fillCanvas, 0, 0);
+      ictx.restore();
 
       ctx.save();
-      ctx.globalAlpha = clamp(smoothstep(0.35, 0.72, p) * 1.15, 0, 0.98) * wireframeAlpha;
-      ctx.drawImage(glyphData.inkCanvas, tr.left, tr.top, tr.width, tr.height);
+      ctx.globalAlpha = clamp(smoothstep(0.32, 0.72, p) * 1.15, 0, 0.98) * wireframeAlpha;
+      ctx.drawImage(glyphData.inkCanvas, tr.left - pad, tr.top - pad, gw, gh);
       ctx.restore();
     }
 
@@ -1450,6 +1547,25 @@
           ctx.fill();
         }
 
+        // Diagonal specular glass glint sweep clipped to pill contour
+        if (pillP > 0.35 && pillP < 0.98) {
+          const glintT = (pillP - 0.35) / 0.63;
+          const glintA = Math.sin(glintT * Math.PI) * 0.32 * wireframeAlpha;
+          if (glintA > 0.01) {
+            ctx.save();
+            traceRoundedRect(ctx, r.left, r.top, r.width, r.height, r.radius);
+            ctx.clip();
+            const sx = lerp(r.left - 34, r.left + r.width + 34, easeInOutCubic(glintT));
+            const sGrad = ctx.createLinearGradient(sx - 18, r.top, sx + 18, r.top + r.height);
+            sGrad.addColorStop(0, 'rgba(255, 255, 255, 0)');
+            sGrad.addColorStop(0.5, `rgba(255, 255, 255, ${glintA.toFixed(3)})`);
+            sGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+            ctx.fillStyle = sGrad;
+            ctx.fillRect(r.left - 2, r.top - 2, r.width + 4, r.height + 4);
+            ctx.restore();
+          }
+        }
+
         const perim = 2 * (r.width + r.height);
         ctx.strokeStyle = pill.color;
         ctx.globalAlpha = 0.85 * pillP * wireframeAlpha;
@@ -1528,17 +1644,30 @@
         ctx.restore();
       });
 
-      // Verification Scan Beam (Phase 3)
+      // Verification Scan Beam (Phase 3 — sharp dual-layer laser sweep)
       if (p >= 0.74 && p <= 0.88) {
         const scanT = (p - 0.74) / 0.14;
         const scanY = lerp(0, vh, easeInOutCubic(scanT));
-        const scanAlpha = Math.sin(scanT * Math.PI) * 0.7;
-        const grad = ctx.createLinearGradient(0, scanY - 40, 0, scanY + 6);
+        const scanAlpha = Math.sin(scanT * Math.PI) * 0.78;
+        ctx.save();
+        const grad = ctx.createLinearGradient(0, scanY - 52, 0, scanY + 10);
         grad.addColorStop(0, 'rgba(0, 240, 255, 0)');
-        grad.addColorStop(0.85, `rgba(0, 240, 255, ${(scanAlpha * 0.32).toFixed(3)})`);
-        grad.addColorStop(1, `rgba(255, 255, 255, ${(scanAlpha * 0.85).toFixed(3)})`);
+        grad.addColorStop(0.68, `rgba(0, 240, 255, ${(scanAlpha * 0.22).toFixed(3)})`);
+        grad.addColorStop(0.84, `rgba(0, 240, 255, ${(scanAlpha * 0.65).toFixed(3)})`);
+        grad.addColorStop(0.92, `rgba(255, 255, 255, ${(scanAlpha * 0.92).toFixed(3)})`);
+        grad.addColorStop(1, 'rgba(0, 240, 255, 0)');
         ctx.fillStyle = grad;
-        ctx.fillRect(0, scanY - 40, vw, 46);
+        ctx.fillRect(0, scanY - 52, vw, 62);
+
+        // Razor-sharp horizontal wave front
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.strokeStyle = `rgba(255, 255, 255, ${(scanAlpha * 0.88).toFixed(3)})`;
+        ctx.lineWidth = 1.4;
+        ctx.beginPath();
+        ctx.moveTo(0, scanY);
+        ctx.lineTo(vw, scanY);
+        ctx.stroke();
+        ctx.restore();
       }
     }
 
@@ -1566,13 +1695,31 @@
       const blink = ag.blinkTimer < 0 ? Math.sin(((-ag.blinkTimer) / 0.14) * Math.PI) : 0;
       const bodyW = 28;
       const bodyH = 22;
-      const scale = vw <= 480 ? 1.08 : 1.32;
+      const scale = vw <= 480 ? 1.12 : 1.38;
 
       ctx.save();
       ctx.translate(ag.x, ag.y);
       ctx.rotate(ag.tilt);
       ctx.scale(scale, scale);
       ctx.globalAlpha = agentAlpha;
+
+      // Articulated micro tool-emitter nozzle aimed at active target
+      if (ag.laserTarget && Math.hypot(ag.laserTarget.x - ag.x, ag.laserTarget.y - ag.y) < 360) {
+        const nozzleAngle = Math.atan2(ag.laserTarget.y - ag.y, ag.laserTarget.x - ag.x) - ag.tilt;
+        ctx.save();
+        ctx.rotate(nozzleAngle);
+        ctx.fillStyle = '#0f172a';
+        ctx.strokeStyle = ag.color;
+        ctx.lineWidth = 1.1;
+        traceRoundedRect(ctx, bodyW * 0.42, -1.9, 8.5, 3.8, 1.8);
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(bodyW * 0.42 + 8.5, 0, 1.9, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
 
       // Layered plasma hover thruster plume under bot
       if (ag.thrustersActive) {
@@ -1680,10 +1827,30 @@
         ctx.fillRect(bodyW * 0.5 + 2.1, -4, 1.4, 8);
 
         drawTrackingEyes(ctx, -6.5, -0.5, 6.5, -0.5, ag.lookAngle - ag.tilt, blink, 4.9);
+
+        // Mini pulsing EQ bars along synth console chin
+        ctx.fillStyle = PALETTE.amber;
+        for (let b = 0; b < 4; b++) {
+          const barH = 1.6 + Math.abs(Math.sin(ag.flagPhase * (2.6 + b * 0.85) + b * 1.1)) * 2.6;
+          ctx.fillRect(-5.3 + b * 3.1, 9.4 - barH, 1.7, barH);
+        }
       } else if (ag.id === 'motion') {
         // MOTION: Lime kinetic bot wearing a Dapper Top Hat + glowing hatband
         drawBotChassis(bodyW, bodyH, '#192717', '#0d140c', PALETTE.lime, 9);
         drawTrackingEyes(ctx, -6, 0, 6, 0, ag.lookAngle - ag.tilt, blink, 4.2);
+
+        // Orbiting easing keyframe diamond beside top hat
+        ctx.save();
+        ctx.translate(15.5, -bodyH * 0.5 - 9 + Math.sin(ag.flagPhase * 1.9) * 2.4);
+        ctx.rotate(Math.PI * 0.25 + Math.sin(ag.flagPhase * 1.4) * 0.18);
+        ctx.fillStyle = 'rgba(132, 204, 22, 0.28)';
+        ctx.strokeStyle = PALETTE.lime;
+        ctx.lineWidth = 1.1;
+        ctx.fillRect(-3.2, -3.2, 6.4, 6.4);
+        ctx.strokeRect(-3.2, -3.2, 6.4, 6.4);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(-0.9, -0.9, 1.8, 1.8);
+        ctx.restore();
 
         // Dapper Top Hat
         ctx.save();

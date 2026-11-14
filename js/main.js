@@ -1387,7 +1387,14 @@ function initHeroWatercolorText() {
     }
   };
 
-  // Font loading synchronization
+  // Font & element resize synchronization
+  if (typeof ResizeObserver === 'function') {
+    const heroMaskObserver = new ResizeObserver(() => {
+      updateTextMask();
+    });
+    heroMaskObserver.observe(canvas);
+    heroMaskObserver.observe(textElem);
+  }
   if (document.fonts && document.fonts.ready) {
     document.fonts.ready.then(() => {
       updateTextMask();

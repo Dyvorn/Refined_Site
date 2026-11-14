@@ -93,7 +93,7 @@
 
   <link rel="manifest" href="manifest.json">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
-  <link rel="stylesheet" href="css/style.css?v=4.1">
+  <link rel="stylesheet" href="css/style.css?v=4.2">
   <link rel="expect" href="#main-content" blocking="render">
   <script>
     (function () {
@@ -712,32 +712,35 @@ void main() {
   float t = iTime * 0.28;
   vec2 flow = warp(p, t);
 
-  // Smooth fluid pigment streams
-  float roseStream  = smoothstep(-0.12, 0.58, fbm(p + flow * 1.9 + vec2(t * 0.28, 1.2)));
-  float cyanStream  = smoothstep(-0.12, 0.58, fbm(p + flow * 1.7 + vec2(-t * 0.24, 5.2)));
-  float amberStream = smoothstep(-0.12, 0.58, fbm(p + flow * 2.1 + vec2(3.1, t * 0.26)));
+  // Smooth fluid pigment streams with wide organic overlap
+  float roseStream  = smoothstep(-0.32, 0.56, fbm(p + flow * 1.9 + vec2(t * 0.28, 1.2)));
+  float cyanStream  = smoothstep(-0.32, 0.56, fbm(p + flow * 1.7 + vec2(-t * 0.24, 5.2)));
+  float amberStream = smoothstep(-0.32, 0.56, fbm(p + flow * 2.1 + vec2(3.1, t * 0.26)));
 
   // VYRN studio pigments (crimson-rose, electric cyan, warm amber)
-  vec3 cRose   = vec3(1.0, 0.22, 0.42);
-  vec3 cCyan   = vec3(0.02, 0.92, 1.0);
-  vec3 cAmber  = vec3(0.98, 0.64, 0.08);
+  vec3 cRose   = vec3(1.0, 0.24, 0.44);
+  vec3 cCyan   = vec3(0.05, 0.92, 1.0);
+  vec3 cAmber  = vec3(0.99, 0.66, 0.12);
 
   // Harmonized secondary watercolor blends
-  vec3 cCoral  = vec3(1.0, 0.42, 0.28);
-  vec3 cTeal   = vec3(0.18, 0.94, 0.82);
-  vec3 cViolet = vec3(0.68, 0.24, 0.96);
+  vec3 cCoral  = vec3(1.0, 0.46, 0.32);
+  vec3 cTeal   = vec3(0.22, 0.94, 0.84);
+  vec3 cViolet = vec3(0.70, 0.30, 0.96);
   vec3 cWhite  = vec3(0.98, 0.99, 1.0);
 
-  float sum = roseStream + cyanStream + amberStream + 0.001;
-  vec3 col = (roseStream * cRose + cyanStream * cCyan + amberStream * cAmber) / sum;
+  // Luminous pastel base floor prevents black void gaps when all three noise streams dip together
+  vec3 baseWash = mix(cCyan * 0.68, mix(cRose, cAmber, 0.5 + 0.5 * sin(p.y * 1.3 - t)), 0.48 + 0.22 * sin(p.x * 0.9 + t));
+  float totalPigment = roseStream + cyanStream + amberStream;
+  vec3 col = (roseStream * cRose + cyanStream * cCyan + amberStream * cAmber + 0.001 * baseWash) / (totalPigment + 0.001);
+  col = mix(baseWash, col, smoothstep(0.02, 0.38, totalPigment));
 
-  col = mix(col, cCoral, clamp(roseStream * amberStream * 1.85, 0.0, 0.72));
-  col = mix(col, cTeal, clamp(cyanStream * amberStream * 1.65, 0.0, 0.65));
-  col = mix(col, cViolet, clamp(roseStream * cyanStream * 1.9, 0.0, 0.75));
+  col = mix(col, cCoral, clamp(roseStream * amberStream * 1.65, 0.0, 0.68));
+  col = mix(col, cTeal, clamp(cyanStream * amberStream * 1.55, 0.0, 0.62));
+  col = mix(col, cViolet, clamp(roseStream * cyanStream * 1.75, 0.0, 0.72));
 
   // Luminous silky silk ribbon highlight without clipping
   float ribbon = smoothstep(0.36, 0.49, length(flow)) * smoothstep(0.64, 0.49, length(flow));
-  col = mix(col, cWhite, ribbon * 0.32);
+  col = mix(col, cWhite, ribbon * 0.34);
   col = col / (col + vec3(0.18)) * 1.18;
 
   gl_FragColor = vec4(col, mask);
@@ -872,9 +875,9 @@ void main() {
   </script>
 
   <!-- Scripts -->
-  <script src="config.js?v=4.1" defer></script>
-  <script src="js/swarm-boot.js?v=4.1" defer></script>
-  <script src="js/main.js?v=4.1" defer></script>
+  <script src="config.js?v=4.2" defer></script>
+  <script src="js/swarm-boot.js?v=4.2" defer></script>
+  <script src="js/main.js?v=4.2" defer></script>
 </body>
 
 </html>

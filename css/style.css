@@ -816,13 +816,14 @@ section {
   align-items: center;
   justify-content: center;
   width: 100%;
+  container-type: inline-size;
 }
 
 .hero-vyrn-canvas {
   position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
+  inset: -24px -32px;
+  width: calc(100% + 64px);
+  height: calc(100% + 48px);
   z-index: 4;
   pointer-events: none;
   display: block;
@@ -847,9 +848,10 @@ section {
   position: relative;
   z-index: 3;
   font-family: var(--font-display);
-  font-size: clamp(7rem, 23vw, 20rem);
+  font-size: clamp(4.2rem, 19.5vw, 16.5rem);
+  font-size: clamp(4.2rem, 20.5cqw, 16.5rem);
   font-weight: 800;
-  line-height: 0.86;
+  line-height: 1.04;
   letter-spacing: -0.055em;
   text-transform: uppercase;
   background: linear-gradient(125deg, #ff3b69 0%, #00f0ff 26%, #ffffff 48%, #f59e0b 72%, #ff3b69 100%);
@@ -1856,7 +1858,8 @@ section {
   }
 
   .hero-title-giant {
-    font-size: clamp(4.4rem, 20vw, 7.8rem);
+    font-size: clamp(3.6rem, 20.5vw, 7rem);
+    font-size: clamp(3.6rem, 21.5cqw, 7rem);
     letter-spacing: -0.04em;
   }
 
@@ -2944,9 +2947,9 @@ html.swarm-booting .swarm-startup[hidden] {
   display: none;
 }
 
-/* Keep ambient hero pills anchored at exact layout coords during boot handoff */
+/* Keep ambient hero pills anchored at resting 0% transform during boot handoff */
 html.swarm-booting .hero-glass-pill {
-  animation: none;
+  animation-play-state: paused;
 }
 
 .swarm-canvas {
