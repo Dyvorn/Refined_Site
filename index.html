@@ -93,7 +93,7 @@
 
   <link rel="manifest" href="manifest.json">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
-  <link rel="stylesheet" href="css/style.css?v=4.3">
+  <link rel="stylesheet" href="css/style.css?v=4.4">
   <link rel="expect" href="#main-content" blocking="render">
   <script>
     (function () {
@@ -712,36 +712,49 @@ void main() {
   float t = iTime * 0.28;
   vec2 flow = warp(p, t);
 
-  // Smooth fluid pigment streams with wide organic overlap
-  float roseStream  = smoothstep(-0.32, 0.56, fbm(p + flow * 1.9 + vec2(t * 0.28, 1.2)));
-  float cyanStream  = smoothstep(-0.32, 0.56, fbm(p + flow * 1.7 + vec2(-t * 0.24, 5.2)));
-  float amberStream = smoothstep(-0.32, 0.56, fbm(p + flow * 2.1 + vec2(3.1, t * 0.26)));
+  // Tighter pigment stream contrast keeps rose, cyan, and gold rich instead of averaging into white
+  float roseStream  = smoothstep(-0.08, 0.44, fbm(p + flow * 1.9 + vec2(t * 0.28, 1.2)));
+  float cyanStream  = smoothstep(-0.08, 0.44, fbm(p + flow * 1.7 + vec2(-t * 0.24, 5.2)));
+  float amberStream = smoothstep(-0.08, 0.44, fbm(p + flow * 2.1 + vec2(3.1, t * 0.26)));
 
-  // VYRN studio pigments (crimson-rose, electric cyan, warm amber)
-  vec3 cRose   = vec3(1.0, 0.24, 0.44);
-  vec3 cCyan   = vec3(0.05, 0.92, 1.0);
-  vec3 cAmber  = vec3(0.99, 0.66, 0.12);
+  // Hyper-saturated VYRN neon pigments
+  vec3 cRose   = vec3(1.00, 0.08, 0.38);
+  vec3 cCyan   = vec3(0.00, 0.92, 1.00);
+  vec3 cAmber  = vec3(1.00, 0.56, 0.02);
 
-  // Harmonized secondary watercolor blends
-  vec3 cCoral  = vec3(1.0, 0.46, 0.32);
-  vec3 cTeal   = vec3(0.22, 0.94, 0.84);
-  vec3 cViolet = vec3(0.70, 0.30, 0.96);
-  vec3 cWhite  = vec3(0.98, 0.99, 1.0);
+  // Rich secondary ink intersections
+  vec3 cCoral  = vec3(1.00, 0.26, 0.12);
+  vec3 cTeal   = vec3(0.00, 0.96, 0.72);
+  vec3 cViolet = vec3(0.68, 0.14, 1.00);
 
-  // Luminous pastel base floor prevents black void gaps when all three noise streams dip together
-  vec3 baseWash = mix(cCyan * 0.68, mix(cRose, cAmber, 0.5 + 0.5 * sin(p.y * 1.3 - t)), 0.48 + 0.22 * sin(p.x * 0.9 + t));
-  float totalPigment = roseStream + cyanStream + amberStream;
-  vec3 col = (roseStream * cRose + cyanStream * cCyan + amberStream * cAmber + 0.001 * baseWash) / (totalPigment + 0.001);
-  col = mix(baseWash, col, smoothstep(0.02, 0.38, totalPigment));
+  // Deep chromatic ink floor prevents pitch-black voids while preserving dramatic contrast
+  vec3 deepViolet = vec3(0.28, 0.04, 0.26);
+  vec3 deepIndigo = vec3(0.05, 0.14, 0.36);
+  vec3 deepTeal   = vec3(0.02, 0.40, 0.56);
+  vec3 baseWash   = mix(mix(deepIndigo, deepViolet, 0.5 + 0.5 * sin(p.x * 1.1 + p.y * 0.8 + t)),
+                        deepTeal, 0.38 + 0.32 * cos(p.x * 0.85 - t * 0.9));
 
-  col = mix(col, cCoral, clamp(roseStream * amberStream * 1.65, 0.0, 0.68));
-  col = mix(col, cTeal, clamp(cyanStream * amberStream * 1.55, 0.0, 0.62));
-  col = mix(col, cViolet, clamp(roseStream * cyanStream * 1.75, 0.0, 0.72));
+  // Exponentiate pigment weights (winner-takes-hue) for electric color separation; max avoids log2(0) on ANGLE/D3D
+  float wRose  = pow(max(roseStream, 0.001), 1.85);
+  float wCyan  = pow(max(cyanStream, 0.001), 1.85);
+  float wAmber = pow(max(amberStream, 0.001), 1.85);
+  float wSum   = wRose + wCyan + wAmber;
 
-  // Luminous silky silk ribbon highlight without clipping
-  float ribbon = smoothstep(0.36, 0.49, length(flow)) * smoothstep(0.64, 0.49, length(flow));
-  col = mix(col, cWhite, ribbon * 0.34);
-  col = col / (col + vec3(0.18)) * 1.18;
+  vec3 col = (wRose * cRose + wCyan * cCyan + wAmber * cAmber + 0.0001 * baseWash) / (wSum + 0.0001);
+  col = mix(baseWash, col, smoothstep(0.04, 0.48, wSum));
+
+  col = mix(col, cCoral, clamp(roseStream * amberStream * 1.35, 0.0, 0.64));
+  col = mix(col, cTeal, clamp(cyanStream * amberStream * 1.15, 0.0, 0.52));
+  col = mix(col, cViolet, clamp(roseStream * cyanStream * 1.45, 0.0, 0.68));
+
+  // Crisp subtle silk highlight only along sharp warp ridges (no whitewash)
+  float ribbon = smoothstep(0.42, 0.495, length(flow)) * smoothstep(0.57, 0.495, length(flow));
+  col += vec3(0.18, 0.24, 0.28) * ribbon;
+
+  // Luminance-preserving saturation kick instead of scalar Reinhard washout
+  float luma = dot(col, vec3(0.2126, 0.7152, 0.0722));
+  col = mix(vec3(luma), col, 1.24);
+  col = clamp(col * 1.08, 0.0, 1.0);
 
   gl_FragColor = vec4(col, mask);
 }
@@ -875,9 +888,9 @@ void main() {
   </script>
 
   <!-- Scripts -->
-  <script src="config.js?v=4.3" defer></script>
-  <script src="js/swarm-boot.js?v=4.3" defer></script>
-  <script src="js/main.js?v=4.3" defer></script>
+  <script src="config.js?v=4.4" defer></script>
+  <script src="js/swarm-boot.js?v=4.4" defer></script>
+  <script src="js/main.js?v=4.4" defer></script>
 </body>
 
 </html>

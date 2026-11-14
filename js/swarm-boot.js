@@ -890,12 +890,12 @@
         fctx.fillText('VYRN', pad + w * 0.5, pad + h * 0.5);
         fctx.globalCompositeOperation = 'source-in';
         const grad = fctx.createLinearGradient(pad, pad, pad + w, pad + h * 0.85);
-        grad.addColorStop(0, '#ff2a5f');
-        grad.addColorStop(0.24, '#ff5c8a');
-        grad.addColorStop(0.46, '#00e5ff');
-        grad.addColorStop(0.62, '#f8fafc');
-        grad.addColorStop(0.82, '#fbbf24');
-        grad.addColorStop(1, '#ff2a5f');
+        grad.addColorStop(0, '#ff1a55');
+        grad.addColorStop(0.24, '#ff3b69');
+        grad.addColorStop(0.46, '#00f0ff');
+        grad.addColorStop(0.64, '#a855f7');
+        grad.addColorStop(0.84, '#ff9800');
+        grad.addColorStop(1, '#ff1a55');
         fctx.fillStyle = grad;
         fctx.fillRect(0, 0, gw, gh);
         fctx.restore();
