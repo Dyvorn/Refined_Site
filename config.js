@@ -12,7 +12,7 @@ const CONFIG = {
     // YouTube API & Fallback Data
     YOUTUBE_API_KEY: 'AIzaSyA24XmA6nfPzwCzny2RcB9_WkC4o1o_HKk',
     YOUTUBE_CHANNEL_ID: 'UCGe5VOk80siQe0r2OfQQWPw',
-    FALLBACK_SUBSCRIBERS: '5246463426456+',
+    FALLBACK_SUBSCRIBERS: '51+',
     LATEST_VIDEO: {
         id: '5t1xed1vlO4',
         title: 'HOW TO PUT TEXT BEHIND YOU | Davinci Resolve Tutorial',
@@ -27,8 +27,13 @@ const CONFIG = {
         description: 'Join the waitlist to get early member access when our private DaVinci & creative tech server opens.'
     },
 
-    // Contact Form Endpoint (Optional: e.g. 'https://formspree.io/f/your_id' or left empty for direct mail client)
+    // Unified Free Backend Endpoint (e.g. deployed Google Apps Script Web App URL from apps-script/Code.gs)
+    // Powers BOTH Get in Touch email delivery AND the Discord Launch Waitlist Google Sheets database.
+    BACKEND_ENDPOINT: '',
+
+    // Optional separate overrides (only needed if using two different providers, e.g. Formspree / Brevo / Worker)
     CONTACT_ENDPOINT: '',
+    WAITLIST_ENDPOINT: '',
 
     // =========================================================================
     // Modular Project List Template

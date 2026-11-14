@@ -2569,6 +2569,34 @@ section {
   white-space: nowrap;
 }
 
+.hp-field {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  opacity: 0;
+  pointer-events: none;
+  margin: -1px;
+}
+
+.waitlist-note {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+  margin: 0.15rem 0 0;
+  line-height: 1.45;
+}
+
+.waitlist-note a {
+  color: var(--text-secondary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.waitlist-note a:hover {
+  color: var(--text-primary);
+}
+
 .waitlist-status {
   font-size: 0.8rem;
   font-family: var(--font-mono);
@@ -2907,13 +2935,18 @@ html.swarm-booting .swarm-startup.is-canvas-ready {
 
 html.swarm-booting .swarm-startup:where([hidden], [data-closing]) {
   opacity: 0;
-  scale: 1.018;
+  scale: 1;
   pointer-events: none;
 }
 
 .swarm-startup[hidden],
 html.swarm-booting .swarm-startup[hidden] {
   display: none;
+}
+
+/* Keep ambient hero pills anchored at exact layout coords during boot handoff */
+html.swarm-booting .hero-glass-pill {
+  animation: none;
 }
 
 .swarm-canvas {

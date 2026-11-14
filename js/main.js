@@ -677,6 +677,83 @@ function initAccessibleForms() {
 }
 
 /**
+ * Shared Form Submission Helpers (Waitlist & Contact)
+ */
+function resolveFormEndpoint(specificKey) {
+  if (typeof CONFIG === 'undefined' || !CONFIG) return '';
+  const specific = CONFIG[specificKey];
+  const shared = CONFIG.BACKEND_ENDPOINT;
+  return String(specific || shared || '').trim();
+}
+
+async function postFormPayload(endpoint, payload) {
+  const isAppsScript = /script\.google(?:usercontent)?\.com/i.test(endpoint);
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+  try {
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      headers: isAppsScript
+        ? { 'Content-Type': 'text/plain;charset=utf-8' }
+        : { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+    });
+
+    const rawText = await res.text();
+    let data = null;
+    if (rawText && rawText.trim().startsWith('{')) {
+      try {
+        data = JSON.parse(rawText);
+      } catch (parseErr) {
+        data = null;
+      }
+    }
+
+    if (!res.ok || (data && (data.ok === false || data.success === false))) {
+      const serverMsg = (data && (data.message || data.error)) || `Request failed (${res.status})`;
+      throw new Error(serverMsg);
+    }
+
+    return data || { ok: true };
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+function setSubmitBusy(submitBtn, isBusy, busyLabel) {
+  if (!submitBtn) return;
+  const labelTarget = submitBtn.querySelector('span') || submitBtn;
+  if (isBusy) {
+    if (!submitBtn.dataset.originalLabel) {
+      submitBtn.dataset.originalLabel = labelTarget.textContent;
+    }
+    labelTarget.textContent = busyLabel;
+    submitBtn.disabled = true;
+    submitBtn.setAttribute('aria-busy', 'true');
+  } else {
+    if (submitBtn.dataset.originalLabel) {
+      labelTarget.textContent = submitBtn.dataset.originalLabel;
+    }
+    submitBtn.disabled = false;
+    submitBtn.removeAttribute('aria-busy');
+  }
+}
+
+function showFormFeedback(statusEl, message, isError, timerState, autoHideMs = 7000) {
+  clearTimeout(timerState.id);
+  statusEl.classList.toggle('is-error', Boolean(isError));
+  statusEl.textContent = message;
+  statusEl.classList.add('is-visible');
+  if (!isError && autoHideMs > 0) {
+    timerState.id = setTimeout(() => {
+      statusEl.classList.remove('is-visible');
+    }, autoHideMs);
+  }
+}
+
+/**
  * 8. Discord Community Waitlist Email Subscription
  */
 function initDiscordWaitlist() {
@@ -687,37 +764,64 @@ function initDiscordWaitlist() {
 
   if (!form || !input || !status) return;
 
-  let statusTimer;
-  form.addEventListener('submit', (e) => {
+  const timerState = { id: null };
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
 
     const validate = formValidators.get(form);
     if (validate && !validate()) return;
 
+    const honeypot = form.querySelector('input[name="_website"]')?.value.trim() || '';
+    if (honeypot) {
+      form.reset();
+      showFormFeedback(status, "You're on the list! We'll email your invite once Discord opens.", false, timerState);
+      return;
+    }
+
     const email = input.value.trim();
     if (!email) return;
 
-    if (submitBtn) submitBtn.disabled = true;
+    const endpoint = resolveFormEndpoint('WAITLIST_ENDPOINT');
+    const contactEmail = (typeof CONFIG !== 'undefined' && CONFIG.CONTACT_EMAIL) ? CONFIG.CONTACT_EMAIL : 'refined.mov@gmail.com';
+    if (!endpoint) {
+      showFormFeedback(
+        status,
+        `Waitlist endpoint is not connected yet. Please email ${contactEmail} directly to request early access.`,
+        true,
+        timerState,
+        0
+      );
+      return;
+    }
+
+    setSubmitBusy(submitBtn, true, 'Joining...');
 
     try {
-      const existing = JSON.parse(localStorage.getItem('vyrn_discord_waitlist') || '[]');
-      if (!existing.includes(email)) {
-        existing.push(email);
-        localStorage.setItem('vyrn_discord_waitlist', JSON.stringify(existing));
-      }
-    } catch (err) {}
+      const data = await postFormPayload(endpoint, {
+        action: 'waitlist',
+        email,
+        consent: true,
+        source: window.location.pathname,
+        _website: honeypot,
+      });
 
-    form.reset();
-    clearTimeout(statusTimer);
-    status.classList.remove('is-error');
-    status.textContent = "You're on the list! We'll notify you as soon as server invitations go live.";
-    status.classList.add('is-visible');
-
-    if (submitBtn) submitBtn.disabled = false;
-
-    statusTimer = setTimeout(() => {
-      status.classList.remove('is-visible');
-    }, 6000);
+      form.reset();
+      showFormFeedback(
+        status,
+        (data && data.message) || "You're on the list! We'll email your invite as soon as Discord goes live.",
+        false,
+        timerState
+      );
+    } catch (err) {
+      const msg = (err && err.name === 'AbortError')
+        ? 'Request timed out. Please try again.'
+        : (err && err.message && err.message !== 'Failed to fetch')
+          ? err.message
+          : `Unable to register right now. Please try again or email ${contactEmail}.`;
+      showFormFeedback(status, msg, true, timerState, 0);
+    } finally {
+      setSubmitBusy(submitBtn, false);
+    }
   });
 }
 
@@ -731,12 +835,19 @@ function initContactForm() {
 
   if (!form || !status) return;
 
-  let statusTimer;
+  const timerState = { id: null };
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
 
     const validate = formValidators.get(form);
     if (validate && !validate()) return;
+
+    const honeypot = form.querySelector('input[name="_website"]')?.value.trim() || '';
+    if (honeypot) {
+      form.reset();
+      showFormFeedback(status, 'Message received. Thank you for reaching out.', false, timerState);
+      return;
+    }
 
     const name = document.getElementById('contact-name')?.value.trim();
     const email = document.getElementById('contact-email')?.value.trim();
@@ -745,37 +856,50 @@ function initContactForm() {
 
     if (!name || !email || !message) return;
 
-    const endpoint = (typeof CONFIG !== 'undefined' && CONFIG.CONTACT_ENDPOINT) ? CONFIG.CONTACT_ENDPOINT : '';
+    const endpoint = resolveFormEndpoint('CONTACT_ENDPOINT');
+    const recipient = (typeof CONFIG !== 'undefined' && CONFIG.CONTACT_EMAIL) ? CONFIG.CONTACT_EMAIL : 'refined.mov@gmail.com';
 
-    if (submitBtn) submitBtn.disabled = true;
-    clearTimeout(statusTimer);
-    status.classList.remove('is-error');
+    if (!endpoint) {
+      const mailtoLink = `mailto:${encodeURIComponent(recipient)}?subject=${encodeURIComponent(`[VYRN] ${topic} from ${name}`)}&body=${encodeURIComponent(`Name: ${name}\nEmail: ${email}\nTopic: ${topic}\n\nMessage:\n${message}`)}`;
+      window.location.href = mailtoLink;
+      showFormFeedback(
+        status,
+        `Opening your email app for ${recipient} (direct web delivery endpoint not configured yet).`,
+        false,
+        timerState,
+        9000
+      );
+      return;
+    }
+
+    setSubmitBusy(submitBtn, true, 'Sending...');
 
     try {
-      if (endpoint) {
-        const res = await fetch(endpoint, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-          body: JSON.stringify({ name, email, topic, message })
-        });
-        if (!res.ok) throw new Error('Request failed');
-      } else {
-        const recipient = (typeof CONFIG !== 'undefined' && CONFIG.CONTACT_EMAIL) ? CONFIG.CONTACT_EMAIL : 'refined.mov@gmail.com';
-        const mailtoLink = `mailto:${encodeURIComponent(recipient)}?subject=${encodeURIComponent(`[VYRN] ${topic} from ${name}`)}&body=${encodeURIComponent(`Name: ${name}\nEmail: ${email}\nTopic: ${topic}\n\nMessage:\n${message}`)}`;
-        window.location.href = mailtoLink;
-      }
+      const data = await postFormPayload(endpoint, {
+        action: 'contact',
+        name,
+        email,
+        topic,
+        message,
+        consent: true,
+        source: window.location.pathname,
+        _website: honeypot,
+      });
 
       form.reset();
-      status.textContent = 'Message transmitted! Thank you for reaching out.';
-      status.classList.add('is-visible');
-      statusTimer = setTimeout(() => {
-        status.classList.remove('is-visible');
-      }, 7000);
+      showFormFeedback(
+        status,
+        (data && data.message) || "Message sent! Thank you for reaching out — I'll reply to you shortly.",
+        false,
+        timerState
+      );
     } catch (err) {
-      status.textContent = 'Unable to send right now. Please try again or email directly.';
-      status.classList.add('is-visible', 'is-error');
+      const msg = (err && err.name === 'AbortError')
+        ? `Request timed out. Please try again or email ${recipient} directly.`
+        : `Unable to send automatically right now. Please try again or email ${recipient} directly.`;
+      showFormFeedback(status, msg, true, timerState, 0);
     } finally {
-      if (submitBtn) submitBtn.disabled = false;
+      setSubmitBusy(submitBtn, false);
     }
   });
 }
@@ -1190,16 +1314,25 @@ function initHeroWatercolorText() {
   const maskCanvas = document.createElement('canvas');
   const maskCtx = maskCanvas.getContext('2d');
 
-  let lastMaskWidth = 0;
+  let lastMaskKey = '';
   let lastMaskHeight = 0;
+  let fontsHooked = false;
 
   const updateTextMask = () => {
-    const rect = textElem.getBoundingClientRect();
-    if (rect.width <= 10 || rect.height <= 10) return;
+    const canvasRect = canvas.getBoundingClientRect();
+    const textRect = textElem.getBoundingClientRect();
+    if (canvasRect.width <= 10 || canvasRect.height <= 10 || textRect.width <= 10 || textRect.height <= 10) return;
 
-    if (Math.abs(rect.width - lastMaskWidth) < 2 && Math.abs(rect.height - lastMaskHeight) < 2) return;
-    lastMaskWidth = rect.width;
-    lastMaskHeight = rect.height;
+    const fontStatus = (document.fonts && document.fonts.status) ? document.fonts.status : 'loaded';
+    if (!fontsHooked && fontStatus === 'loading' && document.fonts && document.fonts.ready) {
+      fontsHooked = true;
+      document.fonts.ready.then(updateTextMask);
+    }
+
+    const maskKey = `${Math.round(canvasRect.width)}x${Math.round(canvasRect.height)}:${Math.round(textRect.width)}:${fontStatus}`;
+    if (maskKey === lastMaskKey && Math.abs(textRect.height - lastMaskHeight) < 2) return;
+    lastMaskKey = maskKey;
+    lastMaskHeight = textRect.height;
 
     const isLowPower = (typeof navigator !== 'undefined' && (
       (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4) ||
@@ -1208,8 +1341,8 @@ function initHeroWatercolorText() {
       window.innerWidth <= 768
     ));
     const dpr = isLowPower ? 0.9 : Math.min(window.devicePixelRatio || 1, 1.5);
-    const pixelWidth = Math.round(rect.width * dpr);
-    const pixelHeight = Math.round(rect.height * dpr);
+    const pixelWidth = Math.max(1, Math.round(canvasRect.width * dpr));
+    const pixelHeight = Math.max(1, Math.round(canvasRect.height * dpr));
 
     canvas.width = pixelWidth;
     canvas.height = pixelHeight;
@@ -1235,8 +1368,10 @@ function initHeroWatercolorText() {
     }
     maskCtx.fillStyle = '#ffffff';
 
-    // Draw centered "VYRN" glyphs
-    maskCtx.fillText('VYRN', rect.width * 0.5, rect.height * 0.5);
+    // Draw "VYRN" glyphs at exact text element center inside full-stage canvas
+    const textCenterX = (textRect.left - canvasRect.left) + textRect.width * 0.5;
+    const textCenterY = (textRect.top - canvasRect.top) + textRect.height * 0.5;
+    maskCtx.fillText('VYRN', textCenterX, textCenterY);
     maskCtx.restore();
 
     // Upload to WebGL texture

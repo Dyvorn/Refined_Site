@@ -93,17 +93,58 @@
 
   <link rel="manifest" href="manifest.json">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
-  <link rel="stylesheet" href="css/style.css?v=4.0">
+  <link rel="stylesheet" href="css/style.css?v=4.1">
   <link rel="expect" href="#main-content" blocking="render">
   <script>
-    if (window.matchMedia && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    (function () {
+      var reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (reducedMotion) return;
+
+      var navEntry = (window.performance && typeof performance.getEntriesByType === 'function')
+        ? performance.getEntriesByType('navigation')[0]
+        : null;
+      var navType = navEntry ? navEntry.type : '';
+      var isBackForward = navType === 'back_forward';
+      var isExplicitReload = navType === 'reload';
+
+      var hash = window.location.hash;
+      var hasDeepHash = Boolean(hash && hash !== '#hero' && hash !== '#main-content');
+
+      var hasPlayed = false;
+      try {
+        hasPlayed = window.sessionStorage.getItem('vyrn_swarm_played') === '1';
+      } catch (e) {}
+
+      var cameFromSubpage = false;
+      try {
+        if (document.referrer) {
+          var refUrl = new URL(document.referrer);
+          var normalizePath = function (p) {
+            return p.replace(/\/index\.html$/i, '/');
+          };
+          if (
+            refUrl.origin === window.location.origin &&
+            normalizePath(refUrl.pathname) !== normalizePath(window.location.pathname)
+          ) {
+            cameFromSubpage = true;
+          }
+        }
+      } catch (e) {}
+
+      var shouldBoot = !isBackForward && !hasDeepHash && (isExplicitReload || (!hasPlayed && !cameFromSubpage));
+      if (!shouldBoot) return;
+
+      try {
+        window.sessionStorage.setItem('vyrn_swarm_played', '1');
+      } catch (e) {}
+
       document.documentElement.classList.add('swarm-booting');
       setTimeout(function () {
         if (!window.__vyrnSwarmInit) {
           document.documentElement.classList.remove('swarm-booting');
         }
       }, 2500);
-    }
+    })();
   </script>
 </head>
 
@@ -120,7 +161,7 @@
 
   <!-- Floating Liquid Glass Nav Pill -->
   <header class="glass-nav-pill" id="nav-pill">
-    <a href="/" class="brand-signature" aria-label="VYRN Home">
+    <a href="#hero" class="brand-signature" aria-label="VYRN Home">
       <span class="brand-monogram">VYRN</span>
       <span class="brand-dots" aria-hidden="true">
         <span class="color-dot dot-pink"></span>
@@ -431,6 +472,10 @@
             <div class="discord-waitlist-box">
               <form class="waitlist-form" id="discord-waitlist-form" action="#community" method="post"
                 aria-labelledby="discord-card-heading">
+                <div class="hp-field" aria-hidden="true">
+                  <label for="waitlist-hp">Leave this field empty</label>
+                  <input type="text" id="waitlist-hp" name="_website" tabindex="-1" autocomplete="off">
+                </div>
                 <div class="waitlist-field">
                   <label for="waitlist-email" class="visually-hidden">Email address for Discord waitlist</label>
                   <input type="email" class="waitlist-input" id="waitlist-email" name="email"
@@ -442,6 +487,8 @@
                 </div>
                 <button type="submit" class="pill-btn pill-btn--solid waitlist-btn">Notify Me</button>
               </form>
+              <p class="waitlist-note">One-time email when Discord opens — no spam. <a href="datenschutz.html"
+                  target="_blank" rel="noopener">Privacy Policy</a>.</p>
               <div class="waitlist-status" id="waitlist-status" role="status" aria-live="polite"></div>
             </div>
           </div>
@@ -500,6 +547,10 @@
 
         <div class="contact-card">
           <form id="contact-form" class="contact-form" action="#contact" method="post" aria-labelledby="contact-heading">
+            <div class="hp-field" aria-hidden="true">
+              <label for="contact-hp">Leave this field empty</label>
+              <input type="text" id="contact-hp" name="_website" tabindex="-1" autocomplete="off">
+            </div>
             <div class="contact-form-grid">
               <div class="contact-field">
                 <label for="contact-name" class="contact-label">Your Name <span aria-hidden="true">*</span></label>
@@ -565,7 +616,7 @@
   <footer class="site-footer">
     <div class="container">
       <div class="footer-top-row">
-        <a href="/" class="brand-signature footer-brand-signature" aria-label="VYRN Home">
+        <a href="#hero" class="brand-signature footer-brand-signature" aria-label="VYRN Home">
           <span class="footer-brand">VYRN</span>
           <span class="brand-dots" aria-hidden="true">
             <span class="color-dot dot-pink"></span>
@@ -821,9 +872,9 @@ void main() {
   </script>
 
   <!-- Scripts -->
-  <script src="config.js?v=4.0" defer></script>
-  <script src="js/swarm-boot.js?v=4.0" defer></script>
-  <script src="js/main.js?v=4.0" defer></script>
+  <script src="config.js?v=4.1" defer></script>
+  <script src="js/swarm-boot.js?v=4.1" defer></script>
+  <script src="js/main.js?v=4.1" defer></script>
 </body>
 
 </html>

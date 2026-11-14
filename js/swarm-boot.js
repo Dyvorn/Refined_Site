@@ -443,11 +443,14 @@
 
       const navEl = document.getElementById('nav-pill');
       const brandEl = navEl ? navEl.querySelector('.brand-signature') : null;
+      const brandTextEl = brandEl ? brandEl.querySelector('.brand-monogram') : null;
+      const brandDotEls = brandEl ? Array.from(brandEl.querySelectorAll('.brand-dots .color-dot')) : [];
       const navLinks = navEl ? Array.from(navEl.querySelectorAll('.nav-item')) : [];
       const discordBtn = navEl ? navEl.querySelector('.nav-btn--discord') : null;
       const bmacBtn = navEl ? navEl.querySelector('.nav-btn--bmac') : null;
 
       const eyebrowEl = document.querySelector('.hero-eyebrow');
+      const eyebrowDotEls = eyebrowEl ? Array.from(eyebrowEl.querySelectorAll('.color-dot')) : [];
       const titleEl = document.querySelector('.hero-title-giant');
       const pillAudioEl = document.querySelector('.hero-glass-pill--audio');
       const pillVideoEl = document.querySelector('.hero-glass-pill--video');
@@ -478,13 +481,101 @@
       };
 
       const titleStyle = titleEl ? window.getComputedStyle(titleEl) : null;
+      const brandStyle = brandTextEl ? window.getComputedStyle(brandTextEl) : null;
+
+      const resolveDotGlow = (dotEl, fallback) => {
+        if (!dotEl) return fallback;
+        if (dotEl.classList.contains('dot-pink')) return 'pink';
+        if (dotEl.classList.contains('dot-cyan')) return 'cyan';
+        if (dotEl.classList.contains('dot-amber')) return 'amber';
+        return fallback;
+      };
+
+      const measurePill = (el, color, glowKey) => {
+        if (!el) return null;
+        const r = el.getBoundingClientRect();
+        if (r.width < 2 || r.height < 2) return null;
+
+        const cs = window.getComputedStyle(el);
+        let tilt = 0;
+        if (cs.transform && cs.transform !== 'none') {
+          try {
+            const m = new DOMMatrix(cs.transform);
+            tilt = Math.atan2(m.b, m.a);
+          } catch (e) {}
+        }
+
+        const w = el.offsetWidth || r.width;
+        const h = el.offsetHeight || r.height;
+        const cx = r.left + r.width * 0.5;
+        const cy = r.top + r.height * 0.5;
+        const cosT = Math.cos(-tilt);
+        const sinT = Math.sin(-tilt);
+        const toLocal = (vx, vy) => ({
+          x: (vx - cx) * cosT - (vy - cy) * sinT,
+          y: (vx - cx) * sinT + (vy - cy) * cosT,
+        });
+
+        const dotEl = el.querySelector('.glass-pill-dot');
+        let dot = { x: -w * 0.5 + 18, y: 0, r: 3.5 };
+        if (dotEl) {
+          const dr = dotEl.getBoundingClientRect();
+          if (dr.width > 0) {
+            const localDot = toLocal(dr.left + dr.width * 0.5, dr.top + dr.height * 0.5);
+            dot = { x: localDot.x, y: localDot.y, r: Math.max(2.5, dr.width * 0.5) };
+          }
+        }
+
+        const textEl = el.querySelector('.glass-pill-text');
+        const rawText = (textEl ? textEl.textContent : el.textContent || '').trim();
+        let label = rawText;
+        let text = { x: dot.x + 16, y: 0, font: '600 13px Inter, sans-serif', letterSpacing: '0.1em' };
+        if (textEl) {
+          const trEl = textEl.getBoundingClientRect();
+          const tcs = window.getComputedStyle(textEl);
+          if (tcs.textTransform === 'uppercase') label = rawText.toUpperCase();
+          const localText = toLocal(trEl.left + trEl.width * 0.5, trEl.top + trEl.height * 0.5);
+          text = {
+            x: localText.x,
+            y: localText.y,
+            font: `${tcs.fontWeight || '600'} ${tcs.fontSize || '13px'} ${tcs.fontFamily || 'Inter, sans-serif'}`,
+            letterSpacing: tcs.letterSpacing || '0.1em',
+          };
+        }
+
+        const radius = parseFloat(cs.borderRadius) || h * 0.5;
+        const rect = shiftRect({
+          left: cx - w * 0.5,
+          top: cy - h * 0.5,
+          width: w,
+          height: h,
+          cx,
+          cy,
+          radius,
+        });
+
+        return { rect, label, color, glowKey, tilt, dot, text };
+      };
 
       targets = {
         nav: toRect(navEl, 0) || { left: 0, top: 0, width: vw, height: 64, cx: vw * 0.5, cy: 32, radius: 0 },
         brand: toRect(brandEl, 8),
+        brandText: toRect(brandTextEl, 4),
+        brandFont: brandStyle ? {
+          font: `${brandStyle.fontWeight || '800'} ${brandStyle.fontSize || '15px'} ${brandStyle.fontFamily || 'Syne, sans-serif'}`,
+          letterSpacing: brandStyle.letterSpacing || 'normal',
+        } : null,
+        brandDots: brandDotEls.map((d, i) => ({
+          rect: toRect(d, 99),
+          glowKey: resolveDotGlow(d, ['pink', 'cyan', 'amber'][i] || 'cyan'),
+        })).filter((d) => d.rect),
         navLinks: navLinks.map((el) => toRect(el, 999)).filter(Boolean),
         navActions: [toRect(discordBtn, 999), toRect(bmacBtn, 999)].filter(Boolean),
         eyebrow: shiftRect(toRect(eyebrowEl, 999)),
+        eyebrowDots: eyebrowDotEls.map((d, i) => ({
+          rect: shiftRect(toRect(d, 99)),
+          glowKey: resolveDotGlow(d, ['pink', 'cyan', 'amber'][i] || 'cyan'),
+        })).filter((d) => d.rect),
         title: titleRect,
         titleFont: {
           weight: titleStyle ? titleStyle.fontWeight : '800',
@@ -493,10 +584,10 @@
           letterSpacing: titleStyle ? titleStyle.letterSpacing : '-0.055em',
         },
         pills: [
-          { rect: shiftRect(toRect(pillAudioEl, 999)), label: 'AUDIO', color: PALETTE.pink, glowKey: 'pink', tilt: -0.03 },
-          { rect: shiftRect(toRect(pillVideoEl, 999)), label: 'VIDEO', color: PALETTE.cyan, glowKey: 'cyan', tilt: 0.03 },
-          { rect: shiftRect(toRect(pillCodeEl, 999)), label: 'CODE', color: PALETTE.amber, glowKey: 'amber', tilt: 0.02 },
-        ].filter((p) => p.rect),
+          measurePill(pillAudioEl, PALETTE.pink, 'pink'),
+          measurePill(pillVideoEl, PALETTE.cyan, 'cyan'),
+          measurePill(pillCodeEl, PALETTE.amber, 'amber'),
+        ].filter(Boolean),
         tagline: shiftRect(toRect(taglineEl, 12)),
         ctas: ctaEls.map((el, idx) => ({
           rect: shiftRect(toRect(el, 999)),
@@ -1133,12 +1224,26 @@
 
       if (targets.brand) {
         const b = targets.brand;
+        const bt = targets.brandText || b;
         drawCornerBrackets(ctx, b, 6, PALETTE.white, 0.5 * alpha * navProg);
         if (navProg > 0.35) {
-          ctx.font = '800 15px Syne, sans-serif';
-          ctx.fillStyle = `rgba(255, 255, 255, ${(0.85 * alpha * smoothstep(0.35, 0.6, navProg)).toFixed(3)})`;
+          const textA = 0.85 * alpha * smoothstep(0.35, 0.6, navProg);
+          ctx.save();
+          ctx.font = targets.brandFont ? targets.brandFont.font : '800 15px Syne, sans-serif';
+          if ('letterSpacing' in ctx && targets.brandFont && targets.brandFont.letterSpacing !== 'normal') {
+            ctx.letterSpacing = targets.brandFont.letterSpacing;
+          }
+          ctx.fillStyle = `rgba(255, 255, 255, ${textA.toFixed(3)})`;
+          ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
-          ctx.fillText('VYRN', b.left + 4, b.cy);
+          ctx.fillText('VYRN', bt.cx, bt.cy);
+          ctx.restore();
+
+          if (targets.brandDots && targets.brandDots.length) {
+            targets.brandDots.forEach((dot) => {
+              drawGlow(dot.rect.cx, dot.rect.cy, Math.max(8, dot.rect.width * 2.2), dot.glowKey, textA);
+            });
+          }
         }
       }
 
@@ -1255,13 +1360,22 @@
             height: eb.height + 8,
           }, 7, PALETTE.amber, 0.65 * ebP * wireframeAlpha);
 
-          const dotColors = ['pink', 'cyan', 'amber'];
-          dotColors.forEach((dk, i) => {
-            const dotAppear = smoothstep(0.2 + i * 0.15, 0.55 + i * 0.15, ebP);
-            if (dotAppear > 0) {
-              drawGlow(eb.left + 4 + i * 13, eb.cy, 12, dk, 0.85 * dotAppear * wireframeAlpha);
-            }
-          });
+          if (targets.eyebrowDots && targets.eyebrowDots.length) {
+            targets.eyebrowDots.forEach((dot, i) => {
+              const dotAppear = smoothstep(0.2 + i * 0.15, 0.55 + i * 0.15, ebP);
+              if (dotAppear > 0) {
+                drawGlow(dot.rect.cx, dot.rect.cy, Math.max(10, dot.rect.width * 1.8), dot.glowKey, 0.85 * dotAppear * wireframeAlpha);
+              }
+            });
+          } else {
+            const dotColors = ['pink', 'cyan', 'amber'];
+            dotColors.forEach((dk, i) => {
+              const dotAppear = smoothstep(0.2 + i * 0.15, 0.55 + i * 0.15, ebP);
+              if (dotAppear > 0) {
+                drawGlow(eb.left + 4 + i * 13, eb.cy, 12, dk, 0.85 * dotAppear * wireframeAlpha);
+              }
+            });
+          }
         }
       }
 
@@ -1323,9 +1437,11 @@
 
         const r = pill.rect;
         ctx.save();
-        ctx.translate(r.cx, r.cy);
-        ctx.rotate(pill.tilt * (1 - smoothstep(0.78, 0.92, p)));
-        ctx.translate(-r.cx, -r.cy);
+        if (pill.tilt) {
+          ctx.translate(r.cx, r.cy);
+          ctx.rotate(pill.tilt);
+          ctx.translate(-r.cx, -r.cy);
+        }
 
         const glassA = smoothstep(0.45, 1, pillP) * 0.72 * wireframeAlpha;
         if (glassA > 0.01) {
@@ -1345,19 +1461,27 @@
 
         if (pillP > 0.4) {
           const innerA = smoothstep(0.4, 0.85, pillP) * wireframeAlpha;
-          const dotX = r.left + 20;
-          drawGlow(dotX, r.cy, 13, pill.glowKey, 0.9 * innerA);
+          const dotX = r.cx + (pill.dot ? pill.dot.x : (-r.width * 0.5 + 18));
+          const dotY = r.cy + (pill.dot ? pill.dot.y : 0);
+          const dotR = pill.dot ? pill.dot.r : 3.5;
+
+          drawGlow(dotX, dotY, dotR * 3.6, pill.glowKey, 0.9 * innerA);
           ctx.fillStyle = pill.color;
           ctx.globalAlpha = innerA;
           ctx.beginPath();
-          ctx.arc(dotX, r.cy, 3.5, 0, Math.PI * 2);
+          ctx.arc(dotX, dotY, dotR, 0, Math.PI * 2);
           ctx.fill();
 
           ctx.fillStyle = '#ffffff';
-          ctx.font = '600 12px ui-monospace, SFMono-Regular, Menlo, monospace';
+          ctx.font = pill.text ? pill.text.font : '600 13px Inter, sans-serif';
+          if ('letterSpacing' in ctx && pill.text && pill.text.letterSpacing && pill.text.letterSpacing !== 'normal') {
+            ctx.letterSpacing = pill.text.letterSpacing;
+          }
           ctx.textBaseline = 'middle';
-          ctx.textAlign = 'left';
-          ctx.fillText(pill.label, dotX + 12, r.cy + 0.5);
+          ctx.textAlign = 'center';
+          const textX = r.cx + (pill.text ? pill.text.x : 10);
+          const textY = r.cy + (pill.text ? pill.text.y : 0);
+          ctx.fillText(pill.label, textX, textY);
         }
 
         ctx.restore();
@@ -1817,6 +1941,14 @@
       isRunning = true;
       clockStartedAt = null;
 
+      try {
+        window.sessionStorage.setItem('vyrn_swarm_played', '1');
+      } catch (e) {}
+
+      if (!window.location.hash && window.scrollY > 0) {
+        window.scrollTo(0, 0);
+      }
+
       overlay.removeAttribute('data-closing');
       overlay.hidden = false;
       overlay.style.pointerEvents = '';
@@ -1893,5 +2025,11 @@
       const overlay = document.getElementById('swarm-startup');
       if (overlay) overlay.hidden = true;
     }
+
+    window.addEventListener('pageshow', (event) => {
+      if (event.persisted || !document.documentElement.classList.contains('swarm-booting')) {
+        controller.stop();
+      }
+    });
   });
 })();
