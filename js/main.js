@@ -1,12 +1,15 @@
 /**
  * VYRN — Studio Client-Side Logic
  * Features:
- * - Viewport scroll progress indicator
- * - Floating glass nav & mobile drawer toggle
+ * - Viewport scroll progress indicator (CSS Scroll-Driven w/ JS fallback)
+ * - IntersectionObserver-driven floating glass nav & back-to-top states
+ * - Accessible mobile navigation drawer (inert + Escape focus return)
  * - Dynamic YouTube API latest video integration (Default: 5t1xed1vlO4)
- * - Privacy-enhanced video embed trigger
- * - Modular data-driven project card renderer
- * - Minimalist back-to-top trigger
+ * - Privacy-enhanced video embed trigger via DOM construction
+ * - Safe DOM project card renderer
+ * - Accessible form validation synced with :user-invalid & polite live announcements
+ */
+
 /**
  * Clean URL Handler:
  * Strips ugly trailing file extensions (e.g., /index.html) from the browser address bar
@@ -21,6 +24,28 @@
   }
 })();
 
+const reducedMotionQuery = typeof window !== 'undefined' && window.matchMedia
+  ? window.matchMedia('(prefers-reduced-motion: reduce)')
+  : { matches: false, addEventListener: () => {} };
+
+/**
+ * Validates URLs from config/data sources so only safe HTTP(S), relative paths,
+ * or same-page hash anchors are assigned to href attributes.
+ */
+function sanitizeUrl(rawUrl) {
+  if (typeof rawUrl !== 'string') return '#projects';
+  const trimmed = rawUrl.trim();
+  if (!trimmed) return '#projects';
+  if (trimmed.startsWith('#') || trimmed.startsWith('/')) return trimmed;
+  try {
+    const parsed = new URL(trimmed, window.location.origin);
+    if (parsed.protocol === 'https:' || parsed.protocol === 'http:') {
+      return parsed.href;
+    }
+  } catch (err) {}
+  return '#projects';
+}
+
 /**
  * Fallback Projects Data (Used if config.js is missing or CONFIG.PROJECTS is empty)
  */
@@ -33,6 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
   fetchLatestYouTubeVideo();
   initProjectsLiquidGlass();
   initProjectsGrid();
+  initAccessibleForms();
   initDiscordWaitlist();
   initContactForm();
   initHeroWatercolorText();
@@ -41,84 +67,132 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 /**
- * 1. Unified requestAnimationFrame-Throttled Scroll Controller
- * Eliminates layout thrashing, forced synchronous reflows, and scroll stutter:
- * - Viewport reading progress indicator
- * - Floating glass nav pill scrolled state
- * - Back-to-top trigger visibility
+ * 1. Scroll-Driven Progress & Sentinel-Based Scroll State Controller
+ * Uses native CSS `animation-timeline: scroll()` when available and
+ * IntersectionObserver sentinels to toggle scrolled UI states without
+ * polling layout geometry on every scroll event.
  */
 function initUnifiedScroll() {
   const progressBar = document.getElementById('scroll-progress');
   const navPill = document.getElementById('nav-pill');
   const backToTopBtn = document.getElementById('back-to-top');
 
-  let isScrolled = false;
-  let ticking = false;
+  const supportsScrollTimeline = typeof CSS !== 'undefined' &&
+    typeof CSS.supports === 'function' &&
+    CSS.supports('animation-timeline: scroll()');
+  const supportsIO = 'IntersectionObserver' in window;
 
-  const updateScroll = () => {
-    const scrollTop = window.scrollY || document.documentElement.scrollTop;
-    const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
-
-    // A. Reading progress bar (Hardware-accelerated scaleX, zero layout reflow)
-    if (progressBar && scrollHeight > 0) {
-      const progress = Math.min(1, Math.max(0, scrollTop / scrollHeight));
-      progressBar.style.transform = `scaleX(${progress})`;
-    }
-
-    // B. Header scrolled state (smooth class toggle, zero synchronous reflow)
+  if (supportsIO && (navPill || backToTopBtn)) {
     if (navPill) {
-      const scrolled = scrollTop > 40;
-      if (scrolled !== isScrolled) {
-        isScrolled = scrolled;
-        navPill.classList.toggle('is-scrolled', isScrolled);
-      }
+      const navSentinel = document.createElement('div');
+      navSentinel.className = 'scroll-sentinel scroll-sentinel--nav';
+      navSentinel.setAttribute('aria-hidden', 'true');
+      document.body.prepend(navSentinel);
+
+      let isScrolled = false;
+      const navObserver = new IntersectionObserver((entries) => {
+        const entry = entries[0];
+        if (!entry) return;
+        const scrolled = !entry.isIntersecting && entry.boundingClientRect.top < 0;
+        if (scrolled !== isScrolled) {
+          isScrolled = scrolled;
+          navPill.classList.toggle('is-scrolled', isScrolled);
+        }
+      }, { threshold: 0 });
+      navObserver.observe(navSentinel);
     }
 
-    // C. Back to top button visibility
     if (backToTopBtn) {
-      if (scrollTop > 300) {
-        backToTopBtn.classList.add('is-visible');
-      } else {
-        backToTopBtn.classList.remove('is-visible');
+      const topSentinel = document.createElement('div');
+      topSentinel.className = 'scroll-sentinel scroll-sentinel--top';
+      topSentinel.setAttribute('aria-hidden', 'true');
+      document.body.prepend(topSentinel);
+
+      const topObserver = new IntersectionObserver((entries) => {
+        const entry = entries[0];
+        if (!entry) return;
+        const visible = !entry.isIntersecting && entry.boundingClientRect.top < 0;
+        backToTopBtn.classList.toggle('is-visible', visible);
+      }, { threshold: 0 });
+      topObserver.observe(topSentinel);
+    }
+  }
+
+  // Only bind a scroll listener for features lacking native CSS/IO support
+  if (!supportsScrollTimeline || !supportsIO) {
+    let isScrolled = false;
+    let ticking = false;
+
+    const updateScrollFallback = () => {
+      const scrollTop = window.scrollY || document.documentElement.scrollTop;
+
+      if (!supportsScrollTimeline && progressBar) {
+        const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+        if (scrollHeight > 0) {
+          const progress = Math.min(1, Math.max(0, scrollTop / scrollHeight));
+          progressBar.style.transform = `scaleX(${progress})`;
+        }
       }
-    }
 
-    ticking = false;
-  };
+      if (!supportsIO && navPill) {
+        const scrolled = scrollTop > 40;
+        if (scrolled !== isScrolled) {
+          isScrolled = scrolled;
+          navPill.classList.toggle('is-scrolled', isScrolled);
+        }
+      }
 
-  const onScroll = () => {
-    if (!ticking) {
-      requestAnimationFrame(updateScroll);
-      ticking = true;
-    }
-  };
+      if (!supportsIO && backToTopBtn) {
+        backToTopBtn.classList.toggle('is-visible', scrollTop > 300);
+      }
 
-  window.addEventListener('scroll', onScroll, { passive: true });
-  window.addEventListener('resize', onScroll, { passive: true });
-  updateScroll();
+      ticking = false;
+    };
+
+    const onScroll = () => {
+      if (!ticking) {
+        requestAnimationFrame(updateScrollFallback);
+        ticking = true;
+      }
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll, { passive: true });
+    updateScrollFallback();
+  }
 
   if (backToTopBtn) {
-    backToTopBtn.addEventListener('click', () => {
+    backToTopBtn.addEventListener('click', (e) => {
       window.scrollTo({
         top: 0,
-        behavior: 'smooth'
+        behavior: reducedMotionQuery.matches ? 'auto' : 'smooth'
       });
+      if (e.detail === 0) {
+        const topTarget = document.querySelector('.skip-link') || document.querySelector('.brand-signature');
+        if (topTarget) topTarget.focus({ preventScroll: true });
+      }
     });
   }
 }
 
 /**
- * 3. Floating Glass Nav Mobile Toggle
+ * 3. Floating Glass Nav Mobile Toggle (manages inert & keyboard focus return)
  */
 function initMobileNav() {
   const menuBtn = document.getElementById('mobile-menu-btn');
   const panel = document.getElementById('mobile-nav-panel');
   if (!menuBtn || !panel) return;
 
-  const closeMenu = () => {
+  panel.inert = true;
+
+  const closeMenu = (restoreFocus = false) => {
     menuBtn.classList.remove('is-active');
     menuBtn.setAttribute('aria-expanded', 'false');
     panel.classList.remove('is-open');
+    panel.inert = true;
+    if (restoreFocus) {
+      menuBtn.focus();
+    }
   };
 
   const toggleMenu = () => {
@@ -129,6 +203,7 @@ function initMobileNav() {
       menuBtn.classList.add('is-active');
       menuBtn.setAttribute('aria-expanded', 'true');
       panel.classList.add('is-open');
+      panel.inert = false;
     }
   };
 
@@ -137,13 +212,13 @@ function initMobileNav() {
   // Close when clicking links inside panel
   const mobileLinks = panel.querySelectorAll('.mobile-nav-item, a');
   mobileLinks.forEach(link => {
-    link.addEventListener('click', closeMenu);
+    link.addEventListener('click', () => closeMenu(false));
   });
 
-  // Close on Escape key
+  // Close on Escape key and restore focus to trigger button
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && panel.classList.contains('is-open')) {
-      closeMenu();
+      closeMenu(true);
     }
   });
 
@@ -151,13 +226,13 @@ function initMobileNav() {
   document.addEventListener('click', (e) => {
     const pill = document.getElementById('nav-pill');
     if (pill && !pill.contains(e.target) && panel.classList.contains('is-open')) {
-      closeMenu();
+      closeMenu(false);
     }
   });
 }
 
 /**
- * 4. Fast Privacy-Enhanced Video Embed Trigger
+ * 4. Fast Privacy-Enhanced Video Embed Trigger (DOM-constructed iframe)
  */
 function initVideoPlayer() {
   const videoWrapper = document.getElementById('video-wrapper');
@@ -167,17 +242,15 @@ function initVideoPlayer() {
 
   const embedVideo = () => {
     const videoId = videoWrapper.getAttribute('data-video-id') || '5t1xed1vlO4';
-    
-    videoWrapper.innerHTML = `
-      <iframe 
-        src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(videoId)}?autoplay=1&rel=0" 
-        title="YouTube Video Player" 
-        frameborder="0" 
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-        allowfullscreen
-        style="width: 100%; height: 100%; position: absolute; top: 0; left: 0; border: none; border-radius: inherit;"
-      ></iframe>
-    `;
+    const iframe = document.createElement('iframe');
+    iframe.className = 'video-embed-frame';
+    iframe.src = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(videoId)}?autoplay=1&rel=0`;
+    iframe.title = 'YouTube Video Player';
+    iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+    iframe.allowFullscreen = true;
+    iframe.referrerPolicy = 'strict-origin-when-cross-origin';
+
+    videoWrapper.replaceChildren(iframe);
   };
 
   videoTrigger.addEventListener('click', embedVideo);
@@ -188,6 +261,10 @@ function initVideoPlayer() {
  */
 function animateValue(obj, start, end, duration, suffix = '') {
   if (!obj) return;
+  if (reducedMotionQuery.matches) {
+    obj.textContent = end.toLocaleString() + suffix;
+    return;
+  }
   let startTimestamp = null;
   const step = (timestamp) => {
     if (!startTimestamp) startTimestamp = timestamp;
@@ -287,6 +364,32 @@ async function fetchLatestYouTubeVideo() {
 /**
  * 6. Dynamic Project Cards Rendering (from config.js or DEFAULT_PROJECTS)
  */
+function createArrowUpRightIcon() {
+  const ns = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(ns, 'svg');
+  svg.setAttribute('width', '12');
+  svg.setAttribute('height', '12');
+  svg.setAttribute('viewBox', '0 0 24 24');
+  svg.setAttribute('fill', 'none');
+  svg.setAttribute('stroke', 'currentColor');
+  svg.setAttribute('stroke-width', '2');
+  svg.setAttribute('stroke-linecap', 'round');
+  svg.setAttribute('stroke-linejoin', 'round');
+  svg.setAttribute('aria-hidden', 'true');
+
+  const line = document.createElementNS(ns, 'line');
+  line.setAttribute('x1', '7');
+  line.setAttribute('y1', '17');
+  line.setAttribute('x2', '17');
+  line.setAttribute('y2', '7');
+
+  const polyline = document.createElementNS(ns, 'polyline');
+  polyline.setAttribute('points', '7 7 17 7 17 17');
+
+  svg.append(line, polyline);
+  return svg;
+}
+
 function initProjectsGrid() {
   const grid = document.getElementById('projects-grid');
   const emptyBlock = document.getElementById('projects-empty-block');
@@ -298,57 +401,279 @@ function initProjectsGrid() {
 
   // When no projects are configured yet, showcase the Active Development Lab canvas
   if (!projects || projects.length === 0) {
-    grid.innerHTML = '';
-    grid.style.display = 'none';
-    if (emptyBlock) emptyBlock.style.display = 'flex';
+    grid.replaceChildren();
+    grid.hidden = true;
+    if (emptyBlock) emptyBlock.hidden = false;
     return;
   }
 
   // When projects exist, reveal the grid and hide the standalone empty state
-  if (emptyBlock) emptyBlock.style.display = 'none';
-  grid.style.display = 'grid';
+  if (emptyBlock) emptyBlock.hidden = true;
+  grid.hidden = false;
 
-  grid.innerHTML = projects.map(proj => {
+  const ALLOWED_DISCIPLINES = new Set(['audio', 'video', 'code', 'all']);
+  const cards = projects.map(proj => {
+    const rawDiscipline = typeof proj.discipline === 'string' ? proj.discipline.trim().toLowerCase() : 'all';
+    const discipline = ALLOWED_DISCIPLINES.has(rawDiscipline) ? rawDiscipline : 'all';
+
     let dotClass = 'dot-cyan';
-    if (proj.discipline === 'audio') dotClass = 'dot-pink';
-    else if (proj.discipline === 'code') dotClass = 'dot-amber';
-    else if (proj.discipline === 'all') dotClass = 'dot-pink';
+    if (discipline === 'audio' || discipline === 'all') dotClass = 'dot-pink';
+    else if (discipline === 'code') dotClass = 'dot-amber';
 
-    const tagsHtml = Array.isArray(proj.tags)
-      ? proj.tags.map(tag => `<span class="project-tag">${tag}</span>`).join('')
-      : '';
+    const article = document.createElement('article');
+    article.className = 'project-card';
+    article.dataset.discipline = discipline;
 
-    const statusBadge = proj.status 
-      ? `<span class="project-status-badge status--in-dev">${proj.status}</span>`
-      : `<span class="project-status-badge">UPCOMING</span>`;
+    const topWrap = document.createElement('div');
+    const header = document.createElement('div');
+    header.className = 'project-card-header';
 
-    return `
-      <article class="project-card" data-discipline="${proj.discipline || 'all'}">
-        <div>
-          <div class="project-card-header">
-            <span class="discipline-badge badge-${proj.discipline || 'video'}">
-              <span class="color-dot ${dotClass}"></span>
-              <span>${proj.category || 'PROJECT'}</span>
-            </span>
-            ${statusBadge}
-          </div>
-          <h3 class="project-title">${proj.title}</h3>
-          <p class="project-desc">${proj.description}</p>
-          ${tagsHtml ? `<div class="project-tags">${tagsHtml}</div>` : ''}
-        </div>
-        <div class="project-footer">
-          <span class="project-year">${proj.year || '2026'}</span>
-          <a href="${proj.link || '#'}" class="pill-btn pill-btn--glass pill-btn--sm" aria-label="View ${proj.title}">
-            <span>Details</span>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <line x1="7" y1="17" x2="17" y2="7"></line>
-              <polyline points="7 7 17 7 17 17"></polyline>
-            </svg>
-          </a>
-        </div>
-      </article>
-    `;
-  }).join('');
+    const badge = document.createElement('span');
+    badge.className = `discipline-badge badge-${discipline === 'all' ? 'multi' : discipline}`;
+    const dot = document.createElement('span');
+    dot.className = `color-dot ${dotClass}`;
+    dot.setAttribute('aria-hidden', 'true');
+    const categoryText = document.createElement('span');
+    categoryText.textContent = proj.category || 'PROJECT';
+    badge.append(dot, categoryText);
+
+    const statusBadge = document.createElement('span');
+    statusBadge.className = proj.status ? 'project-status-badge status--in-dev' : 'project-status-badge';
+    statusBadge.textContent = proj.status || 'UPCOMING';
+
+    header.append(badge, statusBadge);
+
+    const title = document.createElement('h3');
+    title.className = 'project-title';
+    title.textContent = proj.title || 'Untitled Project';
+
+    const desc = document.createElement('p');
+    desc.className = 'project-desc';
+    desc.textContent = proj.description || '';
+
+    topWrap.append(header, title, desc);
+
+    if (Array.isArray(proj.tags) && proj.tags.length > 0) {
+      const tagsContainer = document.createElement('div');
+      tagsContainer.className = 'project-tags';
+      proj.tags.forEach(tag => {
+        const tagSpan = document.createElement('span');
+        tagSpan.className = 'project-tag';
+        tagSpan.textContent = String(tag);
+        tagsContainer.appendChild(tagSpan);
+      });
+      topWrap.appendChild(tagsContainer);
+    }
+
+    const footer = document.createElement('div');
+    footer.className = 'project-footer';
+
+    const yearSpan = document.createElement('span');
+    yearSpan.className = 'project-year';
+    yearSpan.textContent = proj.year || '2026';
+
+    const link = document.createElement('a');
+    link.href = sanitizeUrl(proj.link);
+    link.className = 'pill-btn pill-btn--glass pill-btn--sm';
+    link.setAttribute('aria-label', `View ${proj.title || 'project'}`);
+    if (/^https?:\/\//i.test(link.href) && new URL(link.href).origin !== window.location.origin) {
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+    }
+
+    const detailsText = document.createElement('span');
+    detailsText.textContent = 'Details';
+    link.append(detailsText, createArrowUpRightIcon());
+
+    footer.append(yearSpan, link);
+    article.append(topWrap, footer);
+    return article;
+  });
+
+  grid.replaceChildren(...cards);
+}
+
+/**
+ * 7b. Accessible Validation & Live Error Sync (:user-invalid + aria-invalid)
+ * Mirrors :user-invalid onto aria-invalid and dynamic aria-describedby
+ * error messages after user interaction, announcing errors through one polite
+ * page-wide live region.
+ */
+const formValidators = new WeakMap();
+
+function initAccessibleForms() {
+  const forms = document.querySelectorAll('#discord-waitlist-form, #contact-form');
+  if (!forms.length) return;
+
+  const supportsUserInvalid = typeof CSS !== 'undefined' &&
+    typeof CSS.supports === 'function' &&
+    CSS.supports('selector(:user-invalid)');
+  const dirtyState = new WeakMap();
+  const flagged = new WeakSet();
+  const announced = new WeakSet();
+
+  const announcer = document.createElement('div');
+  announcer.setAttribute('aria-live', 'polite');
+  announcer.className = 'visually-hidden';
+  document.body.append(announcer);
+
+  let announceTimer;
+  let announcedField;
+
+  const linkError = (el, shown) => {
+    const errorId = el.dataset.error;
+    if (!errorId) return;
+    const ids = (el.getAttribute('aria-describedby') || '')
+      .split(/\s+/)
+      .filter((id) => id && id !== errorId);
+    if (shown) ids.push(errorId);
+    if (ids.length) el.setAttribute('aria-describedby', ids.join(' '));
+    else el.removeAttribute('aria-describedby');
+  };
+
+  const spokenText = (node) => {
+    const copy = node.cloneNode(true);
+    copy.querySelectorAll('[aria-hidden="true"]').forEach((n) => n.remove());
+    copy.querySelectorAll('[role="img"][aria-label]').forEach((n) => {
+      n.replaceWith(`${n.getAttribute('aria-label')}: `);
+    });
+    return copy.textContent.replace(/\s+/g, ' ').trim();
+  };
+
+  const announceError = (el) => {
+    const errorEl = el.dataset.error ? document.getElementById(el.dataset.error) : null;
+    if (!errorEl) return;
+    const labelText = el.labels?.[0] ? `${spokenText(el.labels[0])}: ` : '';
+    clearTimeout(announceTimer);
+    announcer.textContent = '';
+    announcedField = el;
+    announceTimer = setTimeout(() => {
+      announcer.textContent = labelText + spokenText(errorEl);
+    }, 500);
+  };
+
+  const isFieldUserInvalid = (el) => {
+    if (supportsUserInvalid) {
+      return el.matches(':user-invalid');
+    }
+    const state = dirtyState.get(el);
+    return Boolean(state && state.hasInteracted && state.hasBlurred && !el.validity.valid);
+  };
+
+  const syncAria = (el, announce = false) => {
+    if (!el.matches?.('input, select, textarea')) return;
+
+    if (!supportsUserInvalid && dirtyState.get(el)?.hasBlurred) {
+      el.classList.toggle('user-invalid-fallback', !el.validity.valid);
+      el.classList.toggle('user-valid-fallback', el.validity.valid);
+    }
+
+    const invalid = isFieldUserInvalid(el);
+    if (invalid) {
+      if (announce && !announced.has(el)) {
+        announceError(el);
+        announced.add(el);
+      }
+      el.setAttribute('aria-invalid', 'true');
+      linkError(el, true);
+      flagged.add(el);
+    } else if (flagged.has(el) || el.getAttribute('aria-invalid') !== 'true') {
+      el.setAttribute('aria-invalid', 'false');
+      linkError(el, false);
+      flagged.delete(el);
+      announced.delete(el);
+      if (announcedField === el) {
+        clearTimeout(announceTimer);
+        announcer.textContent = '';
+      }
+    }
+  };
+
+  forms.forEach((form) => {
+    // Progressively use accessible inline validation + focus routing while
+    // keeping native attributes active if JavaScript fails to run.
+    form.noValidate = true;
+
+    const controls = [...form.querySelectorAll('input, select, textarea')];
+    controls.forEach((el) => el.setAttribute('aria-invalid', 'false'));
+
+    form.addEventListener('blur', (e) => {
+      const el = e.target;
+      if (!el.matches?.('input, select, textarea')) return;
+      if (!supportsUserInvalid) {
+        const state = dirtyState.get(el) || { hasInteracted: false, hasBlurred: false };
+        state.hasBlurred = true;
+        dirtyState.set(el, state);
+      }
+      syncAria(el, true);
+    }, true);
+
+    form.addEventListener('input', (e) => {
+      const el = e.target;
+      if (!el.matches?.('input, select, textarea')) return;
+      if (!supportsUserInvalid) {
+        const state = dirtyState.get(el) || { hasInteracted: false, hasBlurred: false };
+        state.hasInteracted = true;
+        dirtyState.set(el, state);
+      }
+      if (el.hasAttribute('aria-invalid')) syncAria(el, false);
+    });
+
+    form.addEventListener('change', (e) => {
+      const el = e.target;
+      if (!el.matches?.('input, select, textarea')) return;
+      if (!supportsUserInvalid) {
+        dirtyState.set(el, { hasInteracted: true, hasBlurred: true });
+      }
+      syncAria(el, true);
+    }, true);
+
+    form.addEventListener('invalid', (e) => {
+      const el = e.target;
+      dirtyState.set(el, { hasInteracted: true, hasBlurred: true });
+      announced.add(el);
+      syncAria(el, false);
+    }, true);
+
+    form.addEventListener('reset', () => {
+      setTimeout(() => {
+        controls.forEach((el) => {
+          dirtyState.delete(el);
+          el.classList.remove('user-invalid-fallback', 'user-valid-fallback');
+          flagged.delete(el);
+          announced.delete(el);
+          el.setAttribute('aria-invalid', 'false');
+          linkError(el, false);
+        });
+      }, 0);
+    });
+
+    formValidators.set(form, () => {
+      let firstInvalid = null;
+      controls.forEach((el) => {
+        if (!el.checkValidity()) {
+          if (!firstInvalid) firstInvalid = el;
+          dirtyState.set(el, { hasInteracted: true, hasBlurred: true });
+          if (!supportsUserInvalid) {
+            el.classList.add('user-invalid-fallback');
+            el.classList.remove('user-valid-fallback');
+          }
+          el.setAttribute('aria-invalid', 'true');
+          linkError(el, true);
+          flagged.add(el);
+          announced.add(el);
+        } else {
+          syncAria(el, false);
+        }
+      });
+
+      if (firstInvalid) {
+        firstInvalid.focus();
+        return false;
+      }
+      return true;
+    });
+  });
 }
 
 /**
@@ -358,26 +683,39 @@ function initDiscordWaitlist() {
   const form = document.getElementById('discord-waitlist-form');
   const input = document.getElementById('waitlist-email');
   const status = document.getElementById('waitlist-status');
+  const submitBtn = form ? form.querySelector('button[type="submit"]') : null;
 
   if (!form || !input || !status) return;
 
+  let statusTimer;
   form.addEventListener('submit', (e) => {
     e.preventDefault();
+
+    const validate = formValidators.get(form);
+    if (validate && !validate()) return;
+
     const email = input.value.trim();
     if (!email) return;
 
-    // Save locally
+    if (submitBtn) submitBtn.disabled = true;
+
     try {
       const existing = JSON.parse(localStorage.getItem('vyrn_discord_waitlist') || '[]');
       if (!existing.includes(email)) {
         existing.push(email);
         localStorage.setItem('vyrn_discord_waitlist', JSON.stringify(existing));
       }
-    } catch(err) {}
+    } catch (err) {}
 
-    input.value = '';
+    form.reset();
+    clearTimeout(statusTimer);
+    status.classList.remove('is-error');
+    status.textContent = "You're on the list! We'll notify you as soon as server invitations go live.";
     status.classList.add('is-visible');
-    setTimeout(() => {
+
+    if (submitBtn) submitBtn.disabled = false;
+
+    statusTimer = setTimeout(() => {
       status.classList.remove('is-visible');
     }, 6000);
   });
@@ -389,41 +727,56 @@ function initDiscordWaitlist() {
 function initContactForm() {
   const form = document.getElementById('contact-form');
   const status = document.getElementById('contact-status');
+  const submitBtn = form ? form.querySelector('button[type="submit"]') : null;
 
   if (!form || !status) return;
 
+  let statusTimer;
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
 
+    const validate = formValidators.get(form);
+    if (validate && !validate()) return;
+
     const name = document.getElementById('contact-name')?.value.trim();
     const email = document.getElementById('contact-email')?.value.trim();
-    const topic = document.getElementById('contact-topic')?.value;
+    const topic = document.getElementById('contact-topic')?.value || 'General Inquiry';
     const message = document.getElementById('contact-message')?.value.trim();
 
     if (!name || !email || !message) return;
 
     const endpoint = (typeof CONFIG !== 'undefined' && CONFIG.CONTACT_ENDPOINT) ? CONFIG.CONTACT_ENDPOINT : '';
 
-    if (endpoint) {
-      try {
-        await fetch(endpoint, {
+    if (submitBtn) submitBtn.disabled = true;
+    clearTimeout(statusTimer);
+    status.classList.remove('is-error');
+
+    try {
+      if (endpoint) {
+        const res = await fetch(endpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
           body: JSON.stringify({ name, email, topic, message })
         });
-      } catch (err) {}
-    } else {
-      // Fallback: Opens user's default email client
-      const recipient = (typeof CONFIG !== 'undefined' && CONFIG.CONTACT_EMAIL) ? CONFIG.CONTACT_EMAIL : 'refined.mov@gmail.com';
-      const mailtoLink = `mailto:${encodeURIComponent(recipient)}?subject=${encodeURIComponent(`[VYRN] ${topic} from ${name}`)}&body=${encodeURIComponent(`Name: ${name}\nEmail: ${email}\nTopic: ${topic}\n\nMessage:\n${message}`)}`;
-      window.location.href = mailtoLink;
-    }
+        if (!res.ok) throw new Error('Request failed');
+      } else {
+        const recipient = (typeof CONFIG !== 'undefined' && CONFIG.CONTACT_EMAIL) ? CONFIG.CONTACT_EMAIL : 'refined.mov@gmail.com';
+        const mailtoLink = `mailto:${encodeURIComponent(recipient)}?subject=${encodeURIComponent(`[VYRN] ${topic} from ${name}`)}&body=${encodeURIComponent(`Name: ${name}\nEmail: ${email}\nTopic: ${topic}\n\nMessage:\n${message}`)}`;
+        window.location.href = mailtoLink;
+      }
 
-    form.reset();
-    status.classList.add('is-visible');
-    setTimeout(() => {
-      status.classList.remove('is-visible');
-    }, 7000);
+      form.reset();
+      status.textContent = 'Message transmitted! Thank you for reaching out.';
+      status.classList.add('is-visible');
+      statusTimer = setTimeout(() => {
+        status.classList.remove('is-visible');
+      }, 7000);
+    } catch (err) {
+      status.textContent = 'Unable to send right now. Please try again or email directly.';
+      status.classList.add('is-visible', 'is-error');
+    } finally {
+      if (submitBtn) submitBtn.disabled = false;
+    }
   });
 }
 /**
@@ -544,34 +897,34 @@ function initProjectsLiquidGlass() {
 
     // Glow Orb 1: Discipline Cyan (#00f0ff)
     const cyanGlow = ctx.createRadialGradient(256, 256, 10, 256, 256, 220);
-    cyanGlow.addColorStop(0, 'rgba(0, 240, 255, 0.45)');
-    cyanGlow.addColorStop(0.5, 'rgba(0, 240, 255, 0.15)');
+    cyanGlow.addColorStop(0, 'rgba(0, 240, 255, 0.36)');
+    cyanGlow.addColorStop(0.5, 'rgba(0, 240, 255, 0.12)');
     cyanGlow.addColorStop(1, 'rgba(0, 240, 255, 0)');
     ctx.fillStyle = cyanGlow;
     ctx.fillRect(0, 0, 512, 512);
 
     // Glow Orb 2: Discipline Pink (#ff3b69)
     const pinkGlow = ctx.createRadialGradient(140, 140, 10, 140, 140, 190);
-    pinkGlow.addColorStop(0, 'rgba(255, 59, 105, 0.4)');
-    pinkGlow.addColorStop(0.6, 'rgba(255, 59, 105, 0.1)');
+    pinkGlow.addColorStop(0, 'rgba(255, 59, 105, 0.34)');
+    pinkGlow.addColorStop(0.6, 'rgba(255, 59, 105, 0.09)');
     pinkGlow.addColorStop(1, 'rgba(255, 59, 105, 0)');
     ctx.fillStyle = pinkGlow;
     ctx.fillRect(0, 0, 512, 512);
 
     // Glow Orb 3: Discipline Amber (#f59e0b)
     const amberGlow = ctx.createRadialGradient(380, 360, 10, 380, 360, 200);
-    amberGlow.addColorStop(0, 'rgba(245, 158, 11, 0.35)');
-    amberGlow.addColorStop(0.5, 'rgba(245, 158, 11, 0.1)');
+    amberGlow.addColorStop(0, 'rgba(245, 158, 11, 0.28)');
+    amberGlow.addColorStop(0.5, 'rgba(245, 158, 11, 0.08)');
     amberGlow.addColorStop(1, 'rgba(245, 158, 11, 0)');
     ctx.fillStyle = amberGlow;
     ctx.fillRect(0, 0, 512, 512);
 
-    // Specular diagonal light ray
-    const ray = ctx.createLinearGradient(0, 100, 512, 412);
+    // Subtle specular glass bevel gleam
+    const ray = ctx.createLinearGradient(0, 80, 512, 432);
     ray.addColorStop(0, 'transparent');
-    ray.addColorStop(0.45, 'rgba(255, 255, 255, 0.08)');
-    ray.addColorStop(0.5, 'rgba(255, 255, 255, 0.18)');
-    ray.addColorStop(0.55, 'rgba(255, 255, 255, 0.08)');
+    ray.addColorStop(0.46, 'rgba(255, 255, 255, 0.04)');
+    ray.addColorStop(0.5, 'rgba(255, 255, 255, 0.09)');
+    ray.addColorStop(0.54, 'rgba(255, 255, 255, 0.04)');
     ray.addColorStop(1, 'transparent');
     ctx.fillStyle = ray;
     ctx.fillRect(0, 0, 512, 512);
@@ -625,6 +978,7 @@ function initProjectsLiquidGlass() {
 
   block.addEventListener('mouseleave', () => {
     isHovered = false;
+    targetMouse = [canvas.width * 0.5, canvas.height * 0.5];
     targetMouseVel = [0.0, 0.0];
   }, { passive: true });
 
@@ -638,6 +992,7 @@ function initProjectsLiquidGlass() {
 
   block.addEventListener('touchend', () => {
     isHovered = false;
+    targetMouse = [canvas.width * 0.5, canvas.height * 0.5];
     targetMouseVel = [0.0, 0.0];
   }, { passive: true });
 
@@ -685,12 +1040,12 @@ function initProjectsLiquidGlass() {
     gl.uniform1i(uniforms.texture, 0);
 
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    if (!reducedMotionQuery.matches) {
       animFrameId = requestAnimationFrame(render);
     }
   };
 
-  // 8. IntersectionObserver to only render when scrolled near projects block
+  // 8. IntersectionObserver + Reduced Motion / Visibility / Content-Visibility lifecycle
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       isVisible = entry.isIntersecting;
@@ -704,6 +1059,17 @@ function initProjectsLiquidGlass() {
   }, { threshold: 0.05 });
   observer.observe(block);
 
+  // Pause immediately when content-visibility: auto skips the parent subtree
+  const projectsSection = document.getElementById('projects');
+  if (projectsSection) {
+    projectsSection.addEventListener('contentvisibilityautostatechange', (e) => {
+      if (e.skipped) {
+        isVisible = false;
+        cancelAnimationFrame(animFrameId);
+      }
+    });
+  }
+
   // Pause render loop when page or screen is hidden/locked
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) {
@@ -713,6 +1079,17 @@ function initProjectsLiquidGlass() {
       animFrameId = requestAnimationFrame(render);
     }
   });
+
+  if (typeof reducedMotionQuery.addEventListener === 'function') {
+    reducedMotionQuery.addEventListener('change', (e) => {
+      if (e.matches) {
+        cancelAnimationFrame(animFrameId);
+      } else if (isVisible && !document.hidden) {
+        cancelAnimationFrame(animFrameId);
+        animFrameId = requestAnimationFrame(render);
+      }
+    });
+  }
 
   // 9. Debounced Resize Handling (prevents mobile address-bar scroll stutter)
   let resizeTimer = null;
@@ -830,7 +1207,7 @@ function initHeroWatercolorText() {
       ('ontouchstart' in window) ||
       window.innerWidth <= 768
     ));
-    const dpr = isLowPower ? 0.65 : Math.min(window.devicePixelRatio || 1, 0.75);
+    const dpr = isLowPower ? 0.9 : Math.min(window.devicePixelRatio || 1, 1.5);
     const pixelWidth = Math.round(rect.width * dpr);
     const pixelHeight = Math.round(rect.height * dpr);
 
@@ -917,7 +1294,7 @@ function initHeroWatercolorText() {
     gl.uniform1i(uniforms.textMask, 0);
 
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    if (!reducedMotionQuery.matches) {
       animFrameId = requestAnimationFrame(render);
     }
   };
@@ -946,6 +1323,17 @@ function initHeroWatercolorText() {
     }
   });
 
+  if (typeof reducedMotionQuery.addEventListener === 'function') {
+    reducedMotionQuery.addEventListener('change', (e) => {
+      if (e.matches) {
+        cancelAnimationFrame(animFrameId);
+      } else if (isVisible && !document.hidden) {
+        cancelAnimationFrame(animFrameId);
+        animFrameId = requestAnimationFrame(render);
+      }
+    });
+  }
+
   // 7. Debounced Responsive Resizing
   let heroResizeTimer = null;
   window.addEventListener('resize', () => {
@@ -972,38 +1360,64 @@ function initHeroRefractionStage() {
 
   let targetX = 0;
   let targetY = 0;
-  let ticking = false;
+  let currentX = 0;
+  let currentY = 0;
+  let rafId = null;
 
-  const updatePills = () => {
-    stage.style.setProperty('--pill-mx', `${(targetX * 8).toFixed(1)}px`);
-    stage.style.setProperty('--pill-my', `${(targetY * 8).toFixed(1)}px`);
-    ticking = false;
+  const stepPills = () => {
+    rafId = null;
+    currentX += (targetX - currentX) * 0.14;
+    currentY += (targetY - currentY) * 0.14;
+
+    stage.style.setProperty('--pill-mx', `${(currentX * 9).toFixed(2)}px`);
+    stage.style.setProperty('--pill-my', `${(currentY * 9).toFixed(2)}px`);
+
+    if (Math.abs(targetX - currentX) > 0.004 || Math.abs(targetY - currentY) > 0.004) {
+      rafId = requestAnimationFrame(stepPills);
+    }
   };
+
+  const scheduleStep = () => {
+    if (!rafId) rafId = requestAnimationFrame(stepPills);
+  };
+
+  const resetPills = () => {
+    targetX = 0;
+    targetY = 0;
+    if (reducedMotionQuery.matches) {
+      cancelAnimationFrame(rafId);
+      rafId = null;
+      currentX = 0;
+      currentY = 0;
+      stage.style.setProperty('--pill-mx', '0px');
+      stage.style.setProperty('--pill-my', '0px');
+      return;
+    }
+    scheduleStep();
+  };
+
+  if (typeof reducedMotionQuery.addEventListener === 'function') {
+    reducedMotionQuery.addEventListener('change', (e) => {
+      if (e.matches) resetPills();
+    });
+  }
 
   stage.addEventListener('mouseenter', updateRect, { passive: true });
 
   stage.addEventListener('mousemove', (e) => {
-    if (window.innerWidth <= 640) return;
+    if (window.innerWidth <= 640 || reducedMotionQuery.matches) return;
     if (!stageRect) updateRect();
-    targetX = (e.clientX - (stageRect.left + stageRect.width / 2)) / (stageRect.width / 2);
-    targetY = (e.clientY - (stageRect.top + stageRect.height / 2)) / (stageRect.height / 2);
-
-    if (!ticking) {
-      requestAnimationFrame(updatePills);
-      ticking = true;
-    }
+    targetX = Math.max(-1, Math.min(1, (e.clientX - (stageRect.left + stageRect.width / 2)) / (stageRect.width / 2)));
+    targetY = Math.max(-1, Math.min(1, (e.clientY - (stageRect.top + stageRect.height / 2)) / (stageRect.height / 2)));
+    scheduleStep();
   }, { passive: true });
 
-  stage.addEventListener('mouseleave', () => {
-    stage.style.setProperty('--pill-mx', '0px');
-    stage.style.setProperty('--pill-my', '0px');
-  }, { passive: true });
+  stage.addEventListener('mouseleave', resetPills, { passive: true });
 
   window.addEventListener('resize', () => {
     updateRect();
-    if (window.innerWidth <= 640) {
-      stage.style.setProperty('--pill-mx', '0px');
-      stage.style.setProperty('--pill-my', '0px');
+    if (window.innerWidth <= 640 || reducedMotionQuery.matches) {
+      resetPills();
     }
   }, { passive: true });
 }

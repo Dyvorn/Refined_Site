@@ -10,9 +10,9 @@
 
   window.__vyrnSwarmInit = true;
 
-  const TOTAL_DURATION_MS = 4350;
-  const SKIP_DISSOLVE_MS = 280;
-  const FAILSAFE_TIMEOUT_MS = 7200;
+  const TOTAL_DURATION_MS = 3950;
+  const SKIP_DISSOLVE_MS = 240;
+  const FAILSAFE_TIMEOUT_MS = 6800;
 
   const PALETTE = {
     bg: '#090b0e',
@@ -70,15 +70,6 @@
       spillVy: -350,
       spillDelay: 0.155,
     },
-  ];
-
-  const LOG_MILESTONES = [
-    { t: 0.04, tag: 'TOOLKIT', color: PALETTE.white, text: 'unlatched toolbox · deployed 5 builder bots' },
-    { t: 0.22, tag: 'ARCHITECT', color: PALETTE.cyan, text: 'scaffolding responsive grid & glass-nav-pill' },
-    { t: 0.36, tag: 'SYNTH', color: PALETTE.amber, text: 'sampled Syne-800 glyph lattice for "VYRN"' },
-    { t: 0.50, tag: 'SHADER', color: PALETTE.pink, text: 'bleeding spectral watercolor ink into glyphs' },
-    { t: 0.68, tag: 'MOTION', color: PALETTE.lime, text: 'locked liquid-glass pills (AUDIO / VIDEO / CODE)' },
-    { t: 0.82, tag: 'COMPILER', color: PALETTE.blue, text: 'build verified · handing off to live DOM' },
   ];
 
   const PHASE_STATUS = [
@@ -278,23 +269,29 @@
       ctx.translate(ex, ey);
       ctx.scale(1, eyeScaleY);
 
-      // Glossy sclera
+      // Glossy sclera with subtle brow shadow
       ctx.fillStyle = '#ffffff';
       ctx.beginPath();
       ctx.arc(0, 0, radius, 0, Math.PI * 2);
       ctx.fill();
 
+      ctx.strokeStyle = 'rgba(15, 23, 42, 0.25)';
+      ctx.lineWidth = 0.8;
+      ctx.beginPath();
+      ctx.arc(0, 0, radius - 0.3, Math.PI * 1.1, Math.PI * 1.9);
+      ctx.stroke();
+
       // Tracking iris/pupil
       if (eyeScaleY > 0.35) {
         ctx.fillStyle = '#090b0e';
         ctx.beginPath();
-        ctx.arc(pupilDx, pupilDy, radius * 0.56, 0, Math.PI * 2);
+        ctx.arc(pupilDx, pupilDy, radius * 0.54, 0, Math.PI * 2);
         ctx.fill();
 
         // Catchlight sparkle
         ctx.fillStyle = '#ffffff';
         ctx.beginPath();
-        ctx.arc(pupilDx - radius * 0.18, pupilDy - radius * 0.22, radius * 0.2, 0, Math.PI * 2);
+        ctx.arc(pupilDx - radius * 0.18, pupilDy - radius * 0.22, radius * 0.21, 0, Math.PI * 2);
         ctx.fill();
       }
       ctx.restore();
@@ -302,7 +299,7 @@
   }
 
   function drawProgressPrideFlag(ctx, x, y, w, h, wavePhase) {
-    const waveY = (u) => Math.sin(wavePhase + u * 5.2) * (1.5 + u * 3.4);
+    const waveY = (u) => Math.sin(wavePhase + u * 5.2) * (1.4 + u * 3.4);
     const segs = 12;
 
     const traceFlagCloth = () => {
@@ -320,7 +317,7 @@
     };
 
     ctx.save();
-    // Sleek silver flagpole mast
+    // Sleek metallic flagpole mast
     ctx.strokeStyle = '#e2e8f0';
     ctx.lineWidth = 2.2;
     ctx.lineCap = 'round';
@@ -329,9 +326,9 @@
     ctx.lineTo(x, y + h + 11);
     ctx.stroke();
 
-    ctx.fillStyle = '#f8fafc';
+    ctx.fillStyle = '#ffffff';
     ctx.beginPath();
-    ctx.arc(x, y - 4, 2.3, 0, Math.PI * 2);
+    ctx.arc(x, y - 4, 2.4, 0, Math.PI * 2);
     ctx.fill();
 
     // Clip to smoothly rippling flag cloth silhouette
@@ -379,19 +376,23 @@
       ctx.fill();
     });
 
-    // Subtle fabric lighting sheen along wave crests
-    const sheen = ctx.createLinearGradient(x, y, x + w, y + h);
-    sheen.addColorStop(0, 'rgba(255,255,255,0.18)');
-    sheen.addColorStop(0.5, 'rgba(0,0,0,0.08)');
-    sheen.addColorStop(1, 'rgba(255,255,255,0.14)');
-    ctx.fillStyle = sheen;
-    ctx.fillRect(x - 2, y - 6, w + 4, h + 12);
+    // Dynamic cloth fold highlights matching wave slope
+    for (let i = 0; i < segs; i++) {
+      const u0 = i / segs;
+      const u1 = (i + 1) / segs;
+      const slope = waveY(u1) - waveY(u0);
+      const foldAlpha = clamp(Math.abs(slope) * 0.085, 0, 0.22);
+      if (foldAlpha > 0.01) {
+        ctx.fillStyle = slope < 0 ? `rgba(255,255,255,${foldAlpha.toFixed(3)})` : `rgba(0,0,0,${(foldAlpha * 1.15).toFixed(3)})`;
+        ctx.fillRect(x + u0 * w, y - 6, w / segs + 0.5, h + 12);
+      }
+    }
 
     ctx.restore();
 
     // Crisp rim outline on wavy flag cloth
     traceFlagCloth();
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.42)';
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
     ctx.lineWidth = 0.9;
     ctx.stroke();
 
@@ -406,7 +407,6 @@
     const statusLabel = document.getElementById('swarm-status-label');
     const statusPct = document.getElementById('swarm-status-pct');
     const progressFill = document.getElementById('swarm-progress-fill');
-    const logFeed = document.getElementById('swarm-log-feed');
     const replayBtn = document.getElementById('swarm-replay-btn');
 
     if (!overlay || !canvas) return null;
@@ -431,36 +431,11 @@
     let lastTickTime = 0;
     let lastRenderedPct = -1;
     let lastStatusText = '';
-    let triggeredLogs = new Set();
 
     let targets = null;
     let glyphData = null;
     let agents = [];
     let sparks = [];
-    let toolDebris = [];
-
-    function addLogLine(item) {
-      if (!logFeed) return;
-      const line = document.createElement('div');
-      line.className = 'swarm-log-line';
-
-      const tag = document.createElement('span');
-      tag.className = 'swarm-log-tag';
-      tag.style.color = item.color;
-      tag.textContent = `[${item.tag}]`;
-
-      const msg = document.createElement('span');
-      msg.className = 'swarm-log-msg';
-      msg.textContent = ` ${item.text}`;
-
-      line.appendChild(tag);
-      line.appendChild(msg);
-      logFeed.appendChild(line);
-
-      while (logFeed.children.length > 3) {
-        logFeed.firstElementChild.remove();
-      }
-    }
 
     function measureTargets() {
       vw = window.innerWidth;
@@ -586,12 +561,13 @@
       if (fctx) {
         fctx.drawImage(maskCanvas, 0, 0);
         fctx.globalCompositeOperation = 'source-in';
-        const grad = fctx.createLinearGradient(0, 0, w, h * 0.9);
+        const grad = fctx.createLinearGradient(0, 0, w, h * 0.85);
         grad.addColorStop(0, '#ff2a5f');
-        grad.addColorStop(0.28, '#00f0ff');
-        grad.addColorStop(0.52, '#f8fafc');
-        grad.addColorStop(0.76, '#f59e0b');
-        grad.addColorStop(1, '#ff3b69');
+        grad.addColorStop(0.24, '#ff5c8a');
+        grad.addColorStop(0.46, '#00e5ff');
+        grad.addColorStop(0.62, '#f8fafc');
+        grad.addColorStop(0.82, '#fbbf24');
+        grad.addColorStop(1, '#ff2a5f');
         fctx.fillStyle = grad;
         fctx.fillRect(0, 0, w, h);
       }
@@ -720,29 +696,7 @@
         flagPhase: idx * 1.2,
       }));
 
-      // Playful little screws, bolts, and glowing tokens tumbling out with the agents
-      const debrisColors = [PALETTE.cyan, PALETTE.pink, PALETTE.amber, PALETTE.lime, PALETTE.white];
-      toolDebris = Array.from({ length: 14 }, (_, i) => {
-        const angle = -Math.PI * 0.85 + (i / 13) * Math.PI * 0.7;
-        const speed = 180 + (i % 5) * 65;
-        return {
-          x: tb.x + ((i % 5) - 2) * 7,
-          y: tb.y - 10,
-          vx: Math.cos(angle) * speed,
-          vy: Math.sin(angle) * speed - 90,
-          rot: i * 0.6,
-          vRot: (i % 2 === 0 ? 1 : -1) * (4 + (i % 4) * 2),
-          color: debrisColors[i % debrisColors.length],
-          kind: i % 2, // 0 = mini spark diamond, 1 = tiny bolt/plus
-          released: false,
-          delay: 0.075 + (i % 6) * 0.012,
-          life: 1,
-        };
-      });
-
       sparks = [];
-      triggeredLogs = new Set();
-      if (logFeed) logFeed.innerHTML = '';
     }
 
     function spawnSpark(x, y, color, count = 2) {
@@ -962,34 +916,21 @@
         ag.lookAngle += lookDiff * Math.min(1, dt * 14);
 
         ag.trail.push({ x: ag.x, y: ag.y });
-        if (ag.trail.length > 16) ag.trail.shift();
+        if (ag.trail.length > 18) ag.trail.shift();
 
-        if (ag.laserTarget && Math.random() < dt * 13) {
+        if (ag.laserTarget && Math.random() < dt * 11) {
           spawnSpark(ag.laserTarget.x, ag.laserTarget.y, ag.color, 1);
         }
       });
 
-      // Step falling toolbox bolts & spark debris
-      toolDebris.forEach((d) => {
-        if (!d.released && p >= d.delay) {
-          d.released = true;
-        }
-        if (!d.released || d.life <= 0) return;
-        d.vy += 860 * dt;
-        d.x += d.vx * dt;
-        d.y += d.vy * dt;
-        d.rot += d.vRot * dt;
-        d.life -= dt * 0.95;
-      });
-
-      // Step welding sparks with soft gravity
+      // Step welding sparks with soft gravity & air drag
       for (let i = sparks.length - 1; i >= 0; i--) {
         const s = sparks[i];
-        s.vy += 240 * dt;
+        s.vy += 220 * dt;
         s.x += s.vx * dt;
         s.y += s.vy * dt;
-        s.vx *= 0.95;
-        s.vy *= 0.95;
+        s.vx *= 0.94;
+        s.vy *= 0.94;
         s.life -= s.decay * dt;
         if (s.life <= 0) sparks.splice(i, 1);
       }
@@ -1012,11 +953,20 @@
 
       const tb = targets.toolbox;
       const dropT = smoothstep(0.0, 0.075, p);
-      const exitT = smoothstep(0.22, 0.30, p);
-      const alpha = (1 - exitT) * smoothstep(0.0, 0.03, p);
+      const exitT = smoothstep(0.21, 0.295, p);
+      const alpha = (1 - exitT) * smoothstep(0.0, 0.025, p);
       if (alpha <= 0.01) return;
 
-      const scale = lerp(0.55, 1, easeOutBack(dropT)) * lerp(1, 0.65, easeInOutCubic(exitT));
+      // Grounded landing squash + burst wobble when the swarm pops out
+      const landFrac = clamp((p - 0.048) / 0.07, 0, 1);
+      const squash = Math.sin(landFrac * Math.PI) * (1 - landFrac) * 0.13;
+      const rattle = p > 0.075 && p < 0.18
+        ? Math.sin((p - 0.075) * 145) * 0.05 * (1 - smoothstep(0.08, 0.18, p))
+        : 0;
+
+      const baseScale = lerp(0.58, 1, easeOutBack(dropT)) * lerp(1, 0.65, easeInOutCubic(exitT));
+      const scaleX = baseScale * (1 + squash);
+      const scaleY = baseScale * (1 - squash * 0.85);
       const boxY = tb.y - (1 - easeOutCubic(dropT)) * 64 + exitT * 26;
 
       // Lid opens cleanly from 0.055 -> 0.11, stays open for spill, closes at 0.19 -> 0.24
@@ -1026,30 +976,44 @@
       const bw = vw <= 640 ? 112 : 138;
       const bh = vw <= 640 ? 64 : 76;
       const lidH = 22;
+      const bodyTop = -bh * 0.35;
+
+      // Soft ambient ground shadow anchored below the resting kit
+      const shadowScale = easeOutCubic(dropT) * (1 - exitT);
+      if (shadowScale > 0.02) {
+        ctx.save();
+        ctx.translate(tb.x, tb.y + bodyTop + bh + 5);
+        ctx.scale(shadowScale, shadowScale);
+        ctx.fillStyle = `rgba(0, 0, 0, ${(0.42 * alpha).toFixed(3)})`;
+        ctx.beginPath();
+        ctx.ellipse(0, 0, bw * 0.56, 7.5, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
 
       ctx.save();
       ctx.translate(tb.x, boxY);
-      ctx.scale(scale, scale);
+      ctx.rotate(rattle);
+      ctx.scale(scaleX, scaleY);
       ctx.globalAlpha = alpha;
 
       // Soft interior emission glow when lid is open
       if (openFrac > 0.08) {
-        drawGlow(0, -bh * 0.32, 68, 'cyan', 0.45 * openFrac);
-        drawGlow(-18, -bh * 0.28, 48, 'pink', 0.35 * openFrac);
-        drawGlow(18, -bh * 0.28, 48, 'amber', 0.3 * openFrac);
+        drawGlow(0, -bh * 0.32, 68, 'cyan', 0.48 * openFrac);
+        drawGlow(-18, -bh * 0.28, 46, 'pink', 0.36 * openFrac);
+        drawGlow(18, -bh * 0.28, 46, 'amber', 0.3 * openFrac);
       }
 
       // 1. Toolbox lower body (sleek dark metallic steel + glass bevel)
-      const bodyTop = -bh * 0.35;
       const bodyGrad = ctx.createLinearGradient(-bw * 0.5, bodyTop, bw * 0.5, bodyTop + bh);
-      bodyGrad.addColorStop(0, '#1e2636');
+      bodyGrad.addColorStop(0, '#222b3d');
       bodyGrad.addColorStop(0.5, '#131822');
-      bodyGrad.addColorStop(1, '#0c1017');
+      bodyGrad.addColorStop(1, '#0b0e15');
       ctx.fillStyle = bodyGrad;
       traceRoundedRect(ctx, -bw * 0.5, bodyTop, bw, bh, 12);
       ctx.fill();
 
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.26)';
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.28)';
       ctx.lineWidth = 1.4;
       ctx.stroke();
 
@@ -1064,7 +1028,7 @@
 
       // Toolbox label
       ctx.font = '700 10px ui-monospace, SFMono-Regular, Menlo, monospace';
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.72)';
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.74)';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText('VYRN // KIT', 0, bodyTop + bh * 0.32);
@@ -1077,20 +1041,28 @@
       ctx.rotate(lidAngle);
 
       // Top carry handle on lid
-      ctx.strokeStyle = 'rgba(226, 232, 240, 0.72)';
+      ctx.strokeStyle = 'rgba(226, 232, 240, 0.76)';
       ctx.lineWidth = 3;
       traceRoundedRect(ctx, bw * 0.32, -lidH - 11, bw * 0.36, 12, 5);
       ctx.stroke();
 
       // Lid body
       const lidGrad = ctx.createLinearGradient(0, -lidH, 0, 2);
-      lidGrad.addColorStop(0, '#2a3448');
+      lidGrad.addColorStop(0, '#2e3a50');
       lidGrad.addColorStop(1, '#161c28');
       ctx.fillStyle = lidGrad;
       traceRoundedRect(ctx, -4, -lidH, bw, lidH + 3, 10);
       ctx.fill();
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.34)';
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.36)';
       ctx.lineWidth = 1.3;
+      ctx.stroke();
+
+      // Subtle upper lid specular sheen
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.22)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(4, -lidH + 2.5);
+      ctx.lineTo(bw - 12, -lidH + 2.5);
       ctx.stroke();
 
       // Glowing cyan latch clasp
@@ -1099,24 +1071,6 @@
       ctx.fill();
 
       ctx.restore();
-
-      // Draw tumbling mini bolts & sparks inside/around toolbox
-      toolDebris.forEach((d) => {
-        if (!d.released || d.life <= 0) return;
-        ctx.save();
-        ctx.translate(d.x - tb.x, d.y - boxY);
-        ctx.rotate(d.rot);
-        ctx.globalAlpha = clamp(d.life, 0, 1) * alpha;
-        ctx.fillStyle = d.color;
-        if (d.kind === 0) {
-          ctx.fillRect(-2.5, -2.5, 5, 5);
-        } else {
-          ctx.fillRect(-4, -1.2, 8, 2.4);
-          ctx.fillRect(-1.2, -4, 2.4, 8);
-        }
-        ctx.restore();
-      });
-
       ctx.restore();
     }
 
@@ -1148,22 +1102,27 @@
       }
       ctx.stroke();
 
-      const guideAlpha = smoothstep(0.16, 0.32, p) * wireframeAlpha * 0.2;
+      // Subtle localized corner crop marks around the centerpiece title
+      const guideAlpha = smoothstep(0.16, 0.34, p) * wireframeAlpha * 0.36;
       if (guideAlpha > 0.01) {
         const tr = targets.title;
-        ctx.strokeStyle = `rgba(0, 240, 255, ${guideAlpha.toFixed(3)})`;
-        ctx.setLineDash([4, 6]);
-        ctx.beginPath();
-        ctx.moveTo(0, tr.top); ctx.lineTo(vw, tr.top);
-        ctx.moveTo(0, tr.top + tr.height); ctx.lineTo(vw, tr.top + tr.height);
-        ctx.moveTo(tr.left, 0); ctx.lineTo(tr.left, vh);
-        ctx.moveTo(tr.left + tr.width, 0); ctx.lineTo(tr.left + tr.width, vh);
-        ctx.stroke();
-        ctx.setLineDash([]);
+        const m = 12;
+        const len = 14;
+        const l = tr.left - m;
+        const r = tr.left + tr.width + m;
+        const t = tr.top - m;
+        const b = tr.top + tr.height + m;
 
-        ctx.font = '600 10px ui-monospace, SFMono-Regular, Menlo, monospace';
-        ctx.fillStyle = `rgba(0, 240, 255, ${(guideAlpha * 1.8).toFixed(3)})`;
-        ctx.fillText(`STAGE // ${Math.round(tr.width)}×${Math.round(tr.height)}`, tr.left + 6, Math.max(20, tr.top - 8));
+        ctx.strokeStyle = `rgba(0, 240, 255, ${guideAlpha.toFixed(3)})`;
+        ctx.lineWidth = 1.25;
+        ctx.beginPath();
+        // Top-left & top-right
+        ctx.moveTo(l, t + len); ctx.lineTo(l, t); ctx.lineTo(l + len, t);
+        ctx.moveTo(r - len, t); ctx.lineTo(r, t); ctx.lineTo(r, t + len);
+        // Bottom-left & bottom-right
+        ctx.moveTo(l, b - len); ctx.lineTo(l, b); ctx.lineTo(l + len, b);
+        ctx.moveTo(r - len, b); ctx.lineTo(r, b); ctx.lineTo(r, b - len);
+        ctx.stroke();
       }
 
       ctx.restore();
@@ -1478,6 +1437,26 @@
       }
     }
 
+    function drawBotChassis(bodyW, bodyH, topFill, bottomFill, strokeColor, radius) {
+      const grad = ctx.createLinearGradient(0, -bodyH * 0.5, 0, bodyH * 0.5);
+      grad.addColorStop(0, topFill);
+      grad.addColorStop(1, bottomFill);
+      ctx.fillStyle = grad;
+      traceRoundedRect(ctx, -bodyW * 0.5, -bodyH * 0.5, bodyW, bodyH, radius);
+      ctx.fill();
+      ctx.strokeStyle = strokeColor;
+      ctx.lineWidth = 1.6;
+      ctx.stroke();
+
+      // Subtle top rim specular bevel for glossy micro-contrast
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.22)';
+      ctx.lineWidth = 0.9;
+      ctx.beginPath();
+      ctx.moveTo(-bodyW * 0.5 + radius * 0.65, -bodyH * 0.5 + 1.5);
+      ctx.lineTo(bodyW * 0.5 - radius * 0.65, -bodyH * 0.5 + 1.5);
+      ctx.stroke();
+    }
+
     function drawSingleAgentCharacter(ag, agentAlpha) {
       const blink = ag.blinkTimer < 0 ? Math.sin(((-ag.blinkTimer) / 0.14) * Math.PI) : 0;
       const bodyW = 28;
@@ -1488,32 +1467,34 @@
       ctx.rotate(ag.tilt);
       ctx.globalAlpha = agentAlpha;
 
-      // Subtle hover thruster flame under bot
+      // Layered plasma hover thruster plume under bot
       if (ag.thrustersActive) {
+        const flicker = Math.sin(ag.flagPhase * 2.2) * 2.5;
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
         ctx.fillStyle = ag.color;
-        ctx.globalAlpha = 0.45 * agentAlpha;
+        ctx.globalAlpha = 0.44 * agentAlpha;
         ctx.beginPath();
-        ctx.moveTo(-6, bodyH * 0.5);
-        ctx.lineTo(0, bodyH * 0.5 + 8 + Math.sin(ag.flagPhase * 2) * 2.5);
-        ctx.lineTo(6, bodyH * 0.5);
+        ctx.moveTo(-6.2, bodyH * 0.5);
+        ctx.quadraticCurveTo(0, bodyH * 0.5 + 11 + flicker, 6.2, bodyH * 0.5);
         ctx.closePath();
         ctx.fill();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.globalAlpha = 0.72 * agentAlpha;
+        ctx.beginPath();
+        ctx.moveTo(-2.8, bodyH * 0.5);
+        ctx.quadraticCurveTo(0, bodyH * 0.5 + 6 + flicker * 0.5, 2.8, bodyH * 0.5);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
         ctx.globalAlpha = agentAlpha;
       }
 
       if (ag.id === 'shader') {
         // SHADER: Sleek artist bot carrying a large animated LGBTQIA+ Progress Pride Flag + beret
         drawProgressPrideFlag(ctx, 10, -28, 42, 26, ag.flagPhase);
-
-        // Dark glass rounded bot body
-        ctx.fillStyle = '#131722';
-        traceRoundedRect(ctx, -bodyW * 0.5, -bodyH * 0.5, bodyW, bodyH, 10);
-        ctx.fill();
-        ctx.strokeStyle = PALETTE.pink;
-        ctx.lineWidth = 1.6;
-        ctx.stroke();
-
-        // Expressive tracking eyes
+        drawBotChassis(bodyW, bodyH, '#1d2436', '#0e121c', PALETTE.pink, 10);
         drawTrackingEyes(ctx, -6, -1, 6, -1, ag.lookAngle - ag.tilt, blink, 4.3);
 
         // Sleek magenta artist beret tilted on top
@@ -1524,21 +1505,21 @@
         ctx.beginPath();
         ctx.ellipse(0, 0, 14, 5.5, 0, 0, Math.PI * 2);
         ctx.fill();
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 0.8;
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
+        ctx.lineWidth = 0.85;
+        ctx.stroke();
+        // Top highlight arc on beret crown
+        ctx.strokeStyle = 'rgba(255, 220, 232, 0.5)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.ellipse(0, -1.6, 8, 2.2, 0, Math.PI * 1.1, Math.PI * 1.9);
         ctx.stroke();
         ctx.fillStyle = '#ff3b69';
         ctx.fillRect(-1.5, -7, 3, 4);
         ctx.restore();
       } else if (ag.id === 'architect') {
         // ARCHITECT: Cyan builder bot with expressive eyes + Yellow Construction Hard Hat
-        ctx.fillStyle = '#0e1622';
-        traceRoundedRect(ctx, -bodyW * 0.5, -bodyH * 0.5, bodyW, bodyH, 9);
-        ctx.fill();
-        ctx.strokeStyle = PALETTE.cyan;
-        ctx.lineWidth = 1.6;
-        ctx.stroke();
-
+        drawBotChassis(bodyW, bodyH, '#152235', '#0b111c', PALETTE.cyan, 9);
         drawTrackingEyes(ctx, -6, 0, 6, 0, ag.lookAngle - ag.tilt, blink, 4.2);
 
         // Yellow Hard Hat
@@ -1552,7 +1533,16 @@
         ctx.closePath();
         ctx.fill();
         ctx.stroke();
+        // Dome specular arc
+        ctx.strokeStyle = '#fef9c3';
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.arc(0, 0, 10.2, Math.PI * 1.15, Math.PI * 1.48);
+        ctx.stroke();
         // Hard hat brim
+        ctx.fillStyle = '#facc15';
+        ctx.strokeStyle = 'rgba(0, 0, 0, 0.45)';
+        ctx.lineWidth = 0.9;
         traceRoundedRect(ctx, -16, -2, 32, 4.5, 2.2);
         ctx.fill();
         ctx.stroke();
@@ -1564,51 +1554,42 @@
         ctx.restore();
       } else if (ag.id === 'synth') {
         // SYNTH: Big-eyed amber audio bot wearing chunky Studio Headphones
-        // Headphone band
         ctx.strokeStyle = '#e2e8f0';
         ctx.lineWidth = 3;
         ctx.beginPath();
         ctx.arc(0, -1, 17, Math.PI * 1.05, -Math.PI * 0.05);
         ctx.stroke();
 
-        // Body
-        ctx.fillStyle = '#18140d';
-        traceRoundedRect(ctx, -bodyW * 0.5, -bodyH * 0.5, bodyW, bodyH, 10);
-        ctx.fill();
-        ctx.strokeStyle = PALETTE.amber;
-        ctx.lineWidth = 1.6;
-        ctx.stroke();
+        drawBotChassis(bodyW, bodyH, '#251e12', '#120e08', PALETTE.amber, 10);
 
-        // Padded headphone earcups
+        // Padded headphone earcups + subtle metallic accent ring
         ctx.fillStyle = PALETTE.amber;
         traceRoundedRect(ctx, -bodyW * 0.5 - 5.5, -7, 6, 14, 3);
         ctx.fill();
         traceRoundedRect(ctx, bodyW * 0.5 - 0.5, -7, 6, 14, 3);
         ctx.fill();
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+        ctx.fillRect(-bodyW * 0.5 - 3.5, -4, 1.4, 8);
+        ctx.fillRect(bodyW * 0.5 + 2.1, -4, 1.4, 8);
 
-        // Extra-big expressive eyes
         drawTrackingEyes(ctx, -6.5, -0.5, 6.5, -0.5, ag.lookAngle - ag.tilt, blink, 4.9);
       } else if (ag.id === 'motion') {
         // MOTION: Lime kinetic bot wearing a Dapper Top Hat + glowing hatband
-        ctx.fillStyle = '#111a10';
-        traceRoundedRect(ctx, -bodyW * 0.5, -bodyH * 0.5, bodyW, bodyH, 9);
-        ctx.fill();
-        ctx.strokeStyle = PALETTE.lime;
-        ctx.lineWidth = 1.6;
-        ctx.stroke();
-
+        drawBotChassis(bodyW, bodyH, '#192717', '#0d140c', PALETTE.lime, 9);
         drawTrackingEyes(ctx, -6, 0, 6, 0, ag.lookAngle - ag.tilt, blink, 4.2);
 
         // Dapper Top Hat
         ctx.save();
         ctx.translate(0, -bodyH * 0.5 + 1);
         ctx.fillStyle = '#181c24';
-        ctx.strokeStyle = 'rgba(255,255,255,0.45)';
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
         ctx.lineWidth = 0.9;
-        // Crown
         traceRoundedRect(ctx, -9.5, -16, 19, 15, 2.5);
         ctx.fill();
         ctx.stroke();
+        // Subtle silk crown sheen
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.14)';
+        ctx.fillRect(-7.2, -14.5, 3, 9);
         // Glowing lime ribbon band
         ctx.fillStyle = PALETTE.lime;
         ctx.fillRect(-9.2, -5.5, 18.4, 3);
@@ -1620,13 +1601,7 @@
         ctx.restore();
       } else {
         // COMPILER: Blue inspector bot with wide curious eyes & Spinning Propeller Cap
-        ctx.fillStyle = '#0f1726';
-        traceRoundedRect(ctx, -bodyW * 0.5, -bodyH * 0.5, bodyW, bodyH, 10);
-        ctx.fill();
-        ctx.strokeStyle = PALETTE.blue;
-        ctx.lineWidth = 1.6;
-        ctx.stroke();
-
+        drawBotChassis(bodyW, bodyH, '#16233a', '#0c1220', PALETTE.blue, 10);
         drawTrackingEyes(ctx, -6, 0, 6, 0, ag.lookAngle - ag.tilt, blink, 4.6);
 
         // Colorful beanie dome
@@ -1648,9 +1623,13 @@
         traceRoundedRect(ctx, 2, -2, 13, 3.8, 2);
         ctx.fill();
 
-        // Spinning propeller blades on top!
+        // Spinning propeller shaft + motion blur disc + blades
         ctx.fillStyle = '#e2e8f0';
         ctx.fillRect(-1.2, -16, 2.4, 5);
+        ctx.fillStyle = 'rgba(0, 240, 255, 0.18)';
+        ctx.beginPath();
+        ctx.ellipse(0, -16, 15.5, 2.6, 0, 0, Math.PI * 2);
+        ctx.fill();
         const bladeW = 4 + Math.abs(Math.cos(ag.propellerAngle)) * 12;
         ctx.fillStyle = PALETTE.cyan;
         traceRoundedRect(ctx, -bladeW, -17.5, bladeW * 2, 3, 1.5);
@@ -1664,50 +1643,38 @@
     function drawAgentsAndSparks(agentAlpha) {
       if (agentAlpha <= 0.01) return;
 
-      // Subtle agent-to-agent cooperation filaments when close
-      ctx.save();
-      for (let i = 0; i < agents.length; i++) {
-        if (!agents[i].spilled) continue;
-        for (let j = i + 1; j < agents.length; j++) {
-          if (!agents[j].spilled) continue;
-          const a = agents[i];
-          const b = agents[j];
-          const dist = Math.hypot(b.x - a.x, b.y - a.y);
-          if (dist < 240) {
-            ctx.strokeStyle = '#ffffff';
-            ctx.globalAlpha = (1 - dist / 240) * 0.14 * agentAlpha;
-            ctx.lineWidth = 0.85;
-            ctx.beginPath();
-            ctx.moveTo(a.x, a.y);
-            ctx.lineTo(b.x, b.y);
-            ctx.stroke();
-          }
-        }
-      }
-      ctx.restore();
-
-      // Impact sparks
+      // Soft circular welding sparks with bright core
       ctx.save();
       ctx.globalCompositeOperation = 'lighter';
       sparks.forEach((s) => {
+        const lifeAlpha = clamp(s.life * agentAlpha, 0, 1);
+        const radius = 1.1 + s.life * 1.5;
         ctx.fillStyle = s.color;
-        ctx.globalAlpha = clamp(s.life * agentAlpha, 0, 1);
-        ctx.fillRect(s.x - 1.5, s.y - 1.5, 3, 3);
+        ctx.globalAlpha = lifeAlpha * 0.85;
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, radius, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.globalAlpha = lifeAlpha * 0.65;
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, radius * 0.45, 0, Math.PI * 2);
+        ctx.fill();
       });
       ctx.restore();
 
       agents.forEach((ag) => {
         if (!ag.spilled) return;
 
-        // Active construction laser beam onto target
+        // Active construction laser beam + pulsing weld ring onto target
         if (ag.laserTarget && agentAlpha > 0.15) {
           const dist = Math.hypot(ag.laserTarget.x - ag.x, ag.laserTarget.y - ag.y);
           if (dist < 360) {
             ctx.save();
             ctx.globalCompositeOperation = 'lighter';
             ctx.strokeStyle = ag.color;
-            ctx.globalAlpha = 0.52 * agentAlpha;
-            ctx.lineWidth = 1.5;
+            ctx.globalAlpha = 0.5 * agentAlpha;
+            ctx.lineWidth = 1.6;
             ctx.beginPath();
             ctx.moveTo(ag.x, ag.y);
             ctx.lineTo(ag.laserTarget.x, ag.laserTarget.y);
@@ -1715,64 +1682,54 @@
 
             ctx.strokeStyle = '#ffffff';
             ctx.globalAlpha = 0.72 * agentAlpha;
-            ctx.lineWidth = 0.7;
+            ctx.lineWidth = 0.75;
             ctx.beginPath();
             ctx.moveTo(ag.x, ag.y);
             ctx.lineTo(ag.laserTarget.x, ag.laserTarget.y);
             ctx.stroke();
+
+            const weldR = 4.5 + Math.sin(ag.flagPhase * 1.4) * 2.2;
+            ctx.strokeStyle = ag.color;
+            ctx.globalAlpha = 0.38 * agentAlpha;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.arc(ag.laserTarget.x, ag.laserTarget.y, weldR, 0, Math.PI * 2);
+            ctx.stroke();
             ctx.restore();
 
-            drawGlow(ag.laserTarget.x, ag.laserTarget.y, 15, ag.glowKey, 0.82 * agentAlpha);
+            drawGlow(ag.laserTarget.x, ag.laserTarget.y, 15, ag.glowKey, 0.8 * agentAlpha);
           }
         }
 
-        // Tapered ribbon trail (rainbow shimmer for SHADER pride bot!)
+        // Smooth quadratic tapered ribbon trail (rainbow shimmer for SHADER pride bot!)
         if (ag.trail.length > 2) {
           ctx.save();
           ctx.lineCap = 'round';
-          for (let i = 1; i < ag.trail.length; i++) {
-            const t = i / ag.trail.length;
+          for (let i = 1; i < ag.trail.length - 1; i++) {
+            const t = i / (ag.trail.length - 1);
+            const prev = i === 1
+              ? ag.trail[0]
+              : { x: (ag.trail[i - 1].x + ag.trail[i].x) * 0.5, y: (ag.trail[i - 1].y + ag.trail[i].y) * 0.5 };
+            const ctrl = ag.trail[i];
+            const next = i === ag.trail.length - 2
+              ? ag.trail[i + 1]
+              : { x: (ag.trail[i].x + ag.trail[i + 1].x) * 0.5, y: (ag.trail[i].y + ag.trail[i + 1].y) * 0.5 };
+
             ctx.strokeStyle = ag.id === 'shader'
               ? PRIDE_STRIPES[i % PRIDE_STRIPES.length]
               : ag.color;
             ctx.globalAlpha = t * t * 0.62 * agentAlpha;
-            ctx.lineWidth = t * 3.8;
+            ctx.lineWidth = t * 4.0;
             ctx.beginPath();
-            ctx.moveTo(ag.trail[i - 1].x, ag.trail[i - 1].y);
-            ctx.lineTo(ag.trail[i].x, ag.trail[i].y);
+            ctx.moveTo(prev.x, prev.y);
+            ctx.quadraticCurveTo(ctrl.x, ctrl.y, next.x, next.y);
             ctx.stroke();
           }
           ctx.restore();
         }
 
-        drawGlow(ag.x, ag.y, 26, ag.glowKey, 0.58 * agentAlpha);
+        drawGlow(ag.x, ag.y, 26, ag.glowKey, 0.56 * agentAlpha);
         drawSingleAgentCharacter(ag, agentAlpha);
-
-        // Compact floating monospace agent tag
-        if (vw > 460 && ag.thrustersActive) {
-          ctx.save();
-          ctx.font = '600 9.5px ui-monospace, SFMono-Regular, Menlo, monospace';
-          const textW = ctx.measureText(ag.label).width;
-          const padX = 6;
-          const pillW = textW + padX * 2;
-          const pillH = 16;
-          const lx = clamp(ag.x - pillW * 0.5, 8, vw - pillW - 8);
-          const ly = clamp(ag.y + 18, 8, vh - pillH - 64);
-
-          ctx.globalAlpha = 0.86 * agentAlpha;
-          ctx.fillStyle = 'rgba(11, 14, 20, 0.86)';
-          traceRoundedRect(ctx, lx, ly, pillW, pillH, 999);
-          ctx.fill();
-          ctx.strokeStyle = ag.color;
-          ctx.lineWidth = 0.9;
-          ctx.stroke();
-
-          ctx.fillStyle = '#f8fafc';
-          ctx.textBaseline = 'middle';
-          ctx.textAlign = 'left';
-          ctx.fillText(ag.label, lx + padX, ly + pillH * 0.5 + 0.5);
-          ctx.restore();
-        }
       });
     }
 
@@ -1792,13 +1749,6 @@
         lastStatusText = activeStatus;
         statusLabel.textContent = activeStatus;
       }
-
-      LOG_MILESTONES.forEach((m, idx) => {
-        if (p >= m.t && !triggeredLogs.has(idx)) {
-          triggeredLogs.add(idx);
-          addLogLine(m);
-        }
-      });
     }
 
     async function hideOverlay() {
@@ -1893,14 +1843,13 @@
         const elapsedMs = timestamp - clockStartedAt;
         progress = clamp(elapsedMs / TOTAL_DURATION_MS, 0, 1);
 
-        if (progress >= 0.86) {
+        if (progress >= 0.82) {
           overlay.classList.add('is-hud-fading');
         }
 
-        const dissolveT = smoothstep(0.77, 0.94, progress);
-        backdropAlpha = 1 - dissolveT;
-        wireframeAlpha = 1 - smoothstep(0.80, 0.96, progress);
-        agentAlpha = 1 - smoothstep(0.90, 1.0, progress);
+        wireframeAlpha = 1 - smoothstep(0.72, 0.90, progress);
+        backdropAlpha = 1 - smoothstep(0.76, 0.94, progress);
+        agentAlpha = 1 - smoothstep(0.88, 1.0, progress);
 
         if (progress >= 1) {
           updateHud(1);
@@ -2032,7 +1981,14 @@
       return;
     }
 
-    const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const motionQuery = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
+    if (motionQuery && typeof motionQuery.addEventListener === 'function') {
+      motionQuery.addEventListener('change', (e) => {
+        if (e.matches) controller.skip();
+      });
+    }
+
+    const prefersReducedMotion = Boolean(motionQuery && motionQuery.matches);
     if (document.documentElement.classList.contains('swarm-booting') && !prefersReducedMotion) {
       controller.start({ isReplay: false });
     } else {

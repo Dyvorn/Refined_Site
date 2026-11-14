@@ -4,7 +4,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark">
   <meta name="theme-color" content="#090b0e">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
   <meta name="description"
     content="Official portfolio &amp; creator hub for VYRN (Lennard Finn Penzler). Watch DaVinci Resolve video editing tutorials, explore audio engineering projects, and custom tools.">
   <meta name="author" content="Lennard Finn Penzler (VYRN)">
@@ -91,7 +93,8 @@
 
   <link rel="manifest" href="manifest.json">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
-  <link rel="stylesheet" href="css/style.css?v=3.6">
+  <link rel="stylesheet" href="css/style.css?v=4.0">
+  <link rel="expect" href="#main-content" blocking="render">
   <script>
     if (window.matchMedia && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       document.documentElement.classList.add('swarm-booting');
@@ -105,13 +108,14 @@
 </head>
 
 <body>
+  <a href="#main-content" class="skip-link visually-hidden">Skip to main content</a>
+
   <!-- Autonomous Agent Swarm Startup Build Animation -->
   <div id="swarm-startup" class="swarm-startup" role="region" aria-label="Website build animation">
     <canvas id="swarm-canvas" class="swarm-canvas" aria-hidden="true"></canvas>
 
     <div class="swarm-hud">
       <div class="swarm-hud-left">
-        <div class="swarm-log-feed" id="swarm-log-feed" aria-hidden="true"></div>
         <div class="swarm-status-pill">
           <span class="swarm-status-dots" aria-hidden="true">
             <span class="color-dot dot-pink"></span>
@@ -131,14 +135,6 @@
         <kbd class="swarm-kbd" aria-hidden="true">ESC</kbd>
       </button>
     </div>
-  </div>
-
-  <!-- Ambient Atmospheric Glow Mesh (Subtle lighting for optical glass refraction) -->
-  <div class="ambient-canvas" aria-hidden="true">
-    <div class="ambient-glow ambient-glow--hero"></div>
-    <div class="ambient-glow ambient-glow--media"></div>
-    <div class="ambient-glow ambient-glow--community"></div>
-    <div class="ambient-noise"></div>
   </div>
 
   <!-- Viewport Top Scroll Progress Indicator -->
@@ -164,15 +160,13 @@
     </nav>
 
     <div class="nav-utility">
-      <a href="#community" class="pill-btn pill-btn--solid nav-btn--discord" aria-label="Discord Server Waitlist"
-        title="Discord Waitlist"><svg class="nav-btn-icon" width="16" height="16" viewBox="0 0 24 24"
+      <a href="#community" class="pill-btn pill-btn--solid nav-btn--discord" aria-label="Discord Server Waitlist"><svg class="nav-btn-icon" width="16" height="16" viewBox="0 0 24 24"
           fill="currentColor" aria-hidden="true">
           <path
             d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.894.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z" />
         </svg><span class="nav-btn-text">Discord</span></a>
       <a href="https://buymeacoffee.com/vyrn" target="_blank" rel="noopener noreferrer"
-        class="pill-btn pill-btn--glass nav-btn--bmac" aria-label="Support on Buy Me a Coffee"
-        title="Buy Me a Coffee"><svg class="nav-btn-icon" width="16" height="16" viewBox="0 0 24 24" fill="none"
+        class="pill-btn pill-btn--glass nav-btn--bmac" aria-label="Support on Buy Me a Coffee"><svg class="nav-btn-icon" width="16" height="16" viewBox="0 0 24 24" fill="none"
           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M18 8h1a4 4 0 0 1 0 8h-1"></path>
           <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path>
@@ -182,8 +176,8 @@
         </svg><span class="nav-btn-text">Support</span></a>
 
       <!-- Mobile Nav Hamburger Toggle -->
-      <button id="mobile-menu-btn" class="mobile-toggle" aria-label="Toggle navigation menu" aria-expanded="false"
-        aria-controls="mobile-nav-panel">
+      <button type="button" id="mobile-menu-btn" class="mobile-toggle" aria-label="Toggle navigation menu"
+        aria-expanded="false" aria-controls="mobile-nav-panel">
         <span></span>
         <span></span>
       </button>
@@ -225,28 +219,14 @@
 
 
 
-  <main>
+  <main id="main-content" tabindex="-1">
     <!-- Hero Section: Expansive Centerpiece with Direct Optical Distortion & Profile Picture Colors -->
     <section class="hero-section" id="hero">
       <div class="container">
         <div class="hero-centerpiece">
           <div class="hero-title-stage" id="hero-stage">
-            <!-- Tri-Color Ambient Backlight Halo (Cyan, Lime, Coral from Profile Picture) -->
+            <!-- Tri-Color Ambient Backlight Halo (Pink, Cyan, Amber) -->
             <div class="hero-flame-halo" aria-hidden="true"></div>
-
-            <!-- Floating Optical Sparkles -->
-            <svg class="sparkle sparkle--1" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-              <path d="M12 0L14.5 9.5L24 12L14.5 14.5L12 24L9.5 14.5L0 12L9.5 9.5L12 0Z" />
-            </svg>
-            <svg class="sparkle sparkle--2" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-              <path d="M12 0L14.5 9.5L24 12L14.5 14.5L12 24L9.5 14.5L0 12L9.5 9.5L12 0Z" />
-            </svg>
-            <svg class="sparkle sparkle--3" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-              <path d="M12 0L14.5 9.5L24 12L14.5 14.5L12 24L9.5 14.5L0 12L9.5 9.5L12 0Z" />
-            </svg>
-            <svg class="sparkle sparkle--4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-              <path d="M12 0L14.5 9.5L24 12L14.5 14.5L12 24L9.5 14.5L0 12L9.5 9.5L12 0Z" />
-            </svg>
 
             <!-- Floating Discipline Glass Pills (AUDIO, VIDEO, CODE) -->
             <div class="hero-glass-pill hero-glass-pill--audio hero-glass-pill--top-left"
@@ -350,26 +330,24 @@
           <!-- Right Column: 16:9 Video Frame with 2-Click Privacy Wrapper -->
           <div class="video-player-frame">
             <div class="media-player-wrapper" id="video-wrapper" data-video-id="5t1xed1vlO4">
-              <button class="player-trigger" id="video-trigger" aria-label="Play video">
-                <img src="assets/images/og-preview.png" alt="DaVinci Resolve Tutorial Thumbnail"
-                  class="player-poster-img" id="video-poster" loading="lazy">
-                <div class="player-poster-overlay"></div>
+              <img src="assets/images/og-preview.png" alt="DaVinci Resolve Tutorial Thumbnail"
+                class="player-poster-img" id="video-poster" width="1200" height="630" loading="lazy" decoding="async">
+              <div class="player-poster-overlay" aria-hidden="true"></div>
 
-                <div class="privacy-consent-overlay" id="privacy-consent-overlay">
-                  <div class="video-play-btn" style="position: static; transform: none; margin-bottom: 0.85rem;"
-                    aria-hidden="true">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
-                      <polygon points="8 5 19 12 8 19 8 5"></polygon>
-                    </svg>
-                  </div>
-                  <p class="privacy-consent-text">
-                    Click to load tutorial. Connecting to YouTube transmits your IP address to Google LLC under their <a
-                      href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">Privacy
-                      Policy</a>.
-                  </p>
-                  <span class="pill-btn pill-btn--solid pill-btn--sm">Load &amp; Play Video</span>
+              <div class="privacy-consent-overlay" id="privacy-consent-overlay">
+                <div class="video-play-btn video-play-btn--static" aria-hidden="true">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+                    <polygon points="8 5 19 12 8 19 8 5"></polygon>
+                  </svg>
                 </div>
-              </button>
+                <p class="privacy-consent-text">
+                  Click to load tutorial. Connecting to YouTube transmits your IP address to Google LLC under their <a
+                    href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">Privacy
+                    Policy</a>.
+                </p>
+                <button type="button" class="pill-btn pill-btn--solid pill-btn--sm" id="video-trigger">Load &amp; Play
+                  Video</button>
+              </div>
             </div>
           </div>
         </div>
@@ -420,8 +398,8 @@
 
           <!-- Foreground Interactive Banner -->
           <div class="projects-empty-content">
-            <span class="discipline-badge badge-multi" style="margin-bottom: 1.25rem;">
-              <span class="color-dot dot-cyan"></span>
+            <span class="discipline-badge badge-multi">
+              <span class="color-dot dot-cyan" aria-hidden="true"></span>
               <span>IN PRODUCTION</span>
             </span>
             <h3 class="empty-title">Active Development Lab</h3>
@@ -467,19 +445,26 @@
               </div>
               <span class="pill-card-tag">Launch Waitlist</span>
             </div>
-            <h3 class="pill-card-title">Discord Community</h3>
+            <h3 class="pill-card-title" id="discord-card-heading">Discord Community</h3>
             <p class="pill-card-desc">
               A private Discord hub for DaVinci Resolve video editors, audio engineers, and creative coders is launching
               soon. Join the notification list to get early invite access.
             </p>
             <div class="discord-waitlist-box">
-              <form class="waitlist-form" id="discord-waitlist-form">
-                <input type="email" class="waitlist-input" id="waitlist-email" placeholder="Enter your email address"
-                  required aria-label="Email for Discord waitlist">
+              <form class="waitlist-form" id="discord-waitlist-form" action="#community" method="post"
+                aria-labelledby="discord-card-heading">
+                <div class="waitlist-field">
+                  <label for="waitlist-email" class="visually-hidden">Email address for Discord waitlist</label>
+                  <input type="email" class="waitlist-input" id="waitlist-email" name="email"
+                    placeholder="Enter your email address" autocomplete="email" inputmode="email" autocorrect="off"
+                    autocapitalize="none" spellcheck="false" enterkeyhint="done" data-error="waitlist-email-error"
+                    required>
+                  <span id="waitlist-email-error" class="field-error-msg">Error: Enter an email address in the format
+                    you@example.com.</span>
+                </div>
                 <button type="submit" class="pill-btn pill-btn--solid waitlist-btn">Notify Me</button>
               </form>
-              <div class="waitlist-status" id="waitlist-status">✓ You're on the list! We'll notify you as soon as server
-                invitations go live.</div>
+              <div class="waitlist-status" id="waitlist-status" role="status" aria-live="polite"></div>
             </div>
           </div>
 
@@ -530,25 +515,31 @@
               <span>INQUIRIES</span>
             </span>
           </div>
-          <h2 class="section-heading">Get in Touch</h2>
+          <h2 class="section-heading" id="contact-heading">Get in Touch</h2>
           <p class="section-subtext">Have a tutorial request, video editing collaboration, audio production inquiry, or
             sponsorship proposal? Send a direct note.</p>
         </div>
 
         <div class="contact-card">
-          <form id="contact-form" class="contact-form">
+          <form id="contact-form" class="contact-form" action="#contact" method="post" aria-labelledby="contact-heading">
             <div class="contact-form-grid">
               <div class="contact-field">
-                <label for="contact-name" class="contact-label">Your Name</label>
-                <input type="text" id="contact-name" class="contact-input" placeholder="e.g. Alex Miller" required>
+                <label for="contact-name" class="contact-label">Your Name <span aria-hidden="true">*</span></label>
+                <input type="text" id="contact-name" name="name" class="contact-input" placeholder="e.g. Alex Miller"
+                  autocomplete="name" enterkeyhint="next" data-error="contact-name-error" required>
+                <span id="contact-name-error" class="field-error-msg">Error: Please enter your name.</span>
               </div>
               <div class="contact-field">
-                <label for="contact-email" class="contact-label">Email Address</label>
-                <input type="email" id="contact-email" class="contact-input" placeholder="name@domain.com" required>
+                <label for="contact-email" class="contact-label">Email Address <span aria-hidden="true">*</span></label>
+                <input type="email" id="contact-email" name="email" class="contact-input" placeholder="name@domain.com"
+                  autocomplete="email" inputmode="email" autocorrect="off" autocapitalize="none" spellcheck="false"
+                  enterkeyhint="next" data-error="contact-email-error" required>
+                <span id="contact-email-error" class="field-error-msg">Error: Enter an email address in the format
+                  you@example.com.</span>
               </div>
               <div class="contact-field contact-field-full">
                 <label for="contact-topic" class="contact-label">Topic / Discipline</label>
-                <select id="contact-topic" class="contact-select">
+                <select id="contact-topic" name="topic" class="contact-select">
                   <option value="DaVinci Resolve Tutorial Request">DaVinci Resolve Tutorial Request</option>
                   <option value="Video Editing Commission">Video Editing Commission / Project</option>
                   <option value="Audio Engineering / Sound Design">Audio Engineering / Sound Design</option>
@@ -557,16 +548,22 @@
                 </select>
               </div>
               <div class="contact-field contact-field-full">
-                <label for="contact-message" class="contact-label">Message</label>
-                <textarea id="contact-message" class="contact-textarea"
-                  placeholder="Tell me about your project, idea, or inquiry..." required></textarea>
+                <label for="contact-message" class="contact-label">Message <span aria-hidden="true">*</span></label>
+                <textarea id="contact-message" name="message" class="contact-textarea"
+                  placeholder="Tell me about your project, idea, or inquiry..." enterkeyhint="enter"
+                  data-error="contact-message-error" required></textarea>
+                <span id="contact-message-error" class="field-error-msg">Error: Please enter a message describing your
+                  project or inquiry.</span>
               </div>
               <div class="contact-field contact-field-full">
-                <label class="contact-checkbox-row">
-                  <input type="checkbox" id="contact-consent" required>
-                  <span>I agree that my submitted information will be processed to respond to my inquiry as detailed in
-                    the <a href="datenschutz.html" target="_blank">Datenschutzerklärung</a>.</span>
-                </label>
+                <div class="contact-checkbox-row">
+                  <input type="checkbox" id="contact-consent" name="consent" data-error="contact-consent-error" required>
+                  <label for="contact-consent">I agree that my submitted information will be processed to respond to my
+                    inquiry as detailed in the <a href="datenschutz.html" target="_blank"
+                      rel="noopener">Datenschutzerklärung</a>.</label>
+                </div>
+                <span id="contact-consent-error" class="field-error-msg">Error: Please confirm consent to submit your
+                  inquiry.</span>
               </div>
             </div>
             <div class="contact-submit-row">
@@ -578,8 +575,7 @@
                   <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
                 </svg>
               </button>
-              <div id="contact-status" class="form-feedback-msg">✓ Message transmitted! Thank you for reaching out.
-              </div>
+              <div id="contact-status" class="form-feedback-msg" role="status" aria-live="polite"></div>
             </div>
           </form>
         </div>
@@ -615,7 +611,7 @@
         <div class="footer-meta-group">
           <span class="footer-copy">© 2026 VYRN</span>
           <span class="footer-divider" aria-hidden="true">/</span>
-          <button type="button" id="swarm-replay-btn" class="footer-legal-link footer-replay-btn" title="Replay the agent swarm startup animation">
+          <button type="button" id="swarm-replay-btn" class="footer-legal-link footer-replay-btn">
             <span class="color-dot dot-cyan" aria-hidden="true"></span>
             <span>Replay Swarm</span>
           </button>
@@ -623,7 +619,7 @@
 
         <nav class="footer-legal-nav" aria-label="Legal Links">
           <a href="impressum.html" class="footer-legal-link">Impressum</a>
-          <span class="footer-divider">/</span>
+          <span class="footer-divider" aria-hidden="true">/</span>
           <a href="datenschutz.html" class="footer-legal-link">Datenschutzerklärung</a>
         </nav>
       </div>
@@ -631,7 +627,7 @@
   </footer>
 
   <!-- Minimalist Back to Top Pill -->
-  <button id="back-to-top" class="back-to-top" aria-label="Scroll back to top" title="Scroll to top">
+  <button type="button" id="back-to-top" class="back-to-top" aria-label="Scroll back to top">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
       stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       <polyline points="18 15 12 9 6 15"></polyline>
@@ -691,36 +687,36 @@ void main() {
   vec2 p = uv * 2.8;
   p.x *= aspect;
 
-  float t = iTime * 0.35;
+  float t = iTime * 0.28;
   vec2 flow = warp(p, t);
 
   // Smooth fluid pigment streams
-  float redStream = smoothstep(-0.15, 0.6, fbm(p + flow * 2.0 + vec2(t * 0.3, 1.2)));
-  float blueStream = smoothstep(-0.15, 0.6, fbm(p + flow * 1.8 + vec2(-t * 0.25, 5.2)));
-  float yellowStream = smoothstep(-0.15, 0.6, fbm(p + flow * 2.2 + vec2(3.1, t * 0.28)));
+  float roseStream  = smoothstep(-0.12, 0.58, fbm(p + flow * 1.9 + vec2(t * 0.28, 1.2)));
+  float cyanStream  = smoothstep(-0.12, 0.58, fbm(p + flow * 1.7 + vec2(-t * 0.24, 5.2)));
+  float amberStream = smoothstep(-0.12, 0.58, fbm(p + flow * 2.1 + vec2(3.1, t * 0.26)));
 
-  // Pure vibrant pigments
-  vec3 cRed    = vec3(1.0, 0.1, 0.3);   // Scarlet red (#ff1f52)
-  vec3 cBlue   = vec3(0.0, 0.88, 1.0);  // Cyan-electric blue (#00eaff)
-  vec3 cYellow = vec3(1.0, 0.88, 0.08); // Sunny yellow (#ffd600)
+  // VYRN studio pigments (crimson-rose, electric cyan, warm amber)
+  vec3 cRose   = vec3(1.0, 0.22, 0.42);
+  vec3 cCyan   = vec3(0.02, 0.92, 1.0);
+  vec3 cAmber  = vec3(0.98, 0.64, 0.08);
 
-  // Watercolor bleeding secondary blends
-  vec3 cOrange = vec3(1.0, 0.5, 0.02);
-  vec3 cGreen  = vec3(0.05, 0.95, 0.45);
-  vec3 cPurple = vec3(0.75, 0.12, 0.98);
-  vec3 cWhite  = vec3(1.0, 1.0, 0.96);
+  // Harmonized secondary watercolor blends
+  vec3 cCoral  = vec3(1.0, 0.42, 0.28);
+  vec3 cTeal   = vec3(0.18, 0.94, 0.82);
+  vec3 cViolet = vec3(0.68, 0.24, 0.96);
+  vec3 cWhite  = vec3(0.98, 0.99, 1.0);
 
-  float sum = redStream + blueStream + yellowStream + 0.001;
-  vec3 col = (redStream * cRed + blueStream * cBlue + yellowStream * cYellow) / sum;
+  float sum = roseStream + cyanStream + amberStream + 0.001;
+  vec3 col = (roseStream * cRose + cyanStream * cCyan + amberStream * cAmber) / sum;
 
-  col = mix(col, cOrange, clamp(redStream * yellowStream * 2.2, 0.0, 0.85));
-  col = mix(col, cGreen, clamp(blueStream * yellowStream * 2.2, 0.0, 0.85));
-  col = mix(col, cPurple, clamp(redStream * blueStream * 2.2, 0.0, 0.85));
+  col = mix(col, cCoral, clamp(roseStream * amberStream * 1.85, 0.0, 0.72));
+  col = mix(col, cTeal, clamp(cyanStream * amberStream * 1.65, 0.0, 0.65));
+  col = mix(col, cViolet, clamp(roseStream * cyanStream * 1.9, 0.0, 0.75));
 
-  // Glowing fluid ribbon highlight
-  float ribbon = smoothstep(0.40, 0.50, length(flow)) * smoothstep(0.60, 0.50, length(flow));
-  col += cWhite * ribbon * 0.35;
-  col = pow(col, vec3(0.92)) * 1.15;
+  // Luminous silky silk ribbon highlight without clipping
+  float ribbon = smoothstep(0.36, 0.49, length(flow)) * smoothstep(0.64, 0.49, length(flow));
+  col = mix(col, cWhite, ribbon * 0.32);
+  col = col / (col + vec3(0.18)) * 1.18;
 
   gl_FragColor = vec4(col, mask);
 }
@@ -762,8 +758,8 @@ float fbm(vec2 p) {
 
 vec2 warp(vec2 p, float t) {
   return vec2(
-    fbm(p + vec2(0.0, t * 0.16)),
-    fbm(p + vec2(4.3, 1.7 - t * 0.14))
+    fbm(p + vec2(0.0, t * 0.14)),
+    fbm(p + vec2(4.3, 1.7 - t * 0.12))
   );
 }
 
@@ -771,43 +767,37 @@ vec3 sampleWatercolor(vec2 p, float t, vec2 mousePos, vec2 mouseVel) {
   vec2 delta = p - mousePos;
   float dist = length(delta);
 
-  float mouseRadius = 0.75;
+  float mouseRadius = 0.72;
   float mouseInfluence = smoothstep(mouseRadius, 0.0, dist);
-  
-  vec2 vortex = vec2(-delta.y, delta.x) / (dist + 0.12);
-  vec2 mouseFlow = (mouseVel * 2.4 + vortex * length(mouseVel) * 1.6) * mouseInfluence;
-  
+
+  vec2 vortex = vec2(-delta.y, delta.x) / (dist + 0.14);
+  vec2 mouseFlow = (mouseVel * 2.1 + vortex * length(mouseVel) * 1.4) * mouseInfluence;
+
   vec2 warpedP = p - mouseFlow;
   vec2 flow = warp(warpedP, t);
 
-  float stir = mouseInfluence * (length(mouseVel) * 3.0 + 0.4);
+  float stir = mouseInfluence * (length(mouseVel) * 2.6 + 0.35);
 
-  float redStream = smoothstep(-0.15, 0.6, fbm(warpedP + flow * 2.0 + vec2(t * 0.28 + stir * 0.45, 1.2)));
-  float blueStream = smoothstep(-0.15, 0.6, fbm(warpedP + flow * 1.8 + vec2(-t * 0.24 - stir * 0.35, 4.8)));
-  float yellowStream = smoothstep(-0.15, 0.6, fbm(warpedP + flow * 2.2 + vec2(3.1, t * 0.26 + stir * 0.4)));
+  float roseStream  = smoothstep(-0.12, 0.6, fbm(warpedP + flow * 1.9 + vec2(t * 0.22 + stir * 0.4, 1.2)));
+  float cyanStream  = smoothstep(-0.12, 0.6, fbm(warpedP + flow * 1.7 + vec2(-t * 0.2 - stir * 0.32, 4.8)));
+  float amberStream = smoothstep(-0.12, 0.6, fbm(warpedP + flow * 2.1 + vec2(3.1, t * 0.22 + stir * 0.35)));
 
-  vec3 cRed    = vec3(1.0, 0.1, 0.3);
-  vec3 cBlue   = vec3(0.0, 0.88, 1.0);
-  vec3 cYellow = vec3(1.0, 0.88, 0.08);
+  vec3 cRose  = vec3(0.95, 0.20, 0.40);
+  vec3 cCyan  = vec3(0.00, 0.86, 0.98);
+  vec3 cAmber = vec3(0.92, 0.58, 0.08);
+  vec3 cViolet = vec3(0.55, 0.20, 0.86);
 
-  vec3 cOrange = vec3(1.0, 0.5, 0.02);
-  vec3 cGreen  = vec3(0.05, 0.95, 0.45);
-  vec3 cPurple = vec3(0.75, 0.12, 0.98);
+  vec3 base = vec3(0.025, 0.035, 0.055);
 
-  vec3 base = vec3(0.03, 0.04, 0.06);
+  float sum = roseStream + cyanStream + amberStream + 0.001;
+  vec3 col = (roseStream * cRose + cyanStream * cCyan + amberStream * cAmber) / sum;
+  col = mix(col, cViolet, clamp(roseStream * cyanStream * 1.8, 0.0, 0.68));
 
-  float sum = redStream + blueStream + yellowStream + 0.001;
-  vec3 col = (redStream * cRed + blueStream * cBlue + yellowStream * cYellow) / sum;
+  float totalIntensity = smoothstep(0.08, 1.25, roseStream + cyanStream + amberStream);
+  col = mix(base, col * 0.56, totalIntensity);
 
-  col = mix(col, cOrange, clamp(redStream * yellowStream * 2.2, 0.0, 0.85));
-  col = mix(col, cGreen, clamp(blueStream * yellowStream * 2.2, 0.0, 0.85));
-  col = mix(col, cPurple, clamp(redStream * blueStream * 2.2, 0.0, 0.85));
-
-  float totalIntensity = smoothstep(0.0, 1.2, redStream + blueStream + yellowStream);
-  col = mix(base, col, totalIntensity);
-
-  float activeBurst = length(mouseVel) * mouseInfluence * 2.0;
-  col += (cBlue * 0.35 + cRed * 0.25 + cYellow * 0.25) * activeBurst;
+  float activeBurst = length(mouseVel) * mouseInfluence * 1.6;
+  col += (cCyan * 0.32 + cRose * 0.22 + cAmber * 0.18) * activeBurst;
 
   return col;
 }
@@ -821,49 +811,48 @@ void main() {
   vec2 m = iMouse.xy / iResolution.xy;
   m.x *= aspect;
 
-  float t = iTime * 0.45;
+  float t = iTime * 0.38;
 
   float mouseDist = length(p - m);
-  float mouseWave = sin(mouseDist * 20.0 - iTime * 4.0) * exp(-mouseDist * 3.5);
+  float mouseWave = sin(mouseDist * 16.0 - iTime * 3.4) * exp(-mouseDist * 4.2);
   vec2 mouseDir = (mouseDist > 0.001) ? normalize(p - m) : vec2(0.0);
 
   vec2 glassWave = vec2(
-    sin(uv.y * 5.0 + t) * 0.025 + sin(uv.x * 9.0 - t * 0.6) * 0.015,
-    cos(uv.x * 5.0 + t) * 0.025 + cos(uv.y * 9.0 - t * 0.6) * 0.015
+    sin(uv.y * 4.5 + t) * 0.02 + sin(uv.x * 8.0 - t * 0.5) * 0.012,
+    cos(uv.x * 4.5 + t) * 0.02 + cos(uv.y * 8.0 - t * 0.5) * 0.012
   );
 
-  vec2 distortion = glassWave + mouseDir * mouseWave * 0.04;
+  vec2 distortion = glassWave + mouseDir * mouseWave * 0.028;
   vec2 pG = (uv + distortion);
   pG.x *= aspect;
 
-  vec3 watercolorColor = sampleWatercolor(pG * 2.6, t, m, iMouseVel);
+  vec3 watercolorColor = sampleWatercolor(pG * 2.4, t, m, iMouseVel);
 
   vec3 envTex = texture2D(iChannel0, clamp(uv + distortion, 0.0, 1.0)).rgb;
-  vec3 combinedColor = mix(watercolorColor, watercolorColor + envTex * 0.45, 0.4);
+  vec3 combinedColor = mix(watercolorColor, watercolorColor + envTex * 0.38, 0.35);
 
-  float normalX = sin(distortion.x * 45.0);
-  float normalY = cos(distortion.y * 45.0);
+  float normalX = sin(distortion.x * 42.0);
+  float normalY = cos(distortion.y * 42.0);
   vec3 normal = normalize(vec3(normalX, normalY, 1.0));
-  vec3 lightDir = normalize(vec3(0.5, 0.8, 1.2));
-  float spec = pow(max(dot(normal, lightDir), 0.0), 22.0) * 0.42;
+  vec3 lightDir = normalize(vec3(0.45, 0.75, 1.25));
+  float spec = pow(max(dot(normal, lightDir), 0.0), 26.0) * 0.34;
 
-  vec3 rimSheen = vec3(0.0, 0.91, 1.0) * abs(distortion.x) * 2.2
-                + vec3(1.0, 0.12, 0.32) * abs(distortion.y) * 1.8;
+  vec3 rimSheen = vec3(0.0, 0.88, 1.0) * abs(distortion.x) * 1.9
+                + vec3(1.0, 0.22, 0.42) * abs(distortion.y) * 1.5;
 
-  float vignette = smoothstep(0.0, 0.07, uv.x) * smoothstep(1.0, 0.93, uv.x) *
-                   smoothstep(0.0, 0.07, uv.y) * smoothstep(1.0, 0.93, uv.y);
+  float vignette = smoothstep(0.0, 0.08, uv.x) * smoothstep(1.0, 0.92, uv.x) *
+                   smoothstep(0.0, 0.08, uv.y) * smoothstep(1.0, 0.92, uv.y);
 
-  vec3 finalColor = combinedColor + vec3(spec) + rimSheen;
-  finalColor *= mix(0.72, 1.0, vignette);
+  vec3 finalColor = (combinedColor + vec3(spec) + rimSheen) * mix(0.68, 1.0, vignette);
 
-  gl_FragColor = vec4(finalColor, 0.95);
+  gl_FragColor = vec4(finalColor, 0.96);
 }
   </script>
 
   <!-- Scripts -->
-  <script src="config.js" defer></script>
-  <script src="js/swarm-boot.js?v=3.6" defer></script>
-  <script src="js/main.js?v=3.6" defer></script>
+  <script src="config.js?v=4.0" defer></script>
+  <script src="js/swarm-boot.js?v=4.0" defer></script>
+  <script src="js/main.js?v=4.0" defer></script>
 </body>
 
 </html>

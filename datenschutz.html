@@ -2,8 +2,10 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-  <meta name="theme-color" content="#06080c">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#090b0e">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
   <meta name="robots" content="noindex, follow">
   <meta name="description" content="Datenschutzerklärung für VYRN — Detaillierte und transparente Informationen zur Datenverarbeitung gemäß DSGVO, BDSG und TDDDG.">
 
@@ -15,7 +17,8 @@
 
   <link rel="manifest" href="manifest.json">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
-  <link rel="stylesheet" href="css/style.css?v=3.5">
+  <link rel="stylesheet" href="css/style.css?v=4.0">
+  <link rel="expect" href="#main-content" blocking="render">
   <script>
     if (window.location.pathname.endsWith('.html')) {
       const clean = window.location.pathname.replace(/\.html$/, '');
@@ -24,6 +27,7 @@
   </script>
 </head>
 <body class="legal-wrapper">
+  <a href="#main-content" class="skip-link visually-hidden">Zum Hauptinhalt springen</a>
 
   <!-- Minimal Professional Sticky Header -->
   <header class="legal-nav-header">
@@ -40,7 +44,7 @@
   </header>
 
   <!-- Legal Document Container -->
-  <main class="legal-document-container">
+  <main id="main-content" tabindex="-1" class="legal-document-container">
     
     <div class="legal-doc-header">
       <h1 class="legal-doc-title">Datenschutzerklärung</h1>
@@ -265,10 +269,10 @@
   <footer class="legal-footer">
     <div class="legal-footer-container">
       <span>© 2026 VYRN</span>
-      <div class="legal-footer-links">
+      <nav class="legal-footer-links" aria-label="Rechtliche Hinweise">
         <a href="impressum.html">Impressum</a>
-        <a href="datenschutz.html" class="is-active">Datenschutzerklärung</a>
-      </div>
+        <a href="datenschutz.html" class="is-active" aria-current="page">Datenschutzerklärung</a>
+      </nav>
     </div>
   </footer>
 
