@@ -1292,6 +1292,8 @@
       overlay.removeEventListener('wheel', blockScroll);
       overlay.removeEventListener('touchmove', blockScroll);
 
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, vw, vh);
       overlay.style.pointerEvents = 'none';
 
       if (canTransitionDisplay()) {
