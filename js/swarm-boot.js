@@ -214,6 +214,11 @@
     return supportsDisplayTransition;
   }
 
+  function finishSwarmBoot() {
+    document.documentElement.classList.remove('swarm-booting');
+    window.dispatchEvent(new CustomEvent('vyrn:swarm-complete'));
+  }
+
   /* --- Pre-rendered Additive Glow Sprites & Soft Watercolor Ink Brush Stamp --- */
   function createGlowSprites() {
     const colors = {
@@ -342,6 +347,16 @@
     ctx.restore();
   }
 
+  const badgeTextWidthCache = new Map();
+  function getCachedTextWidth(ctx, cacheKey, text) {
+    let w = badgeTextWidthCache.get(cacheKey);
+    if (w !== undefined) return w;
+    w = Math.ceil(ctx.measureText(text).width);
+    if (badgeTextWidthCache.size > 160) badgeTextWidthCache.clear();
+    badgeTextWidthCache.set(cacheKey, w);
+    return w;
+  }
+
   function drawPixelBadge(ctx, cx, cy, text, accentColor, alpha) {
     if (alpha <= 0.02 || !text) return;
     ctx.save();
@@ -349,7 +364,7 @@
     ctx.font = '600 10px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
     const padX = 5;
     const h = 15;
-    const w = Math.ceil(ctx.measureText(text).width) + padX * 2;
+    const w = getCachedTextWidth(ctx, `10:${text}`, text) + padX * 2;
     const left = cx - w * 0.5;
     const top = cy - h * 0.5;
 
@@ -456,7 +471,7 @@
 
     if (tagText) {
       ctx.font = '600 9.5px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
-      const tw = Math.ceil(ctx.measureText(tagText).width) + 8;
+      const tw = getCachedTextWidth(ctx, `9.5:${tagText}`, tagText) + 8;
       const bx = -hw;
       const by = -hh - 17;
       ctx.globalAlpha = alpha * 0.95;
@@ -628,7 +643,7 @@
     if (!overlay || !canvas) return null;
     const ctx = canvas.getContext('2d', { alpha: true });
     if (!ctx) {
-      document.documentElement.classList.remove('swarm-booting');
+      finishSwarmBoot();
       return null;
     }
 
@@ -1336,20 +1351,33 @@
 
       // Ignite inkSeeds dynamically when SHADER's brush nears them (mapped through live titlePose) or on timeline trigger
       if (glyphData && glyphData.inkSeeds) {
-        const shaderBot = agents.find((a) => a.id === 'shader');
-        const shaderBrush = shaderBot && shaderBot.laserTarget ? shaderBot.laserTarget : null;
+        let shaderBrush = null;
+        for (let i = 0; i < agents.length; i++) {
+          if (agents[i].id === 'shader') {
+            shaderBrush = agents[i].laserTarget || null;
+            break;
+          }
+        }
         const tPose = layout ? layout.titlePose : null;
         const tr = targets ? targets.title : null;
-        glyphData.inkSeeds.forEach((seed) => {
-          const seedPt = tPose && tr ? transformPoint(seed, tr.cx, tr.cy, tPose) : seed;
-          const brushNear = shaderBrush && Math.hypot(shaderBrush.x - seedPt.x, shaderBrush.y - seedPt.y) < 96;
+        const seeds = glyphData.inkSeeds;
+        const maxDistSq = 96 * 96;
+        for (let i = 0; i < seeds.length; i++) {
+          const seed = seeds[i];
+          let brushNear = false;
+          if (shaderBrush) {
+            const seedPt = tPose && tr ? transformPoint(seed, tr.cx, tr.cy, tPose) : seed;
+            const sdx = shaderBrush.x - seedPt.x;
+            const sdy = shaderBrush.y - seedPt.y;
+            brushNear = (sdx * sdx + sdy * sdy) < maxDistSq;
+          }
           if (brushNear || p >= seed.triggerP) {
             seed.bloom = Math.min(1, seed.bloom + dt * 4.2);
           }
-        });
+        }
       }
 
-      // Step welding sparks with soft gravity & air drag
+      // Step welding sparks with soft gravity & air drag (swap-and-pop avoids O(N) splice shifts)
       for (let i = sparks.length - 1; i >= 0; i--) {
         const s = sparks[i];
         s.vy += 220 * dt;
@@ -1358,7 +1386,11 @@
         s.vx *= 0.94;
         s.vy *= 0.94;
         s.life -= s.decay * dt;
-        if (s.life <= 0) sparks.splice(i, 1);
+        if (s.life <= 0) {
+          const last = sparks.length - 1;
+          if (i !== last) sparks[i] = sparks[last];
+          sparks.pop();
+        }
       }
     }
 
@@ -1813,6 +1845,25 @@
       const pad = glyphData.pad || 0;
       const gw = glyphData.gw || glyphData.w;
       const gh = glyphData.gh || glyphData.h;
+      const fullFillBlend = smoothstep(0.66, 0.75, p);
+
+      // Once saturated (p >= 0.75), blit the pre-rendered fillCanvas directly without re-stamping offscreen inkCanvas
+      if (fullFillBlend >= 0.999) {
+        ctx.save();
+        if (titlePose) {
+          ctx.translate(tr.cx + titlePose.dx, tr.cy + titlePose.dy);
+          ctx.rotate(titlePose.rot);
+          ctx.scale(titlePose.scale, titlePose.scale);
+          ctx.globalAlpha = 0.98 * wireframeAlpha;
+          ctx.drawImage(glyphData.fillCanvas, (tr.left - pad) - tr.cx, (tr.top - pad) - tr.cy, gw, gh);
+        } else {
+          ctx.globalAlpha = 0.98 * wireframeAlpha;
+          ctx.drawImage(glyphData.fillCanvas, tr.left - pad, tr.top - pad, gw, gh);
+        }
+        ctx.restore();
+        return;
+      }
+
       const gdpr = glyphData.glyphDpr || 1;
       const ictx = glyphData.inkCtx;
       const stamp = glowSprites.inkStamp;
@@ -1856,7 +1907,6 @@
       });
 
       // 3. Ensure full rich saturation before verification handoff
-      const fullFillBlend = smoothstep(0.66, 0.75, p);
       if (fullFillBlend > 0.01) {
         anyDrawn = true;
         ictx.globalAlpha = fullFillBlend;
@@ -2217,21 +2267,25 @@
       ctx.globalAlpha = agentAlpha;
 
       // Articulated micro tool-emitter nozzle aimed at active target
-      if (ag.laserTarget && Math.hypot(ag.laserTarget.x - ag.x, ag.laserTarget.y - ag.y) < 360) {
-        const nozzleAngle = Math.atan2(ag.laserTarget.y - ag.y, ag.laserTarget.x - ag.x) - ag.tilt;
-        ctx.save();
-        ctx.rotate(nozzleAngle);
-        ctx.fillStyle = '#0f172a';
-        ctx.strokeStyle = ag.color;
-        ctx.lineWidth = 1.1;
-        traceRoundedRect(ctx, bodyW * 0.42, -1.9, 8.5, 3.8, 1.8);
-        ctx.fill();
-        ctx.stroke();
-        ctx.fillStyle = '#ffffff';
-        ctx.beginPath();
-        ctx.arc(bodyW * 0.42 + 8.5, 0, 1.9, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.restore();
+      if (ag.laserTarget) {
+        const ldx = ag.laserTarget.x - ag.x;
+        const ldy = ag.laserTarget.y - ag.y;
+        if (ldx * ldx + ldy * ldy < 129600) {
+          const nozzleAngle = Math.atan2(ldy, ldx) - ag.tilt;
+          ctx.save();
+          ctx.rotate(nozzleAngle);
+          ctx.fillStyle = '#0f172a';
+          ctx.strokeStyle = ag.color;
+          ctx.lineWidth = 1.1;
+          traceRoundedRect(ctx, bodyW * 0.42, -1.9, 8.5, 3.8, 1.8);
+          ctx.fill();
+          ctx.stroke();
+          ctx.fillStyle = '#ffffff';
+          ctx.beginPath();
+          ctx.arc(bodyW * 0.42 + 8.5, 0, 1.9, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        }
       }
 
       // Layered plasma hover thruster plume under bot
@@ -2550,7 +2604,7 @@
         overlay.hidden = true;
       }
       overlay.style.pointerEvents = '';
-      document.documentElement.classList.remove('swarm-booting');
+      finishSwarmBoot();
     }
 
     function blockScroll(e) {
@@ -2688,7 +2742,7 @@
   document.addEventListener('DOMContentLoaded', () => {
     const controller = createSwarmController();
     if (!controller) {
-      document.documentElement.classList.remove('swarm-booting');
+      finishSwarmBoot();
       return;
     }
 
@@ -2703,7 +2757,7 @@
     if (document.documentElement.classList.contains('swarm-booting') && !prefersReducedMotion) {
       controller.start();
     } else {
-      document.documentElement.classList.remove('swarm-booting');
+      finishSwarmBoot();
       const overlay = document.getElementById('swarm-startup');
       if (overlay) overlay.hidden = true;
     }

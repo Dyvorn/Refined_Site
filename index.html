@@ -93,7 +93,7 @@
 
   <link rel="manifest" href="manifest.json">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
-  <link rel="stylesheet" href="css/style.css?v=4.4">
+  <link rel="stylesheet" href="css/style.css?v=4.6">
   <link rel="expect" href="#main-content" blocking="render">
   <script>
     (function () {
@@ -248,21 +248,22 @@
             <div class="hero-flame-halo" aria-hidden="true"></div>
 
             <!-- Floating Discipline Glass Pills (AUDIO, VIDEO, CODE) -->
-            <div class="hero-glass-pill hero-glass-pill--audio hero-glass-pill--top-left"
-              aria-label="Discipline: Audio">
-              <span class="glass-pill-dot dot-pink"></span>
+            <a href="#contact" class="hero-glass-pill hero-glass-pill--audio hero-glass-pill--top-left"
+              data-contact-topic="Audio Engineering / Sound Design"
+              aria-label="Audio discipline — jump to audio inquiry form">
+              <span class="glass-pill-dot dot-pink" aria-hidden="true"></span>
               <span class="glass-pill-text">AUDIO</span>
-            </div>
-            <div class="hero-glass-pill hero-glass-pill--code hero-glass-pill--bottom-right"
-              aria-label="Discipline: Code">
-              <span class="glass-pill-dot dot-amber"></span>
+            </a>
+            <a href="#projects" class="hero-glass-pill hero-glass-pill--code hero-glass-pill--bottom-right"
+              aria-label="Code discipline — jump to software projects">
+              <span class="glass-pill-dot dot-amber" aria-hidden="true"></span>
               <span class="glass-pill-text">CODE</span>
-            </div>
-            <div class="hero-glass-pill hero-glass-pill--video hero-glass-pill--top-right"
-              aria-label="Discipline: Video">
-              <span class="glass-pill-dot dot-cyan"></span>
+            </a>
+            <a href="#video" class="hero-glass-pill hero-glass-pill--video hero-glass-pill--top-right"
+              aria-label="Video discipline — jump to latest video showcase">
+              <span class="glass-pill-dot dot-cyan" aria-hidden="true"></span>
               <span class="glass-pill-text">VIDEO</span>
-            </div>
+            </a>
 
             <span class="hero-eyebrow">
               <span class="eyebrow-dots" aria-hidden="true">
@@ -485,7 +486,7 @@
                   <span id="waitlist-email-error" class="field-error-msg">Error: Enter an email address in the format
                     you@example.com.</span>
                 </div>
-                <button type="submit" class="pill-btn pill-btn--solid waitlist-btn">Notify Me</button>
+                <button type="submit" class="pill-btn pill-btn--solid waitlist-btn"><span>Notify Me</span></button>
               </form>
               <p class="waitlist-note">One-time email when Discord opens — no spam. <a href="datenschutz.html"
                   target="_blank" rel="noopener">Privacy Policy</a>.</p>
@@ -546,6 +547,28 @@
         </div>
 
         <div class="contact-card">
+          <div class="contact-utility-bar">
+            <div class="contact-utility-direct">
+              <span class="contact-utility-label">Direct Email</span>
+              <a href="mailto:refined.mov@gmail.com" id="contact-direct-link"
+                class="contact-direct-email">refined.mov@gmail.com</a>
+              <button type="button" id="copy-email-btn" class="contact-copy-btn"
+                aria-label="Copy email address refined.mov@gmail.com">
+                <svg class="copy-icon-default" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                  aria-hidden="true">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+                <span id="copy-email-label">Copy</span>
+              </button>
+            </div>
+            <span id="contact-delivery-mode" class="contact-delivery-badge">
+              <span class="delivery-mode-dot" aria-hidden="true"></span>
+              <span id="contact-delivery-label">Email Client Mode</span>
+            </span>
+          </div>
+
           <form id="contact-form" class="contact-form" action="#contact" method="post" aria-labelledby="contact-heading">
             <div class="hp-field" aria-hidden="true">
               <label for="contact-hp">Leave this field empty</label>
@@ -577,10 +600,14 @@
                 </select>
               </div>
               <div class="contact-field contact-field-full">
-                <label for="contact-message" class="contact-label">Message <span aria-hidden="true">*</span></label>
-                <textarea id="contact-message" name="message" class="contact-textarea"
+                <div class="contact-label-row">
+                  <label for="contact-message" class="contact-label">Message <span aria-hidden="true">*</span></label>
+                  <span id="contact-message-count" class="field-char-count" aria-hidden="true">0 / 5000</span>
+                </div>
+                <textarea id="contact-message" name="message" class="contact-textarea" maxlength="5000"
                   placeholder="Tell me about your project, idea, or inquiry..." enterkeyhint="enter"
-                  data-error="contact-message-error" required></textarea>
+                  aria-describedby="contact-message-hint" data-error="contact-message-error" required></textarea>
+                <span id="contact-message-hint" class="contact-field-hint">Press Ctrl / ⌘ + Enter to submit</span>
                 <span id="contact-message-error" class="field-error-msg">Error: Please enter a message describing your
                   project or inquiry.</span>
               </div>
@@ -647,6 +674,9 @@
       </div>
     </div>
   </footer>
+
+  <!-- Persistent Top-Layer Notification Region -->
+  <div id="toast-region" class="toast-region" aria-label="Notifications"></div>
 
   <!-- Minimalist Back to Top Pill -->
   <button type="button" id="back-to-top" class="back-to-top" aria-label="Scroll back to top">
@@ -888,9 +918,9 @@ void main() {
   </script>
 
   <!-- Scripts -->
-  <script src="config.js?v=4.4" defer></script>
-  <script src="js/swarm-boot.js?v=4.4" defer></script>
-  <script src="js/main.js?v=4.4" defer></script>
+  <script src="config.js?v=4.6" defer></script>
+  <script src="js/swarm-boot.js?v=4.6" defer></script>
+  <script src="js/main.js?v=4.6" defer></script>
 </body>
 
 </html>

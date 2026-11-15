@@ -54,11 +54,14 @@ const DEFAULT_PROJECTS = [];
 document.addEventListener('DOMContentLoaded', () => {
   initUnifiedScroll();
   initMobileNav();
+  initCardSpotlights();
+  initHeroDisciplineActions();
   initVideoPlayer();
   fetchLatestYouTubeVideo();
   initProjectsLiquidGlass();
   initProjectsGrid();
   initAccessibleForms();
+  initContactUtility();
   initDiscordWaitlist();
   initContactForm();
   initHeroWatercolorText();
@@ -80,7 +83,23 @@ function initUnifiedScroll() {
   const supportsScrollTimeline = typeof CSS !== 'undefined' &&
     typeof CSS.supports === 'function' &&
     CSS.supports('animation-timeline: scroll()');
+  const supportsCardViewTimeline = typeof CSS !== 'undefined' &&
+    typeof CSS.supports === 'function' &&
+    CSS.supports('(animation-timeline: view()) and (animation-range: entry)');
   const supportsIO = 'IntersectionObserver' in window;
+
+  const setActiveNavSection = (activeId) => {
+    document.querySelectorAll('.nav-item, .mobile-nav-item').forEach((link) => {
+      const href = link.getAttribute('href') || '';
+      const isCurrent = Boolean(activeId) && href === `#${activeId}`;
+      link.classList.toggle('is-active', isCurrent);
+      if (isCurrent) {
+        link.setAttribute('aria-current', 'location');
+      } else {
+        link.removeAttribute('aria-current');
+      }
+    });
+  };
 
   if (supportsIO && (navPill || backToTopBtn)) {
     if (navPill) {
@@ -115,6 +134,68 @@ function initUnifiedScroll() {
         backToTopBtn.classList.toggle('is-visible', visible);
       }, { threshold: 0 });
       topObserver.observe(topSentinel);
+    }
+
+    const heroSection = document.getElementById('hero');
+    if (heroSection) {
+      let isHeroOffscreen = false;
+      const heroObserver = new IntersectionObserver((entries) => {
+        const entry = entries[0];
+        if (!entry) return;
+        const offscreen = !entry.isIntersecting;
+        if (offscreen !== isHeroOffscreen) {
+          isHeroOffscreen = offscreen;
+          heroSection.classList.toggle('is-hero-offscreen', isHeroOffscreen);
+        }
+      }, { threshold: 0 });
+      heroObserver.observe(heroSection);
+    }
+
+    const trackedSections = [...document.querySelectorAll('#hero, #video, #projects, #community, #contact')];
+    if (trackedSections.length) {
+      const visibleRatios = new Map();
+      const navSpyObserver = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          visibleRatios.set(entry.target.id, entry.isIntersecting ? entry.intersectionRatio : 0);
+        });
+        let bestId = '';
+        let bestRatio = 0;
+        visibleRatios.forEach((ratio, id) => {
+          if (ratio > bestRatio) {
+            bestRatio = ratio;
+            bestId = id;
+          }
+        });
+        if (bestId === 'hero') {
+          setActiveNavSection('');
+        } else if (bestId) {
+          setActiveNavSection(bestId);
+        }
+      }, {
+        rootMargin: '-22% 0px -48% 0px',
+        threshold: [0, 0.15, 0.35, 0.6],
+      });
+      trackedSections.forEach((section) => navSpyObserver.observe(section));
+    }
+
+    if (!supportsCardViewTimeline && !reducedMotionQuery.matches) {
+      const revealTargets = document.querySelectorAll(
+        '.section-title-wrap, .video-showcase-grid, .cta-support-bar, .projects-empty-block, .project-card, .liquid-glass-pill-card, .contact-card'
+      );
+      if (revealTargets.length) {
+        const revealObserver = new IntersectionObserver((entries, observer) => {
+          entries.forEach((entry) => {
+            if (!entry.isIntersecting) return;
+            entry.target.classList.add('is-revealed');
+            observer.unobserve(entry.target);
+          });
+        }, { rootMargin: '0px 0px -6% 0px', threshold: 0.06 });
+
+        revealTargets.forEach((el) => {
+          el.classList.add('reveal-on-scroll');
+          revealObserver.observe(el);
+        });
+      }
     }
   }
 
@@ -173,6 +254,35 @@ function initUnifiedScroll() {
       }
     });
   }
+}
+
+/**
+ * Caches mobile viewport checks and static WebGL bindings so animation frames
+ * skip redundant DOM reads, viewport calls, and uniform/texture uploads.
+ */
+function createGlStaticSync(gl, canvas, uniforms, textureUniform, texture) {
+  let lastW = -1;
+  let lastH = -1;
+  let dirty = true;
+  let isMobile = window.innerWidth <= 768 || ('ontouchstart' in window);
+
+  window.addEventListener('resize', () => {
+    isMobile = window.innerWidth <= 768 || ('ontouchstart' in window);
+    dirty = true;
+  }, { passive: true });
+
+  return () => {
+    if (!dirty && canvas.width === lastW && canvas.height === lastH) return;
+    lastW = canvas.width;
+    lastH = canvas.height;
+    dirty = false;
+    gl.viewport(0, 0, canvas.width, canvas.height);
+    gl.uniform1f(uniforms.isMobile, isMobile ? 1.0 : 0.0);
+    gl.uniform3f(uniforms.resolution, canvas.width, canvas.height, 1.0);
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.uniform1i(textureUniform, 0);
+  };
 }
 
 /**
@@ -500,6 +610,165 @@ function initProjectsGrid() {
  * page-wide live region.
  */
 const formValidators = new WeakMap();
+let sharedAnnouncerEl = null;
+let sharedAnnounceTimer = null;
+
+function getStatusAnnouncer() {
+  if (!sharedAnnouncerEl) {
+    sharedAnnouncerEl = document.createElement('div');
+    sharedAnnouncerEl.id = 'sr-status-announcer';
+    sharedAnnouncerEl.setAttribute('aria-live', 'polite');
+    sharedAnnouncerEl.setAttribute('aria-atomic', 'true');
+    sharedAnnouncerEl.className = 'visually-hidden';
+    document.body.append(sharedAnnouncerEl);
+  }
+  return sharedAnnouncerEl;
+}
+
+function announceStatus(message, { priority = 'normal', delayMs = 40 } = {}) {
+  const clean = String(message || '').trim();
+  if (!clean) return;
+  if (typeof document.ariaNotify === 'function') {
+    document.ariaNotify(clean, { priority });
+    return;
+  }
+  const announcer = getStatusAnnouncer();
+  clearTimeout(sharedAnnounceTimer);
+  announcer.textContent = '';
+  sharedAnnounceTimer = setTimeout(() => {
+    announcer.textContent = clean;
+  }, delayMs);
+}
+
+/**
+ * Tactile Liquid Glass Card Spotlight Controller
+ * Tracks pointer position inside desktop glass cards on hover using a single
+ * RAF pass and cached bounding boxes (invalidated on enter, scroll, and resize).
+ */
+function initCardSpotlights() {
+  const canHoverFine = window.matchMedia && window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+  const mainEl = document.querySelector('main');
+  if (!canHoverFine || !mainEl) return;
+
+  const SPOTLIGHT_SELECTOR =
+    '.video-showcase-grid, .cta-support-bar, .projects-empty-block, .project-card, .liquid-glass-pill-card, .contact-card';
+
+  let activeCard = null;
+  let activeRect = null;
+  let rectDirty = true;
+  let pointerX = 0;
+  let pointerY = 0;
+  let rafId = 0;
+
+  const invalidateRect = () => {
+    rectDirty = true;
+  };
+
+  const clearActiveCard = () => {
+    if (rafId) {
+      cancelAnimationFrame(rafId);
+      rafId = 0;
+    }
+    if (activeCard) {
+      activeCard.style.setProperty('--spot-opacity', '0');
+      activeCard = null;
+      activeRect = null;
+    }
+  };
+
+  const commitSpotlight = () => {
+    rafId = 0;
+    if (!activeCard || reducedMotionQuery.matches) return;
+    if (rectDirty || !activeRect) {
+      activeRect = activeCard.getBoundingClientRect();
+      rectDirty = false;
+    }
+    const localX = pointerX - activeRect.left;
+    const localY = pointerY - activeRect.top;
+    activeCard.style.setProperty('--spot-x', `${localX.toFixed(1)}px`);
+    activeCard.style.setProperty('--spot-y', `${localY.toFixed(1)}px`);
+    activeCard.style.setProperty('--spot-opacity', '1');
+  };
+
+  mainEl.addEventListener('pointerover', (e) => {
+    if (reducedMotionQuery.matches) return;
+    const card = e.target.closest?.(SPOTLIGHT_SELECTOR) || null;
+    if (card === activeCard) return;
+    clearActiveCard();
+    if (!card) return;
+    activeCard = card;
+    activeRect = card.getBoundingClientRect();
+    rectDirty = false;
+    pointerX = e.clientX;
+    pointerY = e.clientY;
+    commitSpotlight();
+  }, { passive: true });
+
+  mainEl.addEventListener('pointermove', (e) => {
+    if (!activeCard || reducedMotionQuery.matches) return;
+    pointerX = e.clientX;
+    pointerY = e.clientY;
+    if (!rafId) rafId = requestAnimationFrame(commitSpotlight);
+  }, { passive: true });
+
+  mainEl.addEventListener('pointerleave', clearActiveCard, { passive: true });
+  window.addEventListener('scroll', invalidateRect, { passive: true });
+  window.addEventListener('resize', invalidateRect, { passive: true });
+
+  if (typeof reducedMotionQuery.addEventListener === 'function') {
+    reducedMotionQuery.addEventListener('change', (e) => {
+      if (e.matches) clearActiveCard();
+    });
+  }
+}
+
+/**
+ * Interactive Hero Discipline Pills -> Preselect Contact Topic & Highlight Form
+ */
+function initHeroDisciplineActions() {
+  const stage = document.getElementById('hero-stage');
+  if (!stage) return;
+
+  let highlightTimer = null;
+
+  stage.addEventListener('click', (e) => {
+    const pill = e.target.closest?.('.hero-glass-pill[data-contact-topic]');
+    if (!pill) return;
+
+    const topicValue = pill.dataset.contactTopic;
+    const contactSection = document.getElementById('contact');
+    const topicSelect = document.getElementById('contact-topic');
+    const contactCard = contactSection?.querySelector('.contact-card');
+    const nameInput = document.getElementById('contact-name');
+
+    if (!contactSection || !topicSelect) return;
+    e.preventDefault();
+
+    const matchingOption = [...topicSelect.options].find((opt) => opt.value === topicValue);
+    if (matchingOption) {
+      topicSelect.value = matchingOption.value;
+    }
+
+    if (contactCard) {
+      clearTimeout(highlightTimer);
+      contactCard.classList.remove('is-spotlight-highlight');
+      void contactCard.offsetWidth;
+      contactCard.classList.add('is-spotlight-highlight');
+      highlightTimer = setTimeout(() => {
+        contactCard.classList.remove('is-spotlight-highlight');
+      }, 1600);
+    }
+
+    const behavior = reducedMotionQuery.matches ? 'auto' : 'smooth';
+    contactSection.scrollIntoView({ behavior, block: 'start' });
+
+    if (nameInput) {
+      setTimeout(() => {
+        nameInput.focus({ preventScroll: true });
+      }, reducedMotionQuery.matches ? 0 : 420);
+    }
+  });
+}
 
 function initAccessibleForms() {
   const forms = document.querySelectorAll('#discord-waitlist-form, #contact-form');
@@ -508,16 +777,14 @@ function initAccessibleForms() {
   const supportsUserInvalid = typeof CSS !== 'undefined' &&
     typeof CSS.supports === 'function' &&
     CSS.supports('selector(:user-invalid)');
+  const supportsHas = typeof CSS !== 'undefined' &&
+    typeof CSS.supports === 'function' &&
+    CSS.supports('selector(:has(a))');
   const dirtyState = new WeakMap();
   const flagged = new WeakSet();
   const announced = new WeakSet();
 
-  const announcer = document.createElement('div');
-  announcer.setAttribute('aria-live', 'polite');
-  announcer.className = 'visually-hidden';
-  document.body.append(announcer);
-
-  let announceTimer;
+  getStatusAnnouncer();
   let announcedField;
 
   const linkError = (el, shown) => {
@@ -544,12 +811,8 @@ function initAccessibleForms() {
     const errorEl = el.dataset.error ? document.getElementById(el.dataset.error) : null;
     if (!errorEl) return;
     const labelText = el.labels?.[0] ? `${spokenText(el.labels[0])}: ` : '';
-    clearTimeout(announceTimer);
-    announcer.textContent = '';
     announcedField = el;
-    announceTimer = setTimeout(() => {
-      announcer.textContent = labelText + spokenText(errorEl);
-    }, 500);
+    announceStatus(labelText + spokenText(errorEl), { priority: 'normal', delayMs: 500 });
   };
 
   const isFieldUserInvalid = (el) => {
@@ -569,6 +832,10 @@ function initAccessibleForms() {
     }
 
     const invalid = isFieldUserInvalid(el);
+    if (!supportsHas) {
+      el.closest('.contact-field, .waitlist-field')?.classList.toggle('has-error-fallback', invalid);
+    }
+
     if (invalid) {
       if (announce && !announced.has(el)) {
         announceError(el);
@@ -583,8 +850,8 @@ function initAccessibleForms() {
       flagged.delete(el);
       announced.delete(el);
       if (announcedField === el) {
-        clearTimeout(announceTimer);
-        announcer.textContent = '';
+        clearTimeout(sharedAnnounceTimer);
+        if (sharedAnnouncerEl) sharedAnnouncerEl.textContent = '';
       }
     }
   };
@@ -640,6 +907,7 @@ function initAccessibleForms() {
         controls.forEach((el) => {
           dirtyState.delete(el);
           el.classList.remove('user-invalid-fallback', 'user-valid-fallback');
+          el.closest('.contact-field, .waitlist-field')?.classList.remove('has-error-fallback');
           flagged.delete(el);
           announced.delete(el);
           el.setAttribute('aria-invalid', 'false');
@@ -657,6 +925,9 @@ function initAccessibleForms() {
           if (!supportsUserInvalid) {
             el.classList.add('user-invalid-fallback');
             el.classList.remove('user-valid-fallback');
+          }
+          if (!supportsHas) {
+            el.closest('.contact-field, .waitlist-field')?.classList.add('has-error-fallback');
           }
           el.setAttribute('aria-invalid', 'true');
           linkError(el, true);
@@ -754,6 +1025,222 @@ function showFormFeedback(statusEl, message, isError, timerState, autoHideMs = 7
 }
 
 /**
+ * Persistent Top-Layer Toast Notification Helper
+ * Uses native `popover="manual"` when supported (with graceful `.is-open` fallback),
+ * pauses auto-dismiss while hovered or keyboard-focused inside, and avoids duplicate
+ * live regions by routing screen-reader output through `announceStatus()`.
+ */
+let activeToastCleanup = null;
+
+function showToast(message, variant = 'info', { duration = 5500, triggerEl = null } = {}) {
+  const region = document.getElementById('toast-region');
+  const clean = String(message || '').trim();
+  if (!region || !clean) return;
+
+  if (typeof activeToastCleanup === 'function') {
+    activeToastCleanup(false);
+  }
+
+  announceStatus(clean, {
+    priority: variant === 'error' ? 'high' : 'normal',
+    delayMs: 25,
+  });
+
+  const supportsPopover = typeof HTMLElement !== 'undefined' && 'popover' in HTMLElement.prototype;
+  const toast = document.createElement('div');
+  toast.className = `vyrn-toast vyrn-toast--${variant}`;
+  toast.setAttribute('role', 'region');
+  toast.setAttribute('aria-label', variant === 'error' ? 'Error notification' : 'Notification');
+  if (supportsPopover) {
+    toast.setAttribute('popover', 'manual');
+  }
+
+  const dot = document.createElement('span');
+  dot.className = 'vyrn-toast-dot';
+  dot.setAttribute('aria-hidden', 'true');
+
+  const msgSpan = document.createElement('span');
+  msgSpan.className = 'vyrn-toast-msg';
+  msgSpan.textContent = clean;
+
+  const closeBtn = document.createElement('button');
+  closeBtn.type = 'button';
+  closeBtn.className = 'vyrn-toast-close';
+  closeBtn.setAttribute('aria-label', 'Dismiss notification');
+  closeBtn.textContent = '×';
+
+  toast.append(dot, msgSpan, closeBtn);
+  region.append(toast);
+
+  let timerId = null;
+  let hovered = false;
+  let focusedWithin = false;
+  let dismissed = false;
+
+  const dismiss = (restoreFocus = false) => {
+    if (dismissed) return;
+    dismissed = true;
+    clearTimeout(timerId);
+    if (activeToastCleanup === dismiss) activeToastCleanup = null;
+
+    if (supportsPopover) {
+      try {
+        toast.hidePopover();
+      } catch (e) {}
+    } else {
+      toast.classList.remove('is-open');
+    }
+
+    if (restoreFocus && triggerEl && triggerEl.isConnected && typeof triggerEl.focus === 'function') {
+      triggerEl.focus();
+    }
+
+    setTimeout(() => {
+      if (toast.isConnected) toast.remove();
+    }, reducedMotionQuery.matches ? 0 : 320);
+  };
+
+  activeToastCleanup = dismiss;
+
+  const scheduleDismiss = () => {
+    clearTimeout(timerId);
+    if (duration <= 0 || hovered || focusedWithin || dismissed) return;
+    timerId = setTimeout(() => dismiss(false), duration);
+  };
+
+  closeBtn.addEventListener('click', () => dismiss(true));
+  toast.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      dismiss(true);
+    }
+  });
+  toast.addEventListener('pointerenter', () => {
+    hovered = true;
+    clearTimeout(timerId);
+  });
+  toast.addEventListener('pointerleave', () => {
+    hovered = false;
+    scheduleDismiss();
+  });
+  toast.addEventListener('focusin', () => {
+    focusedWithin = true;
+    clearTimeout(timerId);
+  });
+  toast.addEventListener('focusout', () => {
+    requestAnimationFrame(() => {
+      focusedWithin = toast.contains(document.activeElement);
+      if (!focusedWithin) scheduleDismiss();
+    });
+  });
+
+  if (supportsPopover) {
+    try {
+      toast.showPopover();
+    } catch (e) {
+      toast.classList.add('is-open');
+    }
+  } else {
+    requestAnimationFrame(() => toast.classList.add('is-open'));
+  }
+
+  scheduleDismiss();
+}
+
+/**
+ * Contact Section Utility Bar, Delivery Status, Char Counter & Shortcut
+ */
+function initContactUtility() {
+  const contactEmail = (typeof CONFIG !== 'undefined' && CONFIG.CONTACT_EMAIL)
+    ? CONFIG.CONTACT_EMAIL
+    : 'refined.mov@gmail.com';
+  const directLink = document.getElementById('contact-direct-link');
+  const copyBtn = document.getElementById('copy-email-btn');
+  const copyLabel = document.getElementById('copy-email-label');
+  const deliveryBadge = document.getElementById('contact-delivery-mode');
+  const deliveryLabel = document.getElementById('contact-delivery-label');
+  const messageEl = document.getElementById('contact-message');
+  const countEl = document.getElementById('contact-message-count');
+  const form = document.getElementById('contact-form');
+
+  if (directLink) {
+    directLink.href = `mailto:${encodeURIComponent(contactEmail)}`;
+    directLink.textContent = contactEmail;
+  }
+
+  if (deliveryBadge && deliveryLabel) {
+    const hasEndpoint = Boolean(resolveFormEndpoint('CONTACT_ENDPOINT'));
+    deliveryBadge.classList.toggle('is-connected', hasEndpoint);
+    deliveryLabel.textContent = hasEndpoint ? 'Live Web Delivery Ready' : 'Email Client Mode';
+  }
+
+  if (copyBtn && copyLabel) {
+    copyBtn.setAttribute('aria-label', `Copy email address ${contactEmail}`);
+    let resetCopyTimer = null;
+
+    copyBtn.addEventListener('click', async () => {
+      let copied = false;
+      try {
+        if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+          await navigator.clipboard.writeText(contactEmail);
+          copied = true;
+        }
+      } catch (e) {}
+
+      if (!copied) {
+        try {
+          const temp = document.createElement('textarea');
+          temp.value = contactEmail;
+          temp.setAttribute('readonly', '');
+          temp.style.position = 'fixed';
+          temp.style.opacity = '0';
+          document.body.append(temp);
+          temp.select();
+          copied = document.execCommand('copy');
+          temp.remove();
+        } catch (e) {}
+      }
+
+      if (copied) {
+        clearTimeout(resetCopyTimer);
+        copyBtn.classList.add('is-copied');
+        copyLabel.textContent = 'Copied';
+        showToast(`Copied ${contactEmail} to clipboard.`, 'success', { duration: 4200, triggerEl: copyBtn });
+        resetCopyTimer = setTimeout(() => {
+          copyBtn.classList.remove('is-copied');
+          copyLabel.textContent = 'Copy';
+        }, 2200);
+      } else {
+        showToast(`Email: ${contactEmail}`, 'info', { duration: 5000, triggerEl: copyBtn });
+      }
+    });
+  }
+
+  if (messageEl && countEl) {
+    const maxLen = Number(messageEl.getAttribute('maxlength')) || 5000;
+    const syncCount = () => {
+      const len = messageEl.value.length;
+      countEl.textContent = `${len} / ${maxLen}`;
+      countEl.classList.toggle('is-near-limit', len >= Math.floor(maxLen * 0.9) && len < maxLen);
+      countEl.classList.toggle('is-at-limit', len >= maxLen);
+    };
+
+    syncCount();
+    messageEl.addEventListener('input', syncCount);
+    if (form) {
+      form.addEventListener('reset', () => setTimeout(syncCount, 0));
+      messageEl.addEventListener('keydown', (e) => {
+        if (e.isComposing) return;
+        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+          e.preventDefault();
+          form.requestSubmit();
+        }
+      });
+    }
+  }
+}
+
+/**
  * 8. Discord Community Waitlist Email Subscription
  */
 function initDiscordWaitlist() {
@@ -784,13 +1271,9 @@ function initDiscordWaitlist() {
     const endpoint = resolveFormEndpoint('WAITLIST_ENDPOINT');
     const contactEmail = (typeof CONFIG !== 'undefined' && CONFIG.CONTACT_EMAIL) ? CONFIG.CONTACT_EMAIL : 'refined.mov@gmail.com';
     if (!endpoint) {
-      showFormFeedback(
-        status,
-        `Waitlist endpoint is not connected yet. Please email ${contactEmail} directly to request early access.`,
-        true,
-        timerState,
-        0
-      );
+      const fallbackMsg = `Waitlist endpoint is not connected yet. Please email ${contactEmail} directly to request early access.`;
+      showFormFeedback(status, fallbackMsg, true, timerState, 0);
+      showToast(fallbackMsg, 'error', { duration: 6500 });
       return;
     }
 
@@ -805,13 +1288,10 @@ function initDiscordWaitlist() {
         _website: honeypot,
       });
 
+      const okMsg = (data && data.message) || "You're on the list! We'll email your invite as soon as Discord goes live.";
       form.reset();
-      showFormFeedback(
-        status,
-        (data && data.message) || "You're on the list! We'll email your invite as soon as Discord goes live.",
-        false,
-        timerState
-      );
+      showFormFeedback(status, okMsg, false, timerState);
+      showToast(okMsg, 'success');
     } catch (err) {
       const msg = (err && err.name === 'AbortError')
         ? 'Request timed out. Please try again.'
@@ -819,6 +1299,7 @@ function initDiscordWaitlist() {
           ? err.message
           : `Unable to register right now. Please try again or email ${contactEmail}.`;
       showFormFeedback(status, msg, true, timerState, 0);
+      showToast(msg, 'error', { duration: 6500 });
     } finally {
       setSubmitBusy(submitBtn, false);
     }
@@ -862,13 +1343,9 @@ function initContactForm() {
     if (!endpoint) {
       const mailtoLink = `mailto:${encodeURIComponent(recipient)}?subject=${encodeURIComponent(`[VYRN] ${topic} from ${name}`)}&body=${encodeURIComponent(`Name: ${name}\nEmail: ${email}\nTopic: ${topic}\n\nMessage:\n${message}`)}`;
       window.location.href = mailtoLink;
-      showFormFeedback(
-        status,
-        `Opening your email app for ${recipient} (direct web delivery endpoint not configured yet).`,
-        false,
-        timerState,
-        9000
-      );
+      const mailMsg = `Opening your email app for ${recipient} (direct web delivery endpoint not configured yet).`;
+      showFormFeedback(status, mailMsg, false, timerState, 9000);
+      showToast(`Opening email draft to ${recipient}.`, 'info');
       return;
     }
 
@@ -886,18 +1363,16 @@ function initContactForm() {
         _website: honeypot,
       });
 
+      const okMsg = (data && data.message) || "Message sent! Thank you for reaching out — I'll reply to you shortly.";
       form.reset();
-      showFormFeedback(
-        status,
-        (data && data.message) || "Message sent! Thank you for reaching out — I'll reply to you shortly.",
-        false,
-        timerState
-      );
+      showFormFeedback(status, okMsg, false, timerState);
+      showToast(okMsg, 'success');
     } catch (err) {
       const msg = (err && err.name === 'AbortError')
         ? `Request timed out. Please try again or email ${recipient} directly.`
         : `Unable to send automatically right now. Please try again or email ${recipient} directly.`;
       showFormFeedback(status, msg, true, timerState, 0);
+      showToast(msg, 'error', { duration: 6500 });
     } finally {
       setSubmitBusy(submitBtn, false);
     }
@@ -1126,6 +1601,7 @@ function initProjectsLiquidGlass() {
   const startTime = performance.now();
   let lastFrameTime = 0;
   const TARGET_FRAME_MS = 16.0;
+  const syncStaticGlState = createGlStaticSync(gl, canvas, uniforms, uniforms.texture, texture);
 
   const render = (timestamp) => {
     if (!isVisible || document.hidden) return;
@@ -1149,19 +1625,12 @@ function initProjectsLiquidGlass() {
     targetMouseVel[0] *= 0.88;
     targetMouseVel[1] *= 0.88;
 
-    gl.viewport(0, 0, canvas.width, canvas.height);
+    syncStaticGlState();
     gl.clear(gl.COLOR_BUFFER_BIT);
 
-    const isMobileDevice = window.innerWidth <= 768 || ('ontouchstart' in window);
-    gl.uniform1f(uniforms.isMobile, isMobileDevice ? 1.0 : 0.0);
-    gl.uniform3f(uniforms.resolution, canvas.width, canvas.height, 1.0);
     gl.uniform1f(uniforms.time, currentTime);
     gl.uniform4f(uniforms.mouse, currentMouse[0], currentMouse[1], 0, 0);
     gl.uniform2f(uniforms.mouseVel, currentMouseVel[0], currentMouseVel[1]);
-
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, texture);
-    gl.uniform1i(uniforms.texture, 0);
 
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     if (!reducedMotionQuery.matches) {
@@ -1183,13 +1652,21 @@ function initProjectsLiquidGlass() {
   }, { threshold: 0.05 });
   observer.observe(block);
 
-  // Pause immediately when content-visibility: auto skips the parent subtree
+  // Pause immediately when content-visibility: auto skips the parent subtree, and resume cleanly when visible
   const projectsSection = document.getElementById('projects');
   if (projectsSection) {
     projectsSection.addEventListener('contentvisibilityautostatechange', (e) => {
       if (e.skipped) {
         isVisible = false;
         cancelAnimationFrame(animFrameId);
+      } else if (!reducedMotionQuery.matches && !document.hidden) {
+        const rect = block.getBoundingClientRect();
+        if (rect.bottom > 0 && rect.top < window.innerHeight) {
+          isVisible = true;
+          lastFrameTime = 0;
+          cancelAnimationFrame(animFrameId);
+          animFrameId = requestAnimationFrame(render);
+        }
       }
     });
   }
@@ -1410,6 +1887,20 @@ function initHeroWatercolorText() {
   const startTime = performance.now();
   let lastHeroFrameTime = 0;
   const TARGET_FRAME_MS = 16.0;
+  let isSwarmBooting = document.documentElement.classList.contains('swarm-booting');
+  const syncHeroGlStaticState = createGlStaticSync(gl, canvas, uniforms, uniforms.textMask, maskTexture);
+  gl.clearColor(0.0, 0.0, 0.0, 0.0);
+
+  if (isSwarmBooting) {
+    window.addEventListener('vyrn:swarm-complete', () => {
+      isSwarmBooting = false;
+      lastHeroFrameTime = 0;
+      if (isVisible && !document.hidden && !reducedMotionQuery.matches) {
+        cancelAnimationFrame(animFrameId);
+        animFrameId = requestAnimationFrame(render);
+      }
+    }, { once: true });
+  }
 
   const render = (timestamp) => {
     if (!isVisible || document.hidden) return;
@@ -1422,21 +1913,13 @@ function initHeroWatercolorText() {
 
     const currentTime = (lastHeroFrameTime - startTime) / 1000;
 
-    gl.viewport(0, 0, canvas.width, canvas.height);
-    gl.clearColor(0.0, 0.0, 0.0, 0.0);
+    syncHeroGlStaticState();
     gl.clear(gl.COLOR_BUFFER_BIT);
 
-    const isMobileDevice = window.innerWidth <= 768 || ('ontouchstart' in window);
-    gl.uniform1f(uniforms.isMobile, isMobileDevice ? 1.0 : 0.0);
-    gl.uniform3f(uniforms.resolution, canvas.width, canvas.height, 1.0);
     gl.uniform1f(uniforms.time, currentTime);
 
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, maskTexture);
-    gl.uniform1i(uniforms.textMask, 0);
-
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-    if (!reducedMotionQuery.matches) {
+    if (!reducedMotionQuery.matches && !isSwarmBooting) {
       animFrameId = requestAnimationFrame(render);
     }
   };
@@ -1544,13 +2027,17 @@ function initHeroRefractionStage() {
     });
   }
 
+  let heroStageDesktop = window.innerWidth > 640;
+
   stage.addEventListener('mouseenter', updateRect, { passive: true });
 
   stage.addEventListener('mousemove', (e) => {
-    if (window.innerWidth <= 640 || reducedMotionQuery.matches) return;
+    if (!heroStageDesktop || reducedMotionQuery.matches) return;
     if (!stageRect) updateRect();
-    targetX = Math.max(-1, Math.min(1, (e.clientX - (stageRect.left + stageRect.width / 2)) / (stageRect.width / 2)));
-    targetY = Math.max(-1, Math.min(1, (e.clientY - (stageRect.top + stageRect.height / 2)) / (stageRect.height / 2)));
+    const halfW = stageRect.width * 0.5 || 1;
+    const halfH = stageRect.height * 0.5 || 1;
+    targetX = Math.max(-1, Math.min(1, (e.clientX - (stageRect.left + halfW)) / halfW));
+    targetY = Math.max(-1, Math.min(1, (e.clientY - (stageRect.top + halfH)) / halfH));
     scheduleStep();
   }, { passive: true });
 
@@ -1558,7 +2045,8 @@ function initHeroRefractionStage() {
 
   window.addEventListener('resize', () => {
     updateRect();
-    if (window.innerWidth <= 640 || reducedMotionQuery.matches) {
+    heroStageDesktop = window.innerWidth > 640;
+    if (!heroStageDesktop || reducedMotionQuery.matches) {
       resetPills();
     }
   }, { passive: true });
