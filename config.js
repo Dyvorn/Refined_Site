@@ -29,7 +29,7 @@ const CONFIG = {
 
     // Unified Free Backend Endpoint (e.g. deployed Google Apps Script Web App URL from apps-script/Code.gs)
     // Powers BOTH Get in Touch email delivery AND the Discord Launch Waitlist Google Sheets database.
-    BACKEND_ENDPOINT: '',
+    BACKEND_ENDPOINT: 'https://script.google.com/macros/s/AKfycbwLq9eIxo9xxUA__ZyoVRhTxNhBE8W3fG3Wm3qiQ0UTMNIR3PAbeARgKGv0oK70Keg-OQ/exec',
 
     // Optional separate overrides (only needed if using two different providers, e.g. Formspree / Brevo / Worker)
     CONTACT_ENDPOINT: '',
